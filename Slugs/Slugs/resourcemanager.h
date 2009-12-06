@@ -12,7 +12,7 @@ using namespace stdext;
 
 #include "singleton.h"
 #include "defs.h"
-#include "resources.h"
+#include "resource.h"
 
 class ResourceManager : public Singleton<ResourceManager>
 {

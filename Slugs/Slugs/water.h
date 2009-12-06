@@ -6,7 +6,7 @@ using namespace std;
 #include <sfml/graphics.hpp>
 
 #include "vector2.h"
-#include "resources.h"
+#include "resource.h"
 #include "random.h"
 #include "fastmath.h"
 #include "renderer.h"

@@ -4,7 +4,7 @@
 #include <iostream>
 
 #include "defs.h"
-#include "resources.h"
+#include "resource.h"
 
 using namespace std;
 

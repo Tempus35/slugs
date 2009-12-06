@@ -24,9 +24,8 @@ cSlugs::cSlugs() {
 
 cSlugs::~cSlugs() {
 
-	// +PB
 	Shutdown();
-	//----
+
 }
 
 void cSlugs::UpdateFPS(float elapsedTime)
@@ -330,7 +329,6 @@ bool cSlugs::bInput(sf::Event *myEvent) {
 				
 			GameObject* selectedObject = World::Get()->SelectedObject();
 
-			// +PB
 			if (myEvent->Type == sf::Event::KeyPressed)
 			{
 
@@ -479,8 +477,6 @@ bool cSlugs::bInput(sf::Event *myEvent) {
 				}
 
 			}
-			
-			// -PB
 
 			break;
 	}
@@ -567,7 +563,6 @@ bool cSlugs::bInit()
 		bFullscreen = true;
 	}
 
-	// +PB
 	// Initialize resource manager and world, load test textures
 	ResourceManager* resourceManager = ResourceManager::Get();
 
@@ -655,7 +650,6 @@ void cSlugs::Shutdown()
 	ResourceManager::Get()->Destroy();
 
 }
-// -PB
 
 void cSlugs::Clear() {
 		 

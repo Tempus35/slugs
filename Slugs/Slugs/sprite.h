@@ -1,6 +1,6 @@
 #pragma once
 
-#include "resources.h"
+#include "imageresource.h"
 #include "vector2.h"
 #include "color.h"
 

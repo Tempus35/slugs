@@ -28,7 +28,6 @@ public:
 	void Clear();
 	bool bInput(sf::Event *myEvent);
 
-	// +PB
 	void UpdateScene(float elapsedTime);
 	void InitLevelTest();
 	void Shutdown();

@@ -2,7 +2,7 @@
 
 #include <SFML/graphics.hpp>
 
-#include "resources.h"
+#include "imageresource.h"
 #include "vector2.h"
 
 class Particle

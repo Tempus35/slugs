@@ -3,7 +3,7 @@
 #include <SFML/graphics.hpp>
 
 #include "particlesystem.h"
-#include "resources.h"
+#include "imageresource.h"
 #include "random.h"
 #include "world.h"
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "resources.h"
+#include "resource.h"
 #include "sprite.h"
 
 #define ANIMATION_DEFAULT_FPS 10

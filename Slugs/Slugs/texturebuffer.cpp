@@ -1,5 +1,3 @@
-// -PB
-
 #include "texturebuffer.h"
 
 /*

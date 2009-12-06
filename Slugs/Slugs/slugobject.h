@@ -1,5 +1,3 @@
-// +PB
-
 #pragma once
 
 #define SLUGOBJECT_MAX_NAME_CHARS 25

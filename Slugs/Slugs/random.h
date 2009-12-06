@@ -1,5 +1,3 @@
-// +PB
-
 #pragma once
 
 #include <stdlib.h>

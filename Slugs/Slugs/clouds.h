@@ -3,7 +3,7 @@
 #include <vector>
 #include <sfml/graphics.hpp>
 
-#include "resources.h"
+#include "resource.h"
 #include "random.h"
 #include "renderer.h"
 

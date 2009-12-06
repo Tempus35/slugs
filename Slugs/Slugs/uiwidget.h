@@ -1,10 +1,12 @@
 #pragma once
 
-class UIObject
+class UIWidget
 {
 
 protected:
 
 public:
+
+	
 
 };
