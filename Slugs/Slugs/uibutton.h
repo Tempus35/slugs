@@ -1,8 +1,8 @@
 #pragma once
 
-#include "uiobject.h"
+#include "uiwidget.h"
 
-class UIButton : public UIObject
+class UIButton : public UIWidget
 {
 
 protected:
