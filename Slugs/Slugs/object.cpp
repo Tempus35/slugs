@@ -163,9 +163,14 @@ ObjectType Object::GetType() const
 void Object::AdjustHitpoints(int change)
 {
 
-	hps += change;
+	if (!invulnerable)
+	{
 
-	if (hps <= 0)
-		Die();
+		hps += change;
+
+		if (hps <= 0)
+			Die();
+
+	}
 
 }

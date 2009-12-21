@@ -33,7 +33,7 @@ public:
 	//
 	// Simulation
 	//
-	virtual bool Update(float elapsedTime, Terrain* terrain, Vector2 gravity, Vector2 wind);
+	virtual bool Update(float elapsedTime, Terrain* terrain, Vector2& gravity, Vector2& wind);
 	virtual void Moved() {};
 
 	//

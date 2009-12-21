@@ -22,7 +22,7 @@ Projectile::Projectile(Object* creator) : Object(ObjectType_Projectile)
 
 }
 
-bool Projectile::Update(float elapsedTime, Terrain* terrain, const Vector2& gravity, const Vector2& wind)
+bool Projectile::Update(float elapsedTime, Terrain* terrain, Vector2& gravity, Vector2& wind)
 {
 
 	if (timer > 0.0f)

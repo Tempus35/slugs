@@ -20,12 +20,16 @@ Slug::Slug() : Object(ObjectType_Slug)
 
 }
 
-bool Slug::Update(float elapsedTime, Terrain* terrain, const Vector2& gravity, const Vector2& wind)
+Slug::~Slug()
 {
 
-	//
-	// AI
-	//
+	if (ownsWeaponStore)
+		SafeDelete(weaponStore);
+
+}
+
+bool Slug::Update(float elapsedTime, Terrain* terrain, Vector2& gravity, Vector2& wind)
+{
 
 	bool moved = false;
 
@@ -65,7 +69,7 @@ bool Slug::Update(float elapsedTime, Terrain* terrain, const Vector2& gravity, c
 				direction = -1;
 
 			int pix = (int)position.x + direction;
-			int piy = -((int)position.y + radius);
+			int piy = -((int)position.y + radius + 1);
 
 			if (terrain->PointCollision(pix, piy))
 			{
@@ -102,6 +106,9 @@ bool Slug::Update(float elapsedTime, Terrain* terrain, const Vector2& gravity, c
 				{
 
 					piy --;
+
+					if (piy == 0)
+						break;
 
 				}
 
@@ -263,7 +270,7 @@ void Slug::Fire()
 		// Fire the current weapon
 		//
 
-		bool fired;
+		bool fired = false;
 
 		if (currentWeapon)
 			fired = currentWeapon->Fire(this);
@@ -328,6 +335,7 @@ void Slug::SpawnGravestone() const
 
 		// Set to the current position
 		gravestone->SetPosition(position);
+		gravestone->SetRadius(8);
 
 		// Add the gravestone to the world
 		World::Get()->AddCreatedObject(gravestone);
@@ -344,9 +352,10 @@ void Slug::ArmSelf()
 
 }
 
-void Slug::SetWeapons(WeaponStore* store)
+void Slug::SetWeapons(WeaponStore* store, bool slugOwns)
 {
 
+	ownsWeaponStore = slugOwns;
 	weaponStore = store;
 
 	if (currentWeapon)

@@ -53,7 +53,7 @@ struct Vector2
 
 	}
 
-	Vector2& operator += (Vector2& v)
+	Vector2& operator += (const Vector2& v)
 	{
 
 		x += v.x;
@@ -63,7 +63,7 @@ struct Vector2
 
 	}
 
-	Vector2& operator -= (Vector2& v)
+	Vector2& operator -= (const Vector2& v)
 	{
 
 		x -= v.x;
@@ -73,7 +73,7 @@ struct Vector2
 
 	}
 
-	Vector2 operator + (Vector2& v)
+	Vector2 operator + (const Vector2& v)
 	{
 
 		Vector2 result = *this;
@@ -83,7 +83,7 @@ struct Vector2
 
 	}
 
-	Vector2 operator - (Vector2& v)
+	Vector2 operator - (const Vector2& v)
 	{
 
 		Vector2 result = *this;
@@ -132,21 +132,21 @@ struct Vector2
 
 };
 
-static inline float VectorDot(Vector2& a, Vector2& b)
+static inline float VectorDot(const Vector2& a, const Vector2& b)
 {
 
 	return a.x * b.x + a.y * b.y;
 
 }
 
-static inline float VectorLength(Vector2& v)
+static inline float VectorLength(const Vector2& v)
 {
 
 	return sqrtf(v.x * v.x + v.y * v.y);
 
 }
 
-static inline float VectorLengthSquared(Vector2& v)
+static inline float VectorLengthSquared(const Vector2& v)
 {
 
 	return VectorDot(v, v);

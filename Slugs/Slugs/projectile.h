@@ -34,7 +34,7 @@ protected:
 public:
 
 	// Updates the projectile based on delta time
-	virtual bool Update(float elapsedTime, Terrain* terrain, const Vector2& gravity, const Vector2& wind);
+	virtual bool Update(float elapsedTime, Terrain* terrain, Vector2& gravity, Vector2& wind);
 
 	// Fired when the detonation timer runs out
 	virtual void OnDetonationTimer(Terrain* terrain);

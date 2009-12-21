@@ -48,6 +48,7 @@ private:
 
 	Weapon*			currentWeapon;									// Pointer to the currently selected weapon
 	WeaponStore*	weaponStore;									// Pointer to the weapon store for this slug
+	bool			ownsWeaponStore;								// Does this slug own the weapon store instance?
 	float			power;											// Shot power 0 <= x <= 1
 	bool			charging;										// Currently charging a shot?
 
@@ -58,8 +59,9 @@ private:
 public:
 
 	Slug();
+	~Slug();
 
-	virtual bool Update(float elapsedTime, Terrain* terrain, const Vector2& gravity, const Vector2& wind);
+	virtual bool Update(float elapsedTime, Terrain* terrain, Vector2& gravity, Vector2& wind);
 	void StartMovingLeft();
 	void StartMovingRight();
 	void StopMoving();
@@ -98,7 +100,7 @@ public:
 	void ArmSelf();
 	
 	// Sets the weapons store available to the slug
-	void SetWeapons(WeaponStore* store);
+	void SetWeapons(WeaponStore* store, bool slugOwns = false);
 
 	// Gets the team to which the slug is assigned
 	Team* GetTeam() const;

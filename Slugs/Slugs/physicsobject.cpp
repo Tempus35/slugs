@@ -26,7 +26,7 @@ PhysicsObject::~PhysicsObject()
 // Simulation
 //
 
-bool PhysicsObject::Update(float elapsedTime, Terrain* terrain, Vector2 gravity, Vector2 wind)
+bool PhysicsObject::Update(float elapsedTime, Terrain* terrain, Vector2& gravity, Vector2& wind)
 {
 
 	if (!atRest)

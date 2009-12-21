@@ -86,3 +86,17 @@ static inline float copysign(float from, float to)
 	return from < 0 ? to < 0 ? to : -to : to >= 0 ? to : -to;  
 
 }
+
+static inline float Max(float a, float b)
+{
+
+	return a > b ? a : b;
+
+}
+
+static inline float Min(float a, float b)
+{
+
+	return a > b ? a : b;
+
+}

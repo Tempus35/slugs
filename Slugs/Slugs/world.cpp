@@ -124,7 +124,7 @@ void World::Update(float elapsedTime)
 				//
 
 				Vector2 collisionPos;
-				if (terrain->SquareCollisionIterated((int)lastPos.x, -(int)lastPos.y, (int)pos.x, -(int)pos.y, 15, 15, &collisionPos))
+				if (terrain->SquareCollisionIterated((int)lastPos.x, -(int)lastPos.y, (int)pos.x, -(int)pos.y, 2 * obj->GetRadius(), 2 * obj->GetRadius(), &collisionPos))
 				{
 
 					obj->SetPosition(collisionPos.x, -collisionPos.y);
@@ -147,6 +147,9 @@ void World::Update(float elapsedTime)
 		}
 		else
 		{
+
+			if (selectedObject == *i)
+				selectedObject = NULL;
 
 			delete *i;
 			i = objects.erase(i);

@@ -399,21 +399,15 @@ bool cSlugs::bInput(sf::Event *myEvent) {
 				else if (myEvent->MouseButton.Button == sf::Mouse::Middle)
 				{
 
-					/*
 					Slug* slug = new Slug();
 					ImageResource* r = (ImageResource*)ResourceManager::Get()->GetResource("image_gravestone");
 					slug->SetImage(r);
 					slug->SetPosition(World::Get()->ToWorldCoordinates(cam, iScreenWidth, iScreenHeight, myEvent->MouseButton.X, myEvent->MouseButton.Y));
 					slug->SetVelocity(0, 200);
 					slug->SetRadius(8);
+					slug->SetWeapons(new WeaponStore(true), true);
+					slug->ArmSelf();
 					World::Get()->AddObject(slug);
-					*/
-
-					Gravestone* gravestone = new Gravestone((ImageResource*)ResourceManager::Get()->GetResource("image_gravestone"));
-					gravestone->SetPosition(World::Get()->ToWorldCoordinates(cam, iScreenWidth, iScreenHeight, myEvent->MouseButton.X, myEvent->MouseButton.Y));
-					gravestone->SetVelocity(0, 200);
-					gravestone->SetRadius(8);
-					World::Get()->AddObject(gravestone);
 
 				}
 				else
