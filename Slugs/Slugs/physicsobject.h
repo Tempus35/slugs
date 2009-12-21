@@ -40,9 +40,9 @@ public:
 	// Accessors
 	//
 
-	Vector2 Position();
-	Vector2 Velocity();
-	Vector2 Acceleration();
+	Vector2 GetPosition();
+	Vector2 GetVelocity();
+	Vector2 GetAcceleration();
 	bool IsAtRest();
 	bool IsAffectedByGravity();
 	bool IsAffectedByWind();

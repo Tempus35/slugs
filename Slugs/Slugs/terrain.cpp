@@ -1153,6 +1153,142 @@ bool Terrain::PointCollision(int x, int y)
 
 }
 
+bool Terrain::RowCollision(int centerX, int centerY, int width, int height, bool above)
+{
+
+	//
+	// Calculate row y
+	//
+
+	int halfHeight = height / 2;
+	int testY;
+	
+	if (above)
+	{
+
+		testY = centerY - halfHeight;
+
+		if (testY < 0)
+			return false;
+
+	}
+	else
+	{
+
+		testY = centerY + halfHeight;
+
+		if (testY >= textureBuffer->Height())
+			return false;
+
+	}
+
+	//
+	// Calculate x bounds
+	//
+
+	int halfWidth = width / 2;
+	int xMin = centerX - halfWidth;
+	int xMax = centerX + halfWidth;
+
+	if (xMin < 0)
+		xMin = 0;
+
+	if (xMax >= textureBuffer->Width())
+		xMax = textureBuffer->Width() - 1;
+
+	if (xMin > xMax)
+		return false;
+
+	//
+	// Test for collisions
+	//
+
+	int x = xMin;
+	Color* ptr = (Color*)textureBuffer->Data(x, testY);
+
+	while (x != xMax)
+	{
+
+		if (ptr->a != TERRAINALPHA_EMPTY)
+			return true;
+
+		ptr++;
+		x ++;
+
+	}
+
+	return false;
+
+}
+
+bool Terrain::ColumnCollision(int centerX, int centerY, int width, int height, bool right)
+{
+
+	//
+	// Calculate column x
+	//
+
+	int halfWidth = width / 2;
+	int testX;
+	
+	if (right)
+	{
+
+		testX = centerX + halfWidth;
+
+		if (testX >= textureBuffer->Height())
+			return false;
+
+	}
+	else
+	{
+
+		testX = centerX - halfWidth;
+
+		if (testX < 0)
+			return false;
+
+	}
+
+	//
+	// Calculate y bounds
+	//
+
+	int halfHeight = height / 2;
+	int yMin = centerY - halfHeight;
+	int yMax = centerY + halfHeight;
+
+	if (yMin < 0)
+		yMin = 0;
+
+	if (yMax >= textureBuffer->Height())
+		yMax = textureBuffer->Height() - 1;
+
+	if (yMin > yMax)
+		return false;
+
+	//
+	// Test for collisions
+	//
+
+	int y = yMin;
+	Color* ptr = (Color*)textureBuffer->Data(testX, y);
+
+	while (y != yMax)
+	{
+
+		if (ptr->a != TERRAINALPHA_EMPTY)
+			return true;
+
+		ptr += textureBuffer->Width();
+		y ++;
+
+	}
+
+	return false;
+
+}
+
 bool Terrain::SquareCollision(int centerX, int centerY, int width, int height)
 {
 
@@ -1202,7 +1338,266 @@ bool Terrain::SquareCollision(int centerX, int centerY, int width, int height)
 bool Terrain::SquareCollisionIterated(int fromX, int fromY, int toX, int toY, int width, int height, Vector2* collisionPosition)
 {
 
-	return SquareCollision(toX, toY, width, height);
+	bool initialTest = true;
+
+	float dx = (float)(toX - fromX);
+	float dy = (float)(toY - fromY);
+
+	//
+	// If our positions are the same we can just test the current bounds
+	//
+
+	if ((dx == 0) && (dy == 0))
+	{
+
+		if (SquareCollision(fromX, fromY, width, height))
+		{
+
+			collisionPosition->x = (float)fromX;
+			collisionPosition->y = (float)fromY;
+			
+			return true;
+
+		}
+
+		return false;
+
+	}
+
+	//
+	// We need to iterate over the entire path of the object since the last frame
+	//
+
+	bool collision = false;
+
+	if (fastfabs(dx) > fastfabs(dy))
+	{
+
+		//
+		// X Major
+		//
+
+		float slope;
+		
+		if (dx != 0)
+			slope = dy / dx;
+		else
+			slope = 0.0f;
+
+		int d = toX > fromX ? 1 : -1;
+		float y = (float)fromY;
+		int iy, lastY = fromY;
+
+		for (int x = fromX; x != toX + d; x += d)
+		{
+
+			if (!initialTest)
+			{
+
+				//
+				// Test the difference
+				//
+
+				iy = (int)y;
+
+				if (iy != lastY)
+				{
+
+					if (slope > 0.0f)
+					{
+
+						// Row above
+						if (RowCollision(x, iy, width, height, true))
+							collision = true;
+
+					}
+					else
+					{
+
+						// Row below
+						if (RowCollision(x, iy, width, height, false))
+							collision = true;
+
+					}
+
+				}
+
+				lastY = iy;
+
+				if (!collision)
+				{
+
+					if (d > 0)
+					{
+
+						// Column right
+						if (ColumnCollision(x, iy, width, height, true))
+							collision = true;
+
+					}
+					else
+					{
+
+						// Column left
+						if (ColumnCollision(x, iy, width, height, false))
+							collision = true;
+
+					}
+
+				}
+
+				if (collision)
+				{
+
+					collisionPosition->x = (float)x;
+					collisionPosition->y = y;
+
+					return true;
+
+				}
+
+			}
+			else
+			{
+
+				//
+				// Test the area at the initial position
+				//
+
+				if (SquareCollision(fromX, fromY, width, height))
+				{
+
+					collisionPosition->x = (float)fromX;
+					collisionPosition->y = (float)fromY;
+
+					return true;
+
+				}
+
+				initialTest = false;
+
+			}
+
+			y += slope;
+
+		}
+
+	}
+	else
+	{
+
+		//
+		// Y Major
+		//
+
+		float slope;
+		
+		if (dy != 0)
+			slope = dx / dy;
+		else
+			slope = 0.0f;
+
+		int d = toY > fromY ? 1 : -1;
+		float x = (float)fromX;
+		int ix, lastX = fromX;
+
+		for (int y = fromY; y != toY + d; y += d)
+		{
+
+			if (!initialTest)
+			{
+
+				//
+				// Test the difference
+				//
+
+				ix = (int)x;
+
+				if (ix != lastX)
+				{
+
+					if (slope > 0.0f)
+					{
+
+						// Column right
+						if (ColumnCollision(ix, y, width, height, true))
+							collision = true;
+
+					}
+					else
+					{
+
+						// Column left
+						if (ColumnCollision(ix, y, width, height, false))
+							collision = true;
+
+					}
+
+				}
+
+				lastX = ix;
+
+				if (!collision)
+				{
+
+					if (d > 0)
+					{
+
+						// Row below
+						if (RowCollision(ix, y, width, height, false))
+							collision = true;
+
+					}
+					else
+					{
+
+						// Row above
+						if (RowCollision(ix, y, width, height, true))
+							collision = true;
+
+					}
+
+				}
+
+				if (collision)
+				{
+
+					collisionPosition->x = x;
+					collisionPosition->y = (float)y;
+
+					return true;
+
+				}
+
+			}
+			else
+			{
+
+				//
+				// Test the area at the initial position
+				//
+
+				if (SquareCollision(fromX, fromY, width, height))
+				{
+
+					collisionPosition->x = (float)fromX;
+					collisionPosition->y = (float)fromY;
+
+					return true;
+
+				}
+
+				initialTest = false;
+
+			}
+
+			x += slope;
+
+		}
+
+	}
+
+	return false;
 
 }
 

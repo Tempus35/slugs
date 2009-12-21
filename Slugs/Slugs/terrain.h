@@ -203,6 +203,8 @@ public:
 	//
 
 	bool PointCollision(int x, int y);
+	bool RowCollision(int centerX, int centerY, int width, int height, bool above);
+	bool ColumnCollision(int centerX, int centerY, int width, int height, bool right);
 	bool SquareCollision(int centerX, int centerY, int width, int height);
 	bool SquareCollisionIterated(int fromX, int fromY, int toX, int toY, int width, int height, Vector2* collisionPosition);
 	bool LineCollision(int x0, int y0, int x1, int y1, Vector2* collisionPosition);

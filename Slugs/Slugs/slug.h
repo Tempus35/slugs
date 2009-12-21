@@ -6,6 +6,7 @@
 #include "weaponstore.h"
 #include "projectile.h"
 #include "weapon.h"
+#include "gravestone.h"
 
 enum FaceDirection
 {
@@ -43,7 +44,7 @@ private:
 
 	int				movementDirection;
 	FaceDirection	facingDirection;								
-	float			viewAngle;										// View/aiming angle, -PI/2 <= x <= PI/2
+	float			aimAngle;										// View/aiming angle, -PI/2 <= x <= PI/2
 
 	Weapon*			currentWeapon;									// Pointer to the currently selected weapon
 	WeaponStore*	weaponStore;									// Pointer to the weapon store for this slug
@@ -81,11 +82,17 @@ public:
 	// Causes the slug to explode
 	void Explode();
 
-	// Gets the current aim angle
-	float ViewAngle();
+	// Spawns a gravestone at the current position
+	void SpawnGravestone() const;
 
-	// Gets the current facing directioon
-	FaceDirection FacingDirection();
+	// Gets the current facing direction
+	FaceDirection GetFacingDirection() const;
+
+	// Gets the current aim angle
+	float GetAimAngle() const;
+
+	// Gets the current charge level
+	float GetPower() const;
 
 	// Arms the slug with the first available weapon in its weapon store
 	void ArmSelf();

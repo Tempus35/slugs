@@ -17,6 +17,7 @@ class TextureBuffer : public Resource
 {
 
 private:
+
 	int width, height;
 	int channels;
 	byte* data;

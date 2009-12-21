@@ -1,3 +1,10 @@
+//---------------------------------------------------------------
+//
+// Slugs
+// weaponstore.h
+//
+//---------------------------------------------------------------
+
 #pragma once
 
 #include <vector>
@@ -22,7 +29,7 @@ private:
 public:
 
 	// Initialization
-	WeaponStore();
+	WeaponStore(bool debug = false);
 	~WeaponStore();
 
 	// Adds a weapon to the store
@@ -30,7 +37,7 @@ public:
 	void Add(Weapon* weapon);
 
 	// Gets the first weapon that has ammo from the store
-	Weapon* Get();
+	Weapon* Get() const;
 
 	// Gets a weapon from the store
 	Weapon* Get(WeaponType type, bool getEmptyWeapons = true) const;

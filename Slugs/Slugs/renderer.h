@@ -26,7 +26,7 @@ public:
 	void Clear(Color& color);
 	void Present();
 
-	void Render(Sprite& sprite);
+	void Render(const Sprite& sprite);
 
 	sf::RenderWindow& GetWindow();
 	void SetIcon(sf::Image& icon);

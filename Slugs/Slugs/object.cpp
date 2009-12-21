@@ -4,11 +4,14 @@
 // Initialization
 //
 
-Object::Object()
+Object::Object(ObjectType t)
 {
+
+	type = t;
 
 	alive = true;
 	hps = 1;
+	invulnerable = false;
 
 }
 
@@ -45,6 +48,15 @@ void Object::SetPosition(Vector2 v)
 {
 	
 	PhysicsObject::SetPosition(v);
+
+	Moved();
+
+}
+
+void Object::SetPosition(float x, float y)
+{
+	
+	PhysicsObject::SetPosition(x, y);
 
 	Moved();
 
@@ -99,7 +111,7 @@ void Object::Deselect()
 
 }
 
-bool Object::Contains(int x, int y)
+bool Object::Contains(int x, int y) const
 {
 
 	int dx = x - (int)position.x;
@@ -112,35 +124,35 @@ bool Object::Contains(int x, int y)
 
 }
 
-bool Object::IsAlive()
+bool Object::IsAlive() const
 {
 
 	return alive;
 
 }
 
-int Object::HitPoints()
+int Object::GetHitPoints() const
 {
 
 	return hps;
 
 }
 
-Sprite& Object::Sprite()
+const Sprite& Object::GetSprite() const
 {
 
 	return sprite;
 
 }
 
-int Object::Radius()
+int Object::GetRadius() const
 {
 
 	return radius;
 
 }
 
-ObjectType Object::Type()
+ObjectType Object::GetType() const
 {
 
 	return type;

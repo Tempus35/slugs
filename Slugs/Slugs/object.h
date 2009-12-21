@@ -8,47 +8,58 @@
 #include "sprite.h"
 
 /*
-	enum ObjectType
+	Enumeration of all object types
 */
 
 enum ObjectType
 {
 
-	OBJECTTYPE_UNKNOWN,
-	OBJECTTYPE_SLUG,
+	ObjectType_Unknown,
+	ObjectType_Slug,
+	ObjectType_Projectile,
+	ObjectType_Gravestone,
 
 };
 
 /*
 	class Object
+	Base class for all game objects. An object is something that is physically present in the world.
 */
 
 class Object : public PhysicsObject
 {
 
+private:
+
+	ObjectType				type;			// Object type
+
 protected:
 
-	ObjectType					type;		// Object type
-	std::string						name;		// Object name
+	std::string				name;			// Object name
 
-	bool							alive;		// Is this object alive (dead objects are removed by the world)
-	int								hps;		// Hit points
+	bool					alive;			// Is this object alive (dead objects are removed by the world)
+	int						hps;			// Hit points
+	bool					invulnerable;	// Is this object immune to harm
 
-	Sprite sprite;								// Sprite instance for the object
+	Sprite					sprite;			// Sprite instance for the object
 
-	int radius;									// Collision radius
+	int						radius;			// Collision radius
 
-	bool selected;								// Is this object currently selected
+	bool					selected;		// Is this object currently selected
+
+protected:
+
+	// Constructor
+	Object(ObjectType t);
 
 public:
 
+	// Debug marker
 	Sprite marker;
 
-	//
-	// Initialization
-	//
+public:
 
-	Object();
+	// Initialization
 	~Object();
 
 	// Name accessors
@@ -61,6 +72,7 @@ public:
 
 	virtual void SetImage(ImageResource* image);
 	virtual void SetPosition(Vector2 newPosition);
+	void SetPosition(float x, float y);
 	virtual void SetHitpoints(int newHitpoints);
 	virtual void SetRadius(int newRadius);
 
@@ -68,11 +80,11 @@ public:
 	// Simulation
 	//
 	virtual void Moved();
-	virtual void Die();						// Kills the object
+	virtual void Die();						
 
 	void Select();
 	void Deselect();
-	bool Contains(int x, int y);
+	bool Contains(int x, int y) const;
 
 	virtual void StartMovingLeft() {};
 	virtual void StartMovingRight() {};
@@ -91,11 +103,11 @@ public:
 	// Accessors
 	//
 
-	bool IsAlive();
-	int HitPoints();
-	Sprite& Sprite();
-	int Radius();
-	ObjectType Type();
+	bool IsAlive() const;
+	int GetHitPoints() const;
+	const Sprite& GetSprite() const;
+	int GetRadius() const;
+	ObjectType GetType() const;
 
 	void AdjustHitpoints(int change);
 

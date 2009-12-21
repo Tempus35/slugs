@@ -219,6 +219,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\gravestone.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\object.cpp"
 					>
 				</File>
@@ -454,6 +458,10 @@
 				</File>
 				<File
 					RelativePath=".\game.h"
+					>
+				</File>
+				<File
+					RelativePath=".\gravestone.h"
 					>
 				</File>
 				<File

@@ -399,6 +399,7 @@ bool cSlugs::bInput(sf::Event *myEvent) {
 				else if (myEvent->MouseButton.Button == sf::Mouse::Middle)
 				{
 
+					/*
 					Slug* slug = new Slug();
 					ImageResource* r = (ImageResource*)ResourceManager::Get()->GetResource("image_gravestone");
 					slug->SetImage(r);
@@ -406,6 +407,13 @@ bool cSlugs::bInput(sf::Event *myEvent) {
 					slug->SetVelocity(0, 200);
 					slug->SetRadius(8);
 					World::Get()->AddObject(slug);
+					*/
+
+					Gravestone* gravestone = new Gravestone((ImageResource*)ResourceManager::Get()->GetResource("image_gravestone"));
+					gravestone->SetPosition(World::Get()->ToWorldCoordinates(cam, iScreenWidth, iScreenHeight, myEvent->MouseButton.X, myEvent->MouseButton.Y));
+					gravestone->SetVelocity(0, 200);
+					gravestone->SetRadius(8);
+					World::Get()->AddObject(gravestone);
 
 				}
 				else
@@ -677,11 +685,14 @@ void cSlugs::SoundTest()
 
 }
 
-void cSlugs::PhysicTest() {
+void cSlugs::PhysicTest()
+{
 	
 }
 
-void cSlugs::XMLTest() {
+void cSlugs::XMLTest()
+{
+
 }
 
 void cSlugs::LevelTest()
@@ -695,9 +706,9 @@ void cSlugs::LevelTest()
 	if (world->SelectedObject())
 	{
 
-		Vector2 pos = world->SelectedObject()->Position();
+		Vector2 pos = world->SelectedObject()->GetPosition();
 		char str[64];
-		sprintf_s(str, 64, "%i", world->SelectedObject()->HitPoints());
+		sprintf_s(str, 64, "%i", world->SelectedObject()->GetHitPoints());
 		font.Draw(pos.x, pos.y - 30, str);
 
 	}

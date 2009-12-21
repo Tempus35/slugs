@@ -34,7 +34,7 @@ void Renderer::Present()
 
 }
 
-void Renderer::Render(Sprite& sprite)
+void Renderer::Render(const Sprite& sprite)
 {
 
 	window.Draw(sprite.GetData());

@@ -101,48 +101,44 @@ void World::Update(float elapsedTime)
 		{
 
 			// Get starting position
-			Vector2 lastPos = obj->Position();
+			Vector2 lastPos = obj->GetPosition();
 
 			// Update object
 			obj->Update(elapsedTime, terrain, gravity, wind);
 
 			// Get new position
-			Vector2 pos = obj->Position();
+			Vector2 pos = obj->GetPosition();
 
 			if (!terrain->Contains(pos.x, -pos.y))
 			{
 
+				// Kill object, it left the terrain area
             	obj->Die();
 			
 			}
 			else
 			{
 
-				if (((fastfabs(pos.x - lastPos.x) > 1.0f)) || (fastfabs(pos.y - lastPos.y) > 1.0f))
+				//
+				// Test for collision with the terrain
+				//
+
+				Vector2 collisionPos;
+				if (terrain->SquareCollisionIterated((int)lastPos.x, -(int)lastPos.y, (int)pos.x, -(int)pos.y, 15, 15, &collisionPos))
 				{
 
-					Vector2 collisionPos;
-					if (terrain->SquareCollisionIterated((int)lastPos.x, -(int)lastPos.y, (int)pos.x, -(int)pos.y, 15, 15, &collisionPos))
-					{
-
-						obj->SetPosition(collisionPos);
-						obj->OnCollideWithTerrain(terrain);
-						obj->SetAtRest(true);
-
-					}
-					else
-						obj->SetAtRest(false);
-					
-				}
-				else if (terrain->SquareCollision((int)pos.x, -(int)pos.y, 15, 15))
-				{
-
+					obj->SetPosition(collisionPos.x, -collisionPos.y);
 					obj->OnCollideWithTerrain(terrain);
 					obj->SetAtRest(true);
-				
+
 				}
 				else
+				{
+
+					// We didn't collide, start moving if we aren't already
 					obj->SetAtRest(false);
+
+				}
 
 			}
 
@@ -323,7 +319,7 @@ void World::SimulateExplosion(int x, int y, int strength)
 
 		Object* obj = *i;
 
-		pos = obj->Position();
+		pos = obj->GetPosition();
 		dx = pos.x - x;
 		dy = pos.y + y;
 		d = sqrtf(dx * dx + dy * dy);
@@ -381,26 +377,26 @@ void World::Render()
 		if (obj->IsAlive())
 		{
 
-			Sprite& s = obj->Sprite();
-			renderer->Render(obj->Sprite());
+			const Sprite& s = obj->GetSprite();
+			renderer->Render(obj->GetSprite());
 
 			#ifdef PB_DEBUG
 				renderer->Render(obj->marker);
 			#endif
 
-			if ((selectedObject == obj) && (obj->Type() == OBJECTTYPE_SLUG))
+			if ((selectedObject == obj) && (obj->GetType() == ObjectType_Slug))
 			{
 
 				// Aiming crosshair/arrow
 				Slug* slugObj = (Slug*)obj;
 				
 				Vector2 size;
-				Vector2 objPos = slugObj->Position();
-				float angle = slugObj->ViewAngle();
+				Vector2 objPos = slugObj->GetPosition();
+				float angle = slugObj->GetAimAngle();
 
 				size = crosshairSprite.GetSize();
 
-				if (slugObj->FacingDirection() == FACINGDIRECTION_RIGHT)
+				if (slugObj->GetFacingDirection() == FACINGDIRECTION_RIGHT)
 					crosshairSprite.SetPosition(objPos.x + cosf(angle) * WORLD_CROSSHAIR_DISTANCE - size.x / 2, objPos.y + sinf(angle) * WORLD_CROSSHAIR_DISTANCE - size.y / 2);
 				else
 					crosshairSprite.SetPosition(objPos.x - cosf(angle) * WORLD_CROSSHAIR_DISTANCE - size.x / 2, objPos.y + sinf(angle) * WORLD_CROSSHAIR_DISTANCE - size.y / 2);

@@ -18,7 +18,7 @@ public:
 	Sprite(ImageResource* res, Color& color = Color(255, 255, 255));
 	~Sprite();
 	
-	sf::Sprite& GetData();
+	const sf::Sprite& GetData() const;
 
 	//
 	// Accessors
@@ -29,12 +29,12 @@ public:
 	void SetImage(ImageResource* resource);
 	void SetPosition(float x, float y);
 	void SetScale(float x, float y);
-	Vector2 GetPosition();
-	Vector2 GetSize();
-	Vector2 GetScale();
+	Vector2 GetPosition() const;
+	Vector2 GetSize() const;
+	Vector2 GetScale() const;
 	void Move(float x, float y);
 	void SetAlphaBlend(bool state);
-	float GetWidth();
-	float GetHeight();
+	float GetWidth() const;
+	float GetHeight() const;
 
 };

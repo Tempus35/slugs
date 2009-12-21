@@ -19,7 +19,7 @@ Sprite::~Sprite()
 
 }
 
-sf::Sprite& Sprite::GetData()
+const sf::Sprite& Sprite::GetData() const
 {
 
 	return data;
@@ -66,21 +66,21 @@ void Sprite::SetScale(float x, float y)
 
 }
 
-Vector2 Sprite::GetPosition()
+Vector2 Sprite::GetPosition() const
 {
 
 	return Vector2(data.GetPosition());
 
 }
 
-Vector2 Sprite::GetSize()
+Vector2 Sprite::GetSize() const
 {
 
 	return Vector2(data.GetSize());
 
 }
 
-Vector2 Sprite::GetScale()
+Vector2 Sprite::GetScale() const
 {
 
 	return Vector2(data.GetScale());
@@ -104,7 +104,7 @@ void Sprite::SetAlphaBlend(bool state)
 
 }
 
-float Sprite::GetWidth()
+float Sprite::GetWidth() const
 {
 
 	Vector2 size = data.GetSize();
@@ -112,7 +112,7 @@ float Sprite::GetWidth()
 
 }
 
-float Sprite::GetHeight()
+float Sprite::GetHeight() const
 {
 
 	Vector2 size = data.GetSize();

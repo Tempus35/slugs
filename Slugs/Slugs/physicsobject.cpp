@@ -66,21 +66,21 @@ bool PhysicsObject::Update(float elapsedTime, Terrain* terrain, Vector2 gravity,
 // Accessors
 //
 
-Vector2 PhysicsObject::Position()
+Vector2 PhysicsObject::GetPosition()
 {
 
 	return position;
 
 }
 
-Vector2 PhysicsObject::Velocity()
+Vector2 PhysicsObject::GetVelocity()
 {
 
 	return velocity;
 
 }
 
-Vector2 PhysicsObject::Acceleration()
+Vector2 PhysicsObject::GetAcceleration()
 {
 
 	return acceleration;

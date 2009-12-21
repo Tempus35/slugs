@@ -1,16 +1,14 @@
 #include "slug.h"
-#include "team.h"
 
+#include "team.h"
 #include "resourcemanager.h"
 
-Slug::Slug() : Object()
+Slug::Slug() : Object(ObjectType_Slug)
 {
-
-	type = OBJECTTYPE_SLUG;
 
 	movementDirection = MOVEMENTDIRECTION_NONE;
 	facingDirection = FACINGDIRECTION_RIGHT;
-	viewAngle = 0.0f;
+	aimAngle = 0.0f;
 
 	power = 0.0f;
 	charging = false;
@@ -25,16 +23,18 @@ Slug::Slug() : Object()
 bool Slug::Update(float elapsedTime, Terrain* terrain, const Vector2& gravity, const Vector2& wind)
 {
 
+	//
 	// AI
+	//
 
 	bool moved = false;
 
+	//
+	// Find out if we are alive
+	//
+
 	if (hps > 0)
 	{
-
-		/*
-			 The slug is alive
-		*/
 
 		//
 		// Update shot power if slug is charging a weapon
@@ -122,20 +122,20 @@ bool Slug::Update(float elapsedTime, Terrain* terrain, const Vector2& gravity, c
 		if (movementDirection & MOVEMENTDIRECTION_UP)
 		{
 
-			viewAngle -= elapsedTime * SLUG_AIM_SPEED;
+			aimAngle -= elapsedTime * SLUG_AIM_SPEED;
 
-			if (viewAngle < -PI_OVER_2)
-				viewAngle = -PI_OVER_2;
+			if (aimAngle < -PI_OVER_2)
+				aimAngle = -PI_OVER_2;
 
 		}
 
 		if (movementDirection & MOVEMENTDIRECTION_DOWN)
 		{
 
-			viewAngle += elapsedTime * SLUG_AIM_SPEED;
+			aimAngle += elapsedTime * SLUG_AIM_SPEED;
 
-			if (viewAngle > PI_OVER_2)
-				viewAngle = PI_OVER_2;
+			if (aimAngle > PI_OVER_2)
+				aimAngle = PI_OVER_2;
 
 		}
 
@@ -161,9 +161,13 @@ bool Slug::Update(float elapsedTime, Terrain* terrain, const Vector2& gravity, c
 		if (death <= 0.0f)
 		{
 
+			alive = false;
+
 			// Go boom when our timer runs out
 			Explode();
-			alive = false;
+
+			// Create a gravestone
+			SpawnGravestone();
 
 		}
 
@@ -259,47 +263,43 @@ void Slug::Fire()
 		// Fire the current weapon
 		//
 
+		bool fired;
+
 		if (currentWeapon)
-			currentWeapon->Fire();
+			fired = currentWeapon->Fire(this);
 
-		Projectile* bomb = new Projectile();
-		bomb->SetPosition(Vector2(position.x, position.y));
-		bomb->SetOwner(this);
-		bomb->SetStrength(75);
-		bomb->SetTimer(-1);
-		bomb->SetRadius(5);
-		bomb->SetImage(((ImageResource*)ResourceManager::Get()->GetResource("image_gravestone")));
+		if (!fired)
+		{
 
-		float shotVelocity = power * SHOT_POWER_MULTIPLIER;
-		float cosAnglePower = cosf(viewAngle) * shotVelocity;
-		float sinAnglePower = sinf(viewAngle) * shotVelocity;
+			// TODO: Play click sound
 
-		if (facingDirection == FACINGDIRECTION_RIGHT)
-			bomb->SetVelocity(cosAnglePower, sinAnglePower);
-		else
-			bomb->SetVelocity(-cosAnglePower, sinAnglePower);
+		}
 
-		// Add the prjectile to the world
-		World::Get()->AddCreatedObject(bomb);
-
-		// We are no longer charging the weapn
+		// We are no longer charging the weapon
 		charging = false;
 
 	}
 
 }
 
-float Slug::ViewAngle()
-{
-
-	return viewAngle;
-
-}
-
-FaceDirection Slug::FacingDirection()
+FaceDirection Slug::GetFacingDirection() const
 {
 
 	return facingDirection;
+
+}
+
+float Slug::GetAimAngle() const
+{
+
+	return aimAngle;
+
+}
+
+float Slug::GetPower() const
+{
+
+	return power;
 
 }
 
@@ -314,6 +314,25 @@ void Slug::Explode()
 {
 
 	World::Get()->SimulateExplosion((int)position.x, -(int)position.y, SLUG_EXPLOSION_STRENGTH);
+
+}
+
+void Slug::SpawnGravestone() const
+{
+
+	// TODO: Get image resource based on team gravestone style
+	Gravestone* gravestone = new Gravestone((ImageResource*)ResourceManager::Get()->GetResource("image_gravestone"));
+
+	if (gravestone)
+	{
+
+		// Set to the current position
+		gravestone->SetPosition(position);
+
+		// Add the gravestone to the world
+		World::Get()->AddCreatedObject(gravestone);
+
+	}
 
 }
 
