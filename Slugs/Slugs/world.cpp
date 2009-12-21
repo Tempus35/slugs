@@ -90,12 +90,12 @@ void World::Update(float elapsedTime)
 	clouds->Update(elapsedTime);
 
 	// Update all alive objects, remove dead ones
-	list<GameObject*>::iterator i = objects.begin();
+	list<Object*>::iterator i = objects.begin();
 
 	while (i != objects.end())
 	{
 
-		GameObject* obj = *i;
+		Object* obj = *i;
 
 		if (obj->IsAlive())
 		{
@@ -175,7 +175,7 @@ void World::Update(float elapsedTime)
 
 }
 
-void World::AddObject(GameObject* object)
+void World::AddObject(Object* object)
 {
 
 	if (object)
@@ -183,7 +183,7 @@ void World::AddObject(GameObject* object)
 
 }
 
-void World::AddCreatedObject(GameObject* object)
+void World::AddCreatedObject(Object* object)
 {
 
 	if (object)
@@ -194,10 +194,10 @@ void World::AddCreatedObject(GameObject* object)
 void World::RemoveAllObjects()
 {
 
-	for (list<GameObject*>::iterator i = objects.begin(); i != objects.end(); ++ i)
+	for (list<Object*>::iterator i = objects.begin(); i != objects.end(); ++ i)
 	{
 
-		GameObject* obj = *i;
+		Object* obj = *i;
 		delete obj;
 
 	}
@@ -277,12 +277,12 @@ Vector2 World::ToWorldCoordinates(sf::View* camera, int screenWidth, int screenH
 
 }
 
-GameObject* World::SelectObjectAtPosition(Vector2 point)
+Object* World::SelectObjectAtPosition(Vector2 point)
 {
 
-	GameObject* obj = NULL;
+	Object* obj = NULL;
 
-	for (list<GameObject*>::iterator i = objects.begin(); i != objects.end(); ++ i)
+	for (list<Object*>::iterator i = objects.begin(); i != objects.end(); ++ i)
 	{
 
 		int pix = (int)point.x;
@@ -318,10 +318,10 @@ void World::SimulateExplosion(int x, int y, int strength)
 	float dx, dy, d;
 	float hitStrength, hitPower;
 	Vector2 pos;
-	for (list<GameObject*>::iterator i = objects.begin(); i != objects.end(); ++ i)
+	for (list<Object*>::iterator i = objects.begin(); i != objects.end(); ++ i)
 	{
 
-		GameObject* obj = *i;
+		Object* obj = *i;
 
 		pos = obj->Position();
 		dx = pos.x - x;
@@ -373,10 +373,10 @@ void World::Render()
 		terrain->Render();
 
 	// Render objects
-	for (list<GameObject*>::iterator i = objects.begin(); i != objects.end(); ++ i)
+	for (list<Object*>::iterator i = objects.begin(); i != objects.end(); ++ i)
 	{
 
-		GameObject* obj = *i;
+		Object* obj = *i;
 
 		if (obj->IsAlive())
 		{
@@ -388,11 +388,11 @@ void World::Render()
 				renderer->Render(obj->marker);
 			#endif
 
-			if ((selectedObject == obj) && (obj->Type() == GAMEOBJECTTYPE_SLUG))
+			if ((selectedObject == obj) && (obj->Type() == OBJECTTYPE_SLUG))
 			{
 
 				// Aiming crosshair/arrow
-				SlugObject* slugObj = (SlugObject*)obj;
+				Slug* slugObj = (Slug*)obj;
 				
 				Vector2 size;
 				Vector2 objPos = slugObj->Position();
@@ -490,7 +490,7 @@ void World::SetWind(Vector2 newWind)
 
 }
 
-GameObject* World::SelectedObject()
+Object* World::SelectedObject()
 {
 
 	return selectedObject;

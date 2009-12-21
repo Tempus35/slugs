@@ -1,10 +1,10 @@
-#include "gameobject.h"
+#include "object.h"
 
 //
 // Initialization
 //
 
-GameObject::GameObject()
+Object::Object()
 {
 
 	alive = true;
@@ -12,16 +12,26 @@ GameObject::GameObject()
 
 }
 
-GameObject::~GameObject()
+Object::~Object()
 {
 
 }
 
-//
-// Setup
-//
+const std::string& Object::GetName() const
+{
 
-void GameObject::SetImage(ImageResource* image)
+	return name;
+
+}
+
+void Object::SetName(const std::string& newName)
+{
+
+	name = newName;
+
+}
+
+void Object::SetImage(ImageResource* image)
 {
 
 	sprite.SetImage(image);
@@ -31,7 +41,7 @@ void GameObject::SetImage(ImageResource* image)
 
 }
 
-void GameObject::SetPosition(Vector2 v)
+void Object::SetPosition(Vector2 v)
 {
 	
 	PhysicsObject::SetPosition(v);
@@ -40,7 +50,7 @@ void GameObject::SetPosition(Vector2 v)
 
 }
 
-void GameObject::SetHitpoints(int newHitpoints)
+void Object::SetHitpoints(int newHitpoints)
 {
 
 	hps = newHitpoints;
@@ -50,18 +60,14 @@ void GameObject::SetHitpoints(int newHitpoints)
 
 }
 
-void GameObject::SetRadius(int newRadius)
+void Object::SetRadius(int newRadius)
 {
 
 	radius = newRadius;
 
 }
 
-//
-// Simulation
-//
-
-void GameObject::Moved()
+void Object::Moved()
 {
 
 	Vector2 size = sprite.GetSize();
@@ -70,14 +76,14 @@ void GameObject::Moved()
 
 }
 
-void GameObject::Die()
+void Object::Die()
 {
 
 	alive = false;
 
 }
 
-void GameObject::Select()
+void Object::Select()
 {
 
 	sprite.SetColor(Color(0, 255, 0));
@@ -85,7 +91,7 @@ void GameObject::Select()
 
 }
 
-void GameObject::Deselect()
+void Object::Deselect()
 {
 
 	sprite.SetColor(Color(255, 255, 255));
@@ -93,7 +99,7 @@ void GameObject::Deselect()
 
 }
 
-bool GameObject::Contains(int x, int y)
+bool Object::Contains(int x, int y)
 {
 
 	int dx = x - (int)position.x;
@@ -106,39 +112,35 @@ bool GameObject::Contains(int x, int y)
 
 }
 
-//
-// Accessors
-//
-
-bool GameObject::IsAlive()
+bool Object::IsAlive()
 {
 
 	return alive;
 
 }
 
-int GameObject::HitPoints()
+int Object::HitPoints()
 {
 
 	return hps;
 
 }
 
-Sprite& GameObject::Sprite()
+Sprite& Object::Sprite()
 {
 
 	return sprite;
 
 }
 
-int GameObject::Radius()
+int Object::Radius()
 {
 
 	return radius;
 
 }
 
-GameObjectType GameObject::Type()
+ObjectType Object::Type()
 {
 
 	return type;
@@ -146,7 +148,7 @@ GameObjectType GameObject::Type()
 }
 
 
-void GameObject::AdjustHitpoints(int change)
+void Object::AdjustHitpoints(int change)
 {
 
 	hps += change;

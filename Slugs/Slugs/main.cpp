@@ -1,4 +1,4 @@
-#include "cSlugs.h"
+#include "game.h"
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR test, int)
 {

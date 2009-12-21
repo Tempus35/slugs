@@ -1,14 +1,14 @@
 #pragma once
 
 #include "world.h"
-#include "gameobject.h"
+#include "object.h"
 
-class WeaponObject : public GameObject
+class Projectile : public Object
 {
 
 protected:
 
-	GameObject* owner;
+	Object* owner;
 	float timer;
 	int strength;
 
@@ -26,17 +26,17 @@ public:
 
 	virtual bool Update(float elapsedTime, Terrain* terrain, Vector2 gravity, Vector2 wind);
 	virtual void OnCollideWithTerrain(Terrain* terrain);
-	virtual void OnCollideWithObject(Terrain* terrain, GameObject* object);
+	virtual void OnCollideWithObject(Terrain* terrain, Object* object);
 
 	//
 	// Accessors
 	//
 
-	GameObject* Owner();
+	Object* Owner();
 	float Timer();
 	int Strength();
 
-	void SetOwner(GameObject* object);
+	void SetOwner(Object* object);
 	void SetTimer(float newTime);
 	void SetStrength(int newStrength);
 

@@ -8,7 +8,7 @@ inline void SafeDelete(T* ptr)
 	{
 
 		delete ptr;
-		ptr = NULL:
+		ptr = NULL;
 	
 	}
 

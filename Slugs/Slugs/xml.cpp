@@ -1,4 +1,4 @@
-#include "cXML.h"
+#include "xml.h"
 
 cXML::cXML() {
 	root = NULL;

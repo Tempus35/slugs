@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <SFML/graphics.hpp>
 
 #include "physicsobject.h"
@@ -7,36 +8,37 @@
 #include "sprite.h"
 
 /*
-	enum GameObjectType
+	enum ObjectType
 */
 
-enum GameObjectType
+enum ObjectType
 {
 
-	GAMEOBJECTTYPE_UNKNOWN,
-	GAMEOBJECTTYPE_SLUG,
+	OBJECTTYPE_UNKNOWN,
+	OBJECTTYPE_SLUG,
 
 };
 
 /*
-	class GameObject
+	class Object
 */
 
-class GameObject : public PhysicsObject
+class Object : public PhysicsObject
 {
 
 protected:
 
-	GameObjectType type;
+	ObjectType					type;		// Object type
+	std::string						name;		// Object name
 
-	bool alive;								// Is this object alive (dead objects are removed by the world)
-	int hps;								// Hit points
+	bool							alive;		// Is this object alive (dead objects are removed by the world)
+	int								hps;		// Hit points
 
-	Sprite sprite;							// Sprite instance for the object
+	Sprite sprite;								// Sprite instance for the object
 
-	int radius;
+	int radius;									// Collision radius
 
-	bool selected;
+	bool selected;								// Is this object currently selected
 
 public:
 
@@ -46,8 +48,12 @@ public:
 	// Initialization
 	//
 
-	GameObject();
-	~GameObject();
+	Object();
+	~Object();
+
+	// Name accessors
+	const std::string& GetName() const;
+	void SetName(const std::string& newName);
 
 	//
 	// Setup
@@ -79,7 +85,7 @@ public:
 	virtual void Fire() {};
 
 	virtual void OnCollideWithTerrain(Terrain* terrain) {};
-	virtual void OnCollideWithObject(Terrain* terrain, GameObject* object) {};
+	virtual void OnCollideWithObject(Terrain* terrain, Object* object) {};
 
 	//	
 	// Accessors
@@ -89,7 +95,7 @@ public:
 	int HitPoints();
 	Sprite& Sprite();
 	int Radius();
-	GameObjectType Type();
+	ObjectType Type();
 
 	void AdjustHitpoints(int change);
 

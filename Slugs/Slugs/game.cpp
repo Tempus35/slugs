@@ -1,4 +1,4 @@
-#include "cSlugs.h"
+#include "game.h"
 
 cSlugs::cSlugs() {
 	bPushed = false;
@@ -327,7 +327,7 @@ bool cSlugs::bInput(sf::Event *myEvent) {
 			break;
 		case SCENE_LEVEL_TEST:
 				
-			GameObject* selectedObject = World::Get()->SelectedObject();
+			Object* selectedObject = World::Get()->SelectedObject();
 
 			if (myEvent->Type == sf::Event::KeyPressed)
 			{
@@ -399,7 +399,7 @@ bool cSlugs::bInput(sf::Event *myEvent) {
 				else if (myEvent->MouseButton.Button == sf::Mouse::Middle)
 				{
 
-					SlugObject* slug = new SlugObject();
+					Slug* slug = new Slug();
 					ImageResource* r = (ImageResource*)ResourceManager::Get()->GetResource("image_gravestone");
 					slug->SetImage(r);
 					slug->SetPosition(World::Get()->ToWorldCoordinates(cam, iScreenWidth, iScreenHeight, myEvent->MouseButton.X, myEvent->MouseButton.Y));

@@ -5,56 +5,82 @@ Team::Team()
 
 	name = "";
 
+	numAlive = 0;
+	maxHealth = 0;
+	currentHealth = 0;
+
+	activeIndex = -1;
+
+	weaponStore = NULL;
+
 }
 
 Team::~Team()
 {
 
-	slugs.clear();
-	numAlive = 0;
-	activeIndex = -1;
-	maxHealth = 0;
-	currentHealth = 0;
+	// Free slugs
+	for (unsigned int i = 0; i < slugs.size(); ++ i)
+		SafeDelete(slugs[i]);
+
+	// Free weapon store
+	SafeDelete(weaponStore);
 
 }
 
-char* Team::Name()
+const std::string& Team::GetName() const
 {
 
 	return name;
 
 }
 
-void Team::SetName(char* newName)
+void Team::SetName(const std::string& newName)
 {
 
 	name = newName;
 
 }
 
-bool Team::Add(SlugObject* slug)
+bool Team::Contains(Slug* slug) const
 {
 
-	if (activeIndex == -1)
-		activeIndex = 0;
+	for (unsigned int i = 0; i < slugs.size(); ++ i)
+	{
+
+		if (slugs[i] == slug)
+			return true;
+
+	}
 
 	return false;
 
 }
 
-void Team::Reset()
+bool Team::Add(Slug* slug)
 {
 
-	name = "";
-	slugs.clear();
-	numAlive = 0;
-	activeIndex = -1;
-	maxHealth = 0;
-	currentHealth = 0;
+	ASSERT(slug);
+	ASSERT(!slug->GetTeam());
+
+	if (!Contains(slug))
+	{
+
+		// Add the slug to the team
+		slugs.push_back(slug);
+
+		// If we don't have an active slug, make this one active
+		if (activeIndex == -1)
+			activeIndex = 0;
+
+		return true;
+
+	}
+
+	return false;
 
 }
 
-SlugObject* Team::Next()
+Slug* Team::Next()
 {
 
 	activeIndex ++;
@@ -66,7 +92,7 @@ SlugObject* Team::Next()
 
 }
 
-SlugObject* Team::Previous()
+Slug* Team::Previous()
 {
 
 	activeIndex --;
@@ -78,7 +104,7 @@ SlugObject* Team::Previous()
 
 }
 
-SlugObject* Team::First()
+Slug* Team::First()
 {
 
 	activeIndex = 0;
@@ -87,11 +113,24 @@ SlugObject* Team::First()
 
 }
 
-SlugObject* Team::Last()
+Slug* Team::Last()
 {
 
 	activeIndex = slugs.size() - 1;
 
 	return slugs[activeIndex];;
+
+}
+
+void Team::SetWeapons(WeaponStore* store)
+{
+
+	SafeDelete(weaponStore);
+
+	weaponStore = store;
+
+	// Assign the weapon store to the slugs on the team
+	for (unsigned int i = 0; i < slugs.size(); ++ i)
+		slugs[i]->SetWeapons(store);
 
 }

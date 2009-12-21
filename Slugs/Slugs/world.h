@@ -5,8 +5,8 @@
 #include "terrain.h"
 #include "clouds.h"
 #include "water.h"
-#include "gameobject.h"
-#include "slugobject.h"
+#include "object.h"
+#include "slug.h"
 #include "fxmanager.h"
 #include "sprite.h"
 #include "resourcemanager.h"
@@ -37,14 +37,14 @@ private:
 	Vector2 gravity;						// Gravity vector
 	Vector2 wind;							// Wind vector
 
-	list<GameObject*> objects;				// Doubly linked list for object storage
-	vector<GameObject*> pendingObjects;
+	list<Object*> objects;				// Doubly linked list for object storage
+	vector<Object*> pendingObjects;
 
 	Water* water[WORLD_WATER_LINES];
 	Clouds* clouds;
 	Sprite backgroundSprites[2];
 
-	GameObject* selectedObject;
+	Object* selectedObject;
 
 	Sprite crosshairSprite, arrowSprite;
 
@@ -68,14 +68,14 @@ public:
 	//
 
 	void Update(float elapsedTime);
-	void AddObject(GameObject* object);
-	void AddCreatedObject(GameObject* object);
+	void AddObject(Object* object);
+	void AddCreatedObject(Object* object);
 	void RemoveAllObjects();
 void SetWaterColor(Color& color);
 	void SetBackground(ImageResource* farImage, ImageResource* nearImage);
 	void CameraMoved(sf::Vector2<float> newPosition);
 	Vector2 ToWorldCoordinates(sf::View* camera, int screenWidth, int screenHeight, int screenX, int screenY);
-	GameObject* SelectObjectAtPosition(Vector2 point);
+	Object* SelectObjectAtPosition(Vector2 point);
 	void SimulateExplosion(int x, int y, int strength);
 
 	//
@@ -95,7 +95,7 @@ void SetWaterColor(Color& color);
 	int HeightInPixels();
 	void SetGravity(Vector2 newGravity);
 	void SetWind(Vector2 newWind);
-	GameObject* SelectedObject();	
+	Object* SelectedObject();	
 
 	//
 	// Debug
