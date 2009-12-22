@@ -11,10 +11,11 @@
 #include "fxmanager.h"
 #include "fx.h"
 #include "renderer.h"
+#include "camera.h"
 
-#define CAMERA_MOVE_BORDER 20
-#define CAMERA_MOVE_SHIFT 5.0f
-// #define CAMERA_EDGE_MOVE
+#define CAMERA_MOVE_BORDER		20			// Pixel distance from the sides of the window in which the cursor causes the camera to move
+#define CAMERA_MOVE_SHIFT		5.0f		// Movement speed
+// #define CAMERA_EDGE_MOVE					// Move the camera when the cursor is at the window edge?
 
 class cSlugs 
 {
@@ -69,7 +70,7 @@ private:
 
 	sf::Clock clock;
 	
-	sf::View *cam;
+	Camera camera;
 	bool lockCameraToLevel;
 
 	//Global Class

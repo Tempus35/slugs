@@ -80,7 +80,7 @@ public:
 	// Simulation
 	//
 	virtual void Moved();
-	virtual void Die();						
+	virtual void Die(bool instant = false);						
 
 	void Select();
 	void Deselect();

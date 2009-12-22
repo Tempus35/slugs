@@ -132,28 +132,49 @@ struct Vector2
 
 };
 
-static inline float VectorDot(const Vector2& a, const Vector2& b)
+inline Vector2 operator + (const Vector2& a, const Vector2& b)
+{
+
+	return Vector2(a.x + b.x, a.y + b.y);
+
+}
+
+inline Vector2 operator - (const Vector2& a, const Vector2& b)
+{
+
+	return Vector2(a.x - b.x, a.y - b.y);
+
+}
+
+inline Vector2 operator * (const Vector2& v, float f)
+{
+
+	return Vector2(v.x * f, v.y * f);
+
+}
+
+inline float VectorDot(const Vector2& a, const Vector2& b)
 {
 
 	return a.x * b.x + a.y * b.y;
 
 }
 
-static inline float VectorLength(const Vector2& v)
+inline float VectorLength(const Vector2& v)
 {
 
 	return sqrtf(v.x * v.x + v.y * v.y);
 
 }
 
-static inline float VectorLengthSquared(const Vector2& v)
+inline float VectorLengthSquared(const Vector2& v)
 {
 
 	return VectorDot(v, v);
 
 }
 
-static inline Vector2* VectorNormalize(Vector2* v)
+inline Vector2* VectorNormalize(Vector2* v)
 {
 
 	float lengthSquared = v->x * v->x + v->y * v->y;

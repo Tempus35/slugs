@@ -83,12 +83,12 @@ void Object::Moved()
 {
 
 	Vector2 size = sprite.GetSize();
-	sprite.SetPosition(fastroundf(position.x - 0.5f * size.x), fastroundf(position.y - 0.5f * size.y));
-	marker.SetPosition(fastroundf(position.x), fastroundf(position.y));
+	sprite.SetPosition(Round(position.x - 0.5f * size.x), -Round(position.y + 0.5f * size.y));
+	marker.SetPosition(Round(position.x), -Round(position.y));
 
 }
 
-void Object::Die()
+void Object::Die(bool instant)
 {
 
 	alive = false;

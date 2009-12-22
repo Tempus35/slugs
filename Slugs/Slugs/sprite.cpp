@@ -59,6 +59,25 @@ void Sprite::SetPosition(float x, float y)
 
 }
 
+void Sprite::SetRotation(float degrees)
+{
+
+	data.SetRotation(degrees);
+
+}
+
+void Sprite::SetOrientation(const Vector2& direction)
+{
+
+	float angle = atan2f(direction.y, direction.x);
+
+	if (angle < 0)
+		angle += TWO_PI;
+
+   	data.SetRotation(Degrees(angle));
+
+}
+
 void Sprite::SetScale(float x, float y)
 {
 

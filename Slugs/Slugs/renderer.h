@@ -4,6 +4,7 @@
 
 #include "defs.h"
 #include "singleton.h"
+#include "camera.h"
 #include "color.h"
 #include "sprite.h"
 
@@ -30,6 +31,6 @@ public:
 
 	sf::RenderWindow& GetWindow();
 	void SetIcon(sf::Image& icon);
-	void SetView(sf::View& view);
+	void SetCamera(Camera& camera);
 
 };

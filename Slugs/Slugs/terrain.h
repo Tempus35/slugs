@@ -237,4 +237,7 @@ public:
 	void BufferAll();
 	void BufferDirty();
 
+	// Finds the first intersection between a ray and the terrain
+	bool RayIntersection(const Vector2& start, const Vector2& direction, float maxRange, Vector2& collisionPos);
+
 };

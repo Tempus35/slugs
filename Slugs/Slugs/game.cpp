@@ -20,6 +20,7 @@ cSlugs::cSlugs() {
 
 	rmbDown = false;
 	lockCameraToLevel = true;
+
 }
 
 cSlugs::~cSlugs() {
@@ -97,7 +98,10 @@ void cSlugs::UpdateScene(float elapsedTime)
 
 			bool camMoved = false;
 
+			//
 			// Camera movement when mouse is at edge of screen
+			//
+
 			if (!lockCameraToLevel)
 			{
 
@@ -200,6 +204,9 @@ void cSlugs::UpdateScene(float elapsedTime)
 				world->CameraMoved(cam->GetCenter());
 
 #endif
+
+			// Update the update manager
+			UpdateManager::Get()->Update(elapsedTime);
 
 			// Update world
 			World::Get()->Update(elapsedTime);
@@ -348,6 +355,62 @@ bool cSlugs::bInput(sf::Event *myEvent) {
 					lockCameraToLevel = !lockCameraToLevel;
 				
 				}
+				else if (myEvent->Key.Code == sf::Key::Num1)
+				{
+
+					Object* selectedObject = World::Get()->SelectedObject();
+
+					if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
+					{
+
+						Slug* slug = (Slug*)selectedObject;
+						slug->ArmSelf(WeaponType_Bazooka);
+
+					}
+				
+				}
+				else if (myEvent->Key.Code == sf::Key::Num2)
+				{
+
+					Object* selectedObject = World::Get()->SelectedObject();
+
+					if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
+					{
+
+						Slug* slug = (Slug*)selectedObject;
+						slug->ArmSelf(WeaponType_Grenade);
+
+					}
+				
+				}
+				else if (myEvent->Key.Code == sf::Key::Num3)
+				{
+
+					Object* selectedObject = World::Get()->SelectedObject();
+
+					if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
+					{
+
+						Slug* slug = (Slug*)selectedObject;
+						slug->ArmSelf(WeaponType_Shotgun);
+
+					}
+				
+				}
+				else if (myEvent->Key.Code == sf::Key::Num4)
+				{
+
+					Object* selectedObject = World::Get()->SelectedObject();
+
+					if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
+					{
+
+						Slug* slug = (Slug*)selectedObject;
+						slug->ArmSelf(WeaponType_MachineGun);
+
+					}
+				
+				}
 				else if (selectedObject)
 				{
 					
@@ -393,17 +456,23 @@ bool cSlugs::bInput(sf::Event *myEvent) {
 				if (myEvent->MouseButton.Button == sf::Mouse::Left)
 				{
 					
-					World::Get()->SelectObjectAtPosition(World::Get()->ToWorldCoordinates(cam, iScreenWidth, iScreenHeight, myEvent->MouseButton.X, myEvent->MouseButton.Y));
+					Vector2 pickPosition = camera.GetWorldPosition(myEvent->MouseButton.X, myEvent->MouseButton.Y);
+					Object* pickedObject = World::Get()->GetObjectAtPosition(pickPosition);
+
+					if (pickedObject)
+						World::Get()->SelectObject(pickedObject);
+					else
+						World::Get()->SimulateExplosion((int)pickPosition.x, (int)pickPosition.y, Random::RandomInt(30, 100));
 
 				}
 				else if (myEvent->MouseButton.Button == sf::Mouse::Middle)
 				{
 
 					Slug* slug = new Slug();
-					ImageResource* r = (ImageResource*)ResourceManager::Get()->GetResource("image_gravestone");
+					ImageResource* r = (ImageResource*)ResourceManager::Get()->GetResource("image_slug_right");
 					slug->SetImage(r);
-					slug->SetPosition(World::Get()->ToWorldCoordinates(cam, iScreenWidth, iScreenHeight, myEvent->MouseButton.X, myEvent->MouseButton.Y));
-					slug->SetVelocity(0, 200);
+					slug->SetPosition(camera.GetWorldPosition(myEvent->MouseButton.X, myEvent->MouseButton.Y));
+					slug->SetVelocity(0, -200);
 					slug->SetRadius(8);
 					slug->SetWeapons(new WeaponStore(true), true);
 					slug->ArmSelf();
@@ -431,7 +500,7 @@ bool cSlugs::bInput(sf::Event *myEvent) {
 					int mx = iMouseX - lastMouseX;
 					int my = iMouseY - lastMouseY;
 
-					sf::Rect<float> viewRect = cam->GetRect();
+					sf::Rect<float> viewRect = camera.GetView().GetRect();
 
 					if (lockCameraToLevel)
 					{
@@ -472,9 +541,9 @@ bool cSlugs::bInput(sf::Event *myEvent) {
 
 					}
 
-					cam->Move((float)mx, (float)my);
+					camera.Move(mx, my);
 
-					World::Get()->CameraMoved(cam->GetCenter());
+					World::Get()->CameraMoved(camera.GetPosition());
 
 				}
 
@@ -549,8 +618,8 @@ bool cSlugs::bInit()
 	//Init Engine
 	Renderer::Get()->Initialize(iScreenWidth, iScreenHeight, "Slugs");
 
-	cam = new sf::View(sf::FloatRect(0, 0, (float)iScreenWidth, (float)iScreenHeight));
-	Renderer::Get()->SetView(*cam);
+	camera.SetViewSize(iScreenWidth, iScreenHeight);
+	Renderer::Get()->SetCamera(camera);
 
 	//Logo
 	sf::Image img_icon;
@@ -590,7 +659,9 @@ bool cSlugs::bInit()
 	resourceManager->AddResource("image_MP_selected", new ImageResource("gfx\\menu\\menu_MP_selected.png"));
 	resourceManager->AddResource("image_menu_background", new ImageResource("gfx\\menu\\menu_background.png"));
 	resourceManager->AddResource("image_logo", new ImageResource("gfx\\2uoo2ti.png"));
-	resourceManager->AddResource("image_slug_left", new ImageResource("gfx\\ColoredSlugSmallLeft.png"));
+	resourceManager->AddResource("image_slug_left", new ImageResource("gfx\\slug_ph_left.tga"));
+	resourceManager->AddResource("image_slug_right", new ImageResource("gfx\\slug_ph_right.tga"));
+	resourceManager->AddResource("image_rocket", new ImageResource("gfx\\rocket_ph.tga"));
 
 	resourceManager->AddResource("image_snowflake", new ImageResource("gfx\\snowflake.tga"));
 
@@ -631,10 +702,12 @@ void cSlugs::InitLevelTest()
 	//world->SetWaterColor(sf::Color(255, 0, 0));
 	world->SetBackground((ImageResource*)resources->GetResource("image_backgroundfar"), (ImageResource*)resources->GetResource("image_backgroundnear"));
 
-	cam->SetCenter((float)iScreenWidth / 2.0f, -(float)iScreenHeight);
+	// Center the camera in the world
+	camera.SetPosition(world->WidthInPixels() / 2, world->HeightInPixels() / 2);
 	lockCameraToLevel = true;
 
-	world->CameraMoved(cam->GetCenter());
+	// Notify the world that the camera moved (updates parallax)
+	world->CameraMoved(camera.GetPosition());
 
 	FXManager* fxManager = FXManager::Get();
 	fxManager->ClearEffects();

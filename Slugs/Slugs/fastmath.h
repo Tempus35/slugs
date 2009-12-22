@@ -10,93 +10,106 @@
 #define ONE_OVER_PI		0.31831f
 #define SMALL_AMOUNT	1e-6f
 
-static inline float clamp(float f, float min, float max)
-{
-
-	return f < min ? min : f > max ? max : f;
-
-}
-
-static inline int clamp(int i, int min, int max)
-{
-
-	return i < min ? min : i > max ? max : i;
-
-}
-
-static inline float fastfabs(float x)
+template <class T>
+inline T Abs(T x)
 {
 
 	return x < 0 ? -x : x;
 	
 }
 
-static inline int fastround(float f)
+inline int RoundToInt(float f)
 {
 
 	return (int)(f + 0.5f);
 
 }
 
-static inline float fastroundf(float f)
+inline float Round(float f)
 {
 
 	return floorf(f + 0.5f);
 
 }
 
-static inline float fastsinf(float x)
+inline float Sin(float x)
 {
 
-	const float P = 0.225f;
-	
-	x = x * ONE_OVER_PI;
-	int k = fastround(x);
-	x = x - k;
-    
-	float y = (4 - 4 * fastfabs(x)) * x;
-    
-	y = P * (y * fastfabs(y) - y) + y;
-    
-	return (k & 1) ? -y : y;
+	return sinf(x);
 	
 }
 
-static inline float fastcosf(float c)
+inline float Cos(float x)
 {
 	
-	float x = c + PI_OVER_2;
-	const float P = 0.225f;
-	
-	x = x * ONE_OVER_PI;
-	int k = fastround(x);
-	x = x - k;
-    
-	float y = (4 - 4 * fastfabs(x)) * x;
-    
-	y = P * (y * fastfabs(y) - y) + y;
-    
-	return (k & 1) ? -y : y;
+	return cosf(x);
 	
 }
 
-static inline float copysign(float from, float to)
+template <class T>
+inline T CopySign(T from, T to)
 {
 
 	return from < 0 ? to < 0 ? to : -to : to >= 0 ? to : -to;  
 
 }
 
-static inline float Max(float a, float b)
+template <class T>
+inline T Max(T a, T b)
 {
 
 	return a > b ? a : b;
 
 }
 
-static inline float Min(float a, float b)
+template <class T>
+inline T Min(T a, T b)
 {
 
 	return a > b ? a : b;
+
+}
+
+template <class T>
+inline T Clamp(T value, T min, T max)
+{
+
+	return value < min ? min : value > max ? max : value;
+
+}
+
+
+inline float Degrees(float radians)
+{
+
+	return radians / TWO_PI * 360.0f;
+
+}
+
+inline float Radians(float degrees)
+{
+
+	return degrees / 360.0f * TWO_PI;
+
+}
+
+inline float Sqrt(float x)
+{
+
+	return sqrtf(x);
+
+}
+
+inline float Sqr(float x)
+{
+
+	return x * x;
+
+}
+
+inline float Cube(float x)
+{
+
+	return x * x * x;
 
 }

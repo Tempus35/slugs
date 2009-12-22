@@ -3,6 +3,7 @@
 #include "imageresource.h"
 #include "vector2.h"
 #include "color.h"
+#include "fastmath.h"
 
 class Sprite
 {
@@ -28,6 +29,8 @@ public:
 	void SetColor(Color& newColor);
 	void SetImage(ImageResource* resource);
 	void SetPosition(float x, float y);
+	void SetRotation(float degrees);
+	void SetOrientation(const Vector2& direction);
 	void SetScale(float x, float y);
 	Vector2 GetPosition() const;
 	Vector2 GetSize() const;

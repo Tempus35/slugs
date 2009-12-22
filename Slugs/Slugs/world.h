@@ -11,8 +11,9 @@
 #include "sprite.h"
 #include "resourcemanager.h"
 #include "renderer.h"
+#include "intersection.h"
 
-#define WORLD_DEFAULT_GRAVITY		5000
+#define WORLD_DEFAULT_GRAVITY		-5000
 #define WORLD_WATER_LINES			5
 #define WORLD_WATER_MIN_SPEED		50.0f
 #define WORLD_WATER_MAX_SPEED		100.0f
@@ -32,13 +33,25 @@ friend class Singleton<World>;
 
 private:
 
-	Terrain* terrain;						// Pointer to terrain instance			
+	struct DeferredExplosion
+	{
 
-	Vector2 gravity;						// Gravity vector
-	Vector2 wind;							// Wind vector
+		int x, y, strength;
 
-	list<Object*> objects;				// Doubly linked list for object storage
-	vector<Object*> pendingObjects;
+		DeferredExplosion(int _x, int _y, int _strength) : x(_x), y(_y), strength(_strength) {}
+
+	};
+
+private:
+
+	Terrain* terrain;									// Pointer to terrain instance			
+
+	Vector2 gravity;									// Gravity vector
+	Vector2 wind;										// Wind vector
+
+	list<Object*> objects;								// List of objects in the world
+	vector<Object*> pendingObjects;						// List of objects created and waiting to be added
+	vector<DeferredExplosion> deferredExplosions;		// List of deferred explosions awaiting processing
 
 	Water* water[WORLD_WATER_LINES];
 	Clouds* clouds;
@@ -51,8 +64,9 @@ private:
 	//
 	// Initialization
 	//	
-	~World();
+	
 	World();
+	~World();
 
 public:
 
@@ -71,12 +85,23 @@ public:
 	void AddObject(Object* object);
 	void AddCreatedObject(Object* object);
 	void RemoveAllObjects();
-void SetWaterColor(Color& color);
+	void SetWaterColor(Color& color);
 	void SetBackground(ImageResource* farImage, ImageResource* nearImage);
-	void CameraMoved(sf::Vector2<float> newPosition);
-	Vector2 ToWorldCoordinates(sf::View* camera, int screenWidth, int screenHeight, int screenX, int screenY);
+	void CameraMoved(const Vector2& newPosition);
+	
 	Object* SelectObjectAtPosition(Vector2 point);
+	void SelectObject(Object* object);
+
+	Object* GetObjectAtPosition(const Vector2& position);
+
+	// Method used to simulate an explosion, destroys terrain and damages objects
 	void SimulateExplosion(int x, int y, int strength);
+
+	// Defers and explosion for processing later, used by the shotgun and other weapons
+	void DeferExplosion(int x, int y, int strength);
+
+	// Processes all deferred explosions
+	void SimulateExplosions();
 
 	//
 	// Rendering
@@ -97,10 +122,7 @@ void SetWaterColor(Color& color);
 	void SetWind(Vector2 newWind);
 	Object* SelectedObject();	
 
-	//
-	// Debug
-	//
-
-	void DestroyTerrain(int x, int y);
+	// Finds a collision along a ray
+	bool GetRayIntersection(const Vector2& start, const Vector2& direction, Vector2& collisionPos, Object* ignore);
 
 };

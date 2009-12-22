@@ -64,12 +64,22 @@ bool Slug::Update(float elapsedTime, Terrain* terrain, Vector2& gravity, Vector2
 
 			int direction;
 			if (movementDirection & MOVEMENTDIRECTION_RIGHT)
+			{
+
+				SetImage((ImageResource*)ResourceManager::Get()->GetResource("image_slug_right"));
 				direction = 1;
+			
+			}
 			else
+			{
+			
+				SetImage((ImageResource*)ResourceManager::Get()->GetResource("image_slug_left"));
 				direction = -1;
+			
+			}
 
 			int pix = (int)position.x + direction;
-			int piy = -((int)position.y + radius + 1);
+			int piy = ((int)position.y + radius + 1);
 
 			if (terrain->PointCollision(pix, piy))
 			{
@@ -90,7 +100,7 @@ bool Slug::Update(float elapsedTime, Terrain* terrain, Vector2& gravity, Vector2
 				{
 
 					position.x += direction * SLUG_MOVEMENT_SPEED * elapsedTime;
-					position.y -= (float)up;
+					position.y += (float)up;
 					moved = true;
 
 				}
@@ -129,20 +139,20 @@ bool Slug::Update(float elapsedTime, Terrain* terrain, Vector2& gravity, Vector2
 		if (movementDirection & MOVEMENTDIRECTION_UP)
 		{
 
-			aimAngle -= elapsedTime * SLUG_AIM_SPEED;
+			aimAngle += elapsedTime * SLUG_AIM_SPEED;
 
-			if (aimAngle < -PI_OVER_2)
-				aimAngle = -PI_OVER_2;
+			if (aimAngle > PI_OVER_2)
+				aimAngle = PI_OVER_2;
 
 		}
 
 		if (movementDirection & MOVEMENTDIRECTION_DOWN)
 		{
 
-			aimAngle += elapsedTime * SLUG_AIM_SPEED;
+			aimAngle -= elapsedTime * SLUG_AIM_SPEED;
 
-			if (aimAngle > PI_OVER_2)
-				aimAngle = PI_OVER_2;
+			if (aimAngle < -PI_OVER_2)
+				aimAngle = -PI_OVER_2;
 
 		}
 
@@ -303,6 +313,13 @@ float Slug::GetAimAngle() const
 
 }
 
+void Slug::AdjustAim(float amount)
+{
+
+	aimAngle += amount;
+
+}
+
 float Slug::GetPower() const
 {
 
@@ -310,17 +327,18 @@ float Slug::GetPower() const
 
 }
 
-void Slug::Die()
+void Slug::Die(bool instant)
 {
 
-	// Overridden for handling by death timer
+	if (instant)
+		alive = false;
 
 }
 
 void Slug::Explode()
 {
 
-	World::Get()->SimulateExplosion((int)position.x, -(int)position.y, SLUG_EXPLOSION_STRENGTH);
+	World::Get()->SimulateExplosion((int)position.x, (int)position.y, SLUG_EXPLOSION_STRENGTH);
 
 }
 
@@ -349,6 +367,13 @@ void Slug::ArmSelf()
 
 	if ((!currentWeapon) && (weaponStore))
 		currentWeapon = weaponStore->Get();
+
+}
+
+void Slug::ArmSelf(WeaponType type)
+{
+
+	currentWeapon = weaponStore->Get(type);
 
 }
 

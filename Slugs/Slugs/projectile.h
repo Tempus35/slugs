@@ -46,22 +46,22 @@ public:
 	virtual void OnCollideWithObject(Terrain* terrain, Object* object);
 
 	// Gets the object which created the projectile
-	Object* GetOwner() const;
+	virtual Object* GetOwner() const;
 
 	// Gets the amount of timer remaining until the projectile detonates
-	float GetTimer() const;
+	virtual float GetTimer() const;
 
 	// Gets the strength of the projectile
-	int GetStrength() const;
+	virtual int GetStrength() const;
 
 	// Sets the owner of the projectile
-	void SetOwner(Object* object);
+	virtual void SetOwner(Object* object);
 
 	// Sets the detonation timer
-	void SetTimer(float newTime);
+	virtual void SetTimer(float newTime);
 
 	// Sets the strength of the projectile
-	void SetStrength(int newStrength);
+	virtual void SetStrength(int newStrength);
 
 };
 
@@ -78,6 +78,13 @@ protected:
 public:
 
 	Projectile_Bazooka(Object* creator);
+
+	// Updates the orientation of the projectile to match its velocity
+	virtual void UpdateOrientation();
+
+	virtual void SetVelocity(const Vector2& newVelocity);
+
+	bool Update(float elapsedTime, Terrain* terrain, Vector2& gravity, Vector2& wind);
 
 };
 

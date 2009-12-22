@@ -25,6 +25,10 @@ Projectile::Projectile(Object* creator) : Object(ObjectType_Projectile)
 bool Projectile::Update(float elapsedTime, Terrain* terrain, Vector2& gravity, Vector2& wind)
 {
 
+	//
+	// Decrease our detonation timer if we have one
+	//
+
 	if (timer > 0.0f)
 	{
 
@@ -71,7 +75,7 @@ void Projectile::Explode(Terrain* terrain)
 	Die();
 
 	// Simulate the explosion on the world
-	World::Get()->SimulateExplosion(pix, -piy, strength);
+	World::Get()->SimulateExplosion(pix, piy, strength);
 
 }
 
@@ -123,6 +127,36 @@ void Projectile::SetStrength(int newStrength)
 
 Projectile_Bazooka::Projectile_Bazooka(Object* creator) : Projectile(creator)
 {
+
+}
+
+void Projectile_Bazooka::UpdateOrientation()
+{
+
+	// Update orientation to match velocity
+	Vector2 direction = velocity;
+	VectorNormalize(&direction);
+	sprite.SetOrientation(direction);
+
+}
+
+void Projectile_Bazooka::SetVelocity(const Vector2& newVelocity)
+{
+
+	Projectile::SetVelocity(newVelocity);
+
+	UpdateOrientation();
+
+}
+
+bool Projectile_Bazooka::Update(float elapsedTime, Terrain* terrain, Vector2& gravity, Vector2& wind)
+{
+
+	bool result = Projectile::Update(elapsedTime, terrain, gravity, wind);
+
+	UpdateOrientation();
+
+	return result;
 
 }
 

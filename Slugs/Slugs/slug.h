@@ -32,8 +32,7 @@ enum MovementDirection
 #define SLUG_MAX_UP_STEP		5							// Maximum number of pixels that can be moved vertically per step
 #define SLUG_DEATH_TIMER		2.0f						// Time between reaching 0 hps and exploding
 #define SLUG_EXPLOSION_STRENGTH 30							// Strength of the slug death explosion
-#define SHOT_POWER_CHARGE_RATE	1.0f						// Rate of weapon charge
-#define SHOT_POWER_MULTIPLIER	2000.0f						// Multiplier to turn shot power into shot speed				
+#define SHOT_POWER_CHARGE_RATE	1.0f						// Rate of weapon charge		
 
 class Team;
 
@@ -79,7 +78,7 @@ public:
 	void Fire();
 
 	// Kills the slug
-	void Die();
+	void Die(bool instant = false);
 
 	// Causes the slug to explode
 	void Explode();
@@ -93,11 +92,17 @@ public:
 	// Gets the current aim angle
 	float GetAimAngle() const;
 
+	// Adjust the aim angle by an amount, used by weapons like the machinegun
+	void AdjustAim(float amount);
+
 	// Gets the current charge level
 	float GetPower() const;
 
 	// Arms the slug with the first available weapon in its weapon store
 	void ArmSelf();
+
+	// Arms the slug with the given weapon type
+	void ArmSelf(WeaponType type);
 	
 	// Sets the weapons store available to the slug
 	void SetWeapons(WeaponStore* store, bool slugOwns = false);

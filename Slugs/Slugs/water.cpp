@@ -63,7 +63,7 @@ void Water::Update(float elapsedTime)
 	else if (offset < -sectionWidth)
 		offset += sectionWidth;
 
-	int cx = fastround(position.x - sectionWidth + offset);
+	int cx = RoundToInt(position.x - sectionWidth + offset);
 	for (unsigned int i = 0; i < sprites.size(); ++ i)
 	{
 

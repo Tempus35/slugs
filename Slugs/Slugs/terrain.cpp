@@ -266,7 +266,7 @@ void Terrain::ProcessPoints()
 			if ((p[0] != last[0]) || (p[1] != last[1]))
 			{
 
-				int index = textureBuffer->PositionToIndex(p[0], clamp(p[1], 0, textureBuffer->Height() - 1));
+				int index = textureBuffer->PositionToIndex(p[0], Clamp(p[1], 0, textureBuffer->Height() - 1));
 
 				if (index)
 				{
@@ -857,8 +857,8 @@ void Terrain::CreateCavern(int centerX, int centerY, float smoothness, float cha
 			{
 
 				float angle = Random::RandomFloat(0, TWO_PI);
-				int nextX = (int)(centerX + fastcosf(angle) * averageRadius * TERRAIN_CAVERN_EXPANSION_FACTOR);
-				int nextY = (int)(centerY + fastsinf(angle) * averageRadius * TERRAIN_CAVERN_EXPANSION_FACTOR);
+				int nextX = (int)(centerX + Cos(angle) * averageRadius * TERRAIN_CAVERN_EXPANSION_FACTOR);
+				int nextY = (int)(centerY + Sin(angle) * averageRadius * TERRAIN_CAVERN_EXPANSION_FACTOR);
 				CreateCavern(nextX, nextY, smoothness, chaosity, subLevel + 1);
 
 			}
@@ -1166,18 +1166,18 @@ bool Terrain::RowCollision(int centerX, int centerY, int width, int height, bool
 	if (above)
 	{
 
-		testY = centerY - halfHeight;
+		testY = centerY + halfHeight;
 
-		if (testY < 0)
+		if (testY >= textureBuffer->Height())
 			return false;
 
 	}
 	else
 	{
 
-		testY = centerY + halfHeight;
+		testY = centerY - halfHeight;
 
-		if (testY >= textureBuffer->Height())
+		if (testY < 0)
 			return false;
 
 	}
@@ -1370,7 +1370,7 @@ bool Terrain::SquareCollisionIterated(int fromX, int fromY, int toX, int toY, in
 
 	bool collision = false;
 
-	if (fastfabs(dx) > fastfabs(dy))
+	if (Abs(dx) > Abs(dy))
 	{
 
 		//
@@ -1543,16 +1543,16 @@ bool Terrain::SquareCollisionIterated(int fromX, int fromY, int toX, int toY, in
 					if (d > 0)
 					{
 
-						// Row below
-						if (RowCollision(ix, y, width, height, false))
+						// Row above
+						if (RowCollision(ix, y, width, height, true))
 							collision = true;
 
 					}
 					else
 					{
 
-						// Row above
-						if (RowCollision(ix, y, width, height, true))
+						// Row below
+						if (RowCollision(ix, y, width, height, false))
 							collision = true;
 
 					}
@@ -1649,6 +1649,43 @@ bool Terrain::LineCollision(int x0, int y0, int x1, int y1, Vector2* collisionPo
 	}
 
 	return false;
+
+}
+
+bool Terrain::RayIntersection(const Vector2& start, const Vector2& direction, float maxRange, Vector2& collisionPos)
+{
+
+	bool collision = false;
+	Vector2 p = start;
+	float r = 0.0f;
+
+	while (1)
+	{
+
+		if (!Contains(p.x, p.y))
+			break;
+
+		Color* ptr = (Color*)textureBuffer->Data((int)p.x, (int)p.y);
+
+		if (ptr->a != TERRAINALPHA_EMPTY)
+		{
+
+			collisionPos = p;
+			collision = true;
+			break;
+
+		}
+
+		p += direction;
+
+		r += 1.0f;
+
+		if (r >= maxRange)
+			break;
+
+	}
+
+	return collision;
 
 }
 
@@ -1966,7 +2003,7 @@ bool Terrain::Generate(float landmass, float smoothness, float chaosity, float p
 	// Set angles and separation
 	float angle = Random::RandomFloat(-45.0f, 45.0f) * PI_OVER_180;
 	float angleDelta = (TERRAIN_CHAOSITY_BASE_ANGLE + (TERRAIN_CHAOSITY_ADDITIONAL_ANGLE * chaosity)) * PI_OVER_180;
-	int minSeparation = fastround(TERRAIN_PLATFORMARITY_BASE + platformarity * TERRAIN_PLATFORMARITY_FACTOR);
+	int minSeparation = RoundToInt(TERRAIN_PLATFORMARITY_BASE + platformarity * TERRAIN_PLATFORMARITY_FACTOR);
 	int angleSteps = 0;
 	int lowSteps = 0;
 	int lx = -1, ly = -1;
@@ -2156,7 +2193,7 @@ bool Terrain::Generate(float landmass, float smoothness, float chaosity, float p
 	ProcessPoints();
 
 	// Add caverns
-	int numCaverns = fastround(cavernacity * TERRAIN_MAX_CAVERNACITY);
+	int numCaverns = RoundToInt(cavernacity * TERRAIN_MAX_CAVERNACITY);
 	for (int i = 0; i < numCaverns; ++ i)
 		CreateCavern(Random::RandomInt(0, textureBuffer->Width()), Random::RandomInt(0, textureBuffer->Height()), smoothness, chaosity, 0);
 

@@ -1,5 +1,7 @@
 #include "world.h"
 
+#define PB_DEBUG
+
 /*
 	class World
 */
@@ -109,11 +111,11 @@ void World::Update(float elapsedTime)
 			// Get new position
 			Vector2 pos = obj->GetPosition();
 
-			if (!terrain->Contains(pos.x, -pos.y))
+			if (!terrain->Contains(pos.x, pos.y))
 			{
 
-				// Kill object, it left the terrain area
-            	obj->Die();
+				// Kill object instantly, it left the terrain area
+            	obj->Die(true);
 			
 			}
 			else
@@ -124,10 +126,10 @@ void World::Update(float elapsedTime)
 				//
 
 				Vector2 collisionPos;
-				if (terrain->SquareCollisionIterated((int)lastPos.x, -(int)lastPos.y, (int)pos.x, -(int)pos.y, 2 * obj->GetRadius(), 2 * obj->GetRadius(), &collisionPos))
+				if (terrain->SquareCollisionIterated((int)lastPos.x, (int)lastPos.y, (int)pos.x, (int)pos.y, 2 * obj->GetRadius(), 2 * obj->GetRadius(), &collisionPos))
 				{
 
-					obj->SetPosition(collisionPos.x, -collisionPos.y);
+					obj->SetPosition(collisionPos.x, collisionPos.y);
 					obj->OnCollideWithTerrain(terrain);
 					obj->SetAtRest(true);
 
@@ -243,14 +245,18 @@ void World::SetBackground(ImageResource* farImage, ImageResource* nearImage)
 
 }
 
-void World::CameraMoved(sf::Vector2<float> newPosition)
+void World::CameraMoved(const Vector2& newPosition)
 {
 
-	// Adjust parallax
 	Vector2 size;
 
-	int offCenterX = fastround(newPosition.x - terrain->WidthInPixels() / 2.0f);
-	int offCenterY = fastround(newPosition.y + terrain->HeightInPixels() / 2.0f);
+	//
+	// Get the distance from the center of the terrain, calculate parallax params
+	// and adjust parallax by moving the background images
+	//
+
+	int offCenterX = RoundToInt(newPosition.x - terrain->WidthInPixels() / 2.0f);
+	int offCenterY = RoundToInt(newPosition.y + terrain->HeightInPixels() / 2.0f);
 	int halfXDifference, halfYDifference;
 
 	size = backgroundSprites[0].GetSize();
@@ -260,32 +266,52 @@ void World::CameraMoved(sf::Vector2<float> newPosition)
 	backgroundSprites[0].SetPosition((float)(offCenterX / 2 - halfXDifference), (float)(offCenterY / 2 - terrain->HeightInPixels() + halfYDifference));
 
 	size = backgroundSprites[1].GetSize();
-	halfXDifference = fastround((size.x - terrain->WidthInPixels()) / 2.0f);
-	halfYDifference = fastround((size.y - terrain->HeightInPixels()) / 2.0f);
+	halfXDifference = RoundToInt((size.x - terrain->WidthInPixels()) / 2.0f);
+	halfYDifference = RoundToInt((size.y - terrain->HeightInPixels()) / 2.0f);
 
 	backgroundSprites[1].SetPosition((float)(offCenterX / 4 - halfXDifference), float(offCenterY / 4 - terrain->HeightInPixels() + halfYDifference));
 
 }
 
-Vector2 World::ToWorldCoordinates(sf::View* camera, int screenWidth, int screenHeight, int screenX, int screenY)
+Object* World::SelectObjectAtPosition(Vector2 point)
 {
+	
+	Object* object = GetObjectAtPosition(point);
+	SelectObject(object);
 
-	sf::Vector2<float> camPos = camera->GetCenter();
-
-	return Vector2(camPos.x + (screenX - screenWidth / 2), camPos.y - screenHeight / 2 + screenY);
+	return object;
 
 }
 
-Object* World::SelectObjectAtPosition(Vector2 point)
+void World::SelectObject(Object* object)
 {
+
+	// Deselect any currently selected object
+	if (selectedObject)
+		selectedObject->Deselect();
+
+	// Update selection
+	selectedObject = object;
+	
+	if (selectedObject)
+		selectedObject->Select();
+
+}
+
+Object* World::GetObjectAtPosition(const Vector2& position)
+{
+
+	//
+	// Find the object at the given point
+	//
 
 	Object* obj = NULL;
 
 	for (list<Object*>::iterator i = objects.begin(); i != objects.end(); ++ i)
 	{
 
-		int pix = (int)point.x;
-		int piy = (int)point.y;
+		int pix = (int)position.x;
+		int piy = (int)position.y;
 
 		if ((*i)->Contains(pix, piy))
 		{
@@ -297,22 +323,19 @@ Object* World::SelectObjectAtPosition(Vector2 point)
 
 	}
 
-	if (selectedObject)
-		selectedObject->Deselect();
-
-	selectedObject = obj;
-	
-	if (selectedObject)
-		selectedObject->Select();
-
-	return selectedObject;
+	return obj;
 
 }
 
 void World::SimulateExplosion(int x, int y, int strength)
 {
 
+	// Update the terrain
 	terrain->ClearCircle(x, y, strength, WORLD_EXPLOSION_BORDER);
+
+	//
+	// Add forces and damage to objects
+	//
 
 	float dx, dy, d;
 	float hitStrength, hitPower;
@@ -324,7 +347,7 @@ void World::SimulateExplosion(int x, int y, int strength)
 
 		pos = obj->GetPosition();
 		dx = pos.x - x;
-		dy = pos.y + y;
+		dy = pos.y - y;
 		d = sqrtf(dx * dx + dy * dy);
 
 		if (d <= strength)
@@ -335,13 +358,30 @@ void World::SimulateExplosion(int x, int y, int strength)
 			hitPower = hitStrength * strength;
 			obj->AdjustHitpoints(-(int)hitPower);
 
-			// Send the object flying
+			// Add force
 			obj->SetAtRest(false);
-			obj->SetVelocity(copysign(dx, hitPower) * WORLD_EXPLOSION_MULTIPLIER, copysign(dy, hitPower) * WORLD_EXPLOSION_MULTIPLIER);
+			obj->SetVelocity(CopySign(dx, hitPower) * WORLD_EXPLOSION_MULTIPLIER, CopySign(dy, hitPower) * WORLD_EXPLOSION_MULTIPLIER);
 
 		}
 
 	}
+
+}
+
+void World::DeferExplosion(int x, int y, int strength)
+{
+
+	deferredExplosions.push_back(DeferredExplosion(x, y, strength));
+
+}
+
+void World::SimulateExplosions()
+{
+
+	for (unsigned int i = 0; i < deferredExplosions.size(); ++ i)
+		SimulateExplosion(deferredExplosions[i].x, deferredExplosions[i].y, deferredExplosions[i].strength);
+
+	deferredExplosions.clear();
 
 }
 
@@ -400,9 +440,9 @@ void World::Render()
 				size = crosshairSprite.GetSize();
 
 				if (slugObj->GetFacingDirection() == FACINGDIRECTION_RIGHT)
-					crosshairSprite.SetPosition(objPos.x + cosf(angle) * WORLD_CROSSHAIR_DISTANCE - size.x / 2, objPos.y + sinf(angle) * WORLD_CROSSHAIR_DISTANCE - size.y / 2);
+					crosshairSprite.SetPosition(objPos.x + cosf(angle) * WORLD_CROSSHAIR_DISTANCE - size.x / 2, -objPos.y - sinf(angle) * WORLD_CROSSHAIR_DISTANCE - size.y / 2);
 				else
-					crosshairSprite.SetPosition(objPos.x - cosf(angle) * WORLD_CROSSHAIR_DISTANCE - size.x / 2, objPos.y + sinf(angle) * WORLD_CROSSHAIR_DISTANCE - size.y / 2);
+					crosshairSprite.SetPosition(objPos.x - cosf(angle) * WORLD_CROSSHAIR_DISTANCE - size.x / 2, -objPos.y - sinf(angle) * WORLD_CROSSHAIR_DISTANCE - size.y / 2);
 				
 				size = arrowSprite.GetSize();
 				arrowSprite.SetPosition(objPos.x - size.x / 2, objPos.y - WORLD_ARROW_DISTANCE - size.y / 2);				
@@ -420,6 +460,7 @@ void World::Render()
 	for (int i = WORLD_WATER_LINES / 2; i < WORLD_WATER_LINES; ++ i)
 		water[i]->Render();
 
+	/*
 	// Debug Bounds
 	#ifdef PB_DEBUG
 
@@ -433,6 +474,7 @@ void World::Render()
 		renderer.Draw(bounds);
 
 	#endif
+	*/
 
 }
 
@@ -496,20 +538,56 @@ Object* World::SelectedObject()
 
 }
 
-//
-// Debug
-//
-
-void World::DestroyTerrain(int x, int y)
+bool World::GetRayIntersection(const Vector2& start, const Vector2& direction, Vector2& collisionPos, Object* ignore)
 {
 
-	if (terrain)
+	float maxRange = 1000000.0f;
+	Vector2 intersectionPos;
+
+	//
+	// Check the terrain
+	//
+	
+	bool collision = terrain->RayIntersection(start, direction, maxRange, intersectionPos);
+
+	if (collision)
 	{
 
-		terrain->ClearCircle(x, y, Random::RandomInt(50, 100), 6);
-
-		terrain->BufferDirty();
+		collisionPos = intersectionPos;
+		maxRange = VectorLength(intersectionPos - start);
 
 	}
+
+	//
+	// Check objects
+	//
+
+	for (list<Object*>::iterator i = objects.begin(); i != objects.end(); ++ i)
+	{
+
+		Object* obj = *i;
+
+		// Ignore the passed in object
+		if (obj == ignore)
+			continue;
+
+		// Ignore dead objects
+		if (!obj->IsAlive())
+			continue;
+
+		// Test for an intersection
+		if (RayCircleIntersection(start, direction, obj->GetPosition(), (float)obj->GetRadius(), maxRange, intersectionPos))
+		{
+
+			maxRange = VectorLength(intersectionPos - start);
+			collisionPos = intersectionPos;
+			collision = true;
+
+		}
+
+	}
+
+	return collision;
+
 
 }

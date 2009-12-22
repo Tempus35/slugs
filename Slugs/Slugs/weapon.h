@@ -10,6 +10,7 @@
 #include "debug.h"
 
 #include "projectile.h"
+#include "updatemanager.h"
 
 /*
 	Forward declarations
@@ -134,16 +135,24 @@ public:
 	Machine gun weapon - fires a spray of bullets
 */
 
-class Weapon_MachineGun : public Weapon
+class Weapon_MachineGun : public Weapon, public Updateable
 {
 
 protected:
+
+	bool		firing;					// Is the machinegun currently firing
+	float		fireTimer;				// Shot timer
+	int			fireCounter;			// Number of shots remaining before we stop firing
+	Slug*		slug;					// The slug unlucky enough to fire this weapon last
 
 public:
 
 	Weapon_MachineGun(int initialAmmo = -1);
 
 	virtual bool Fire(Slug* owner);
+
+	// Hooked so that we can fire the machinegun over time
+	virtual void Update(float elapsedTime);
 
 
 };

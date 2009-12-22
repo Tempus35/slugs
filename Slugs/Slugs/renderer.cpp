@@ -55,9 +55,9 @@ void Renderer::SetIcon(sf::Image& image)
 
 }
 
-void Renderer::SetView(sf::View& view)
+void Renderer::SetCamera(Camera& camera)
 {
 
-	window.SetView(view);
+	window.SetView(camera.GetView());
 
 }

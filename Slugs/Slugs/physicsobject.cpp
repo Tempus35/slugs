@@ -42,6 +42,15 @@ bool PhysicsObject::Update(float elapsedTime, Terrain* terrain, Vector2& gravity
 		// Update velocity
 		velocity += acceleration * elapsedTime;
 
+		// Limit velocity
+		if (VectorLength(velocity) > PHYSICS_LIMIT_SPEED)
+		{
+
+			VectorNormalize(&velocity);
+			velocity *= PHYSICS_LIMIT_SPEED;
+
+		}
+
 		// Update position
 		int lastX = (int)position.x, lastY = (int)position.y;
 		position += velocity * elapsedTime;

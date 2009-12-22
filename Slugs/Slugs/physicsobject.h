@@ -8,6 +8,8 @@
 	Base class for all objects effected by physics
 */
 
+#define PHYSICS_LIMIT_SPEED 2000							// Maximum number of pixels/sec an object can move
+
 class PhysicsObject
 {
 
