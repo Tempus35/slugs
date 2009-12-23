@@ -25,6 +25,28 @@ inline int RoundToInt(float f)
 
 }
 
+inline int RoundDownToInt(float x)
+{
+
+	return (int)floorf(x);
+
+}
+
+
+inline float Floor(float x)
+{
+
+	return floorf(x);
+
+}
+
+inline float Ceil(float x)
+{
+
+	return ceilf(x);
+
+}
+
 inline float Round(float f)
 {
 
@@ -66,7 +88,7 @@ template <class T>
 inline T Min(T a, T b)
 {
 
-	return a > b ? a : b;
+	return a > b ? b : a;
 
 }
 

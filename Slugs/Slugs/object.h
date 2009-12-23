@@ -43,9 +43,9 @@ protected:
 
 	Sprite					sprite;			// Sprite instance for the object
 
-	int						radius;			// Collision radius
-
 	bool					selected;		// Is this object currently selected
+
+	Box						baseBox;		// Bounding box used for collisions with the terrain
 
 protected:
 
@@ -71,10 +71,9 @@ public:
 	//
 
 	virtual void SetImage(ImageResource* image);
-	virtual void SetPosition(Vector2 newPosition);
-	void SetPosition(float x, float y);
+	virtual void SetPosition(Vec2f newPosition);
+	virtual void SetPosition(float x, float y);
 	virtual void SetHitpoints(int newHitpoints);
-	virtual void SetRadius(int newRadius);
 
 	//
 	// Simulation
@@ -84,7 +83,7 @@ public:
 
 	void Select();
 	void Deselect();
-	bool Contains(int x, int y) const;
+	bool Contains(float x, float y) const;
 
 	virtual void StartMovingLeft() {};
 	virtual void StartMovingRight() {};
@@ -96,8 +95,20 @@ public:
 	virtual void Jump() {};
 	virtual void Fire() {};
 
-	virtual void OnCollideWithTerrain(Terrain* terrain) {};
-	virtual void OnCollideWithObject(Terrain* terrain, Object* object) {};
+	// Fired when the object collides with the terrain. Object should return true if it must be repositioned to the point of collision.
+	virtual bool OnCollideWithTerrain();
+
+	// Fired when the object collides with another object
+	virtual void OnCollideWithObject(Object* object);
+
+	// Sets the collision bounding box of the object
+	virtual void SetBounds(float halfWidth, float halfHeight);
+
+	// Gets the base box
+	virtual const Box& GetBaseBox() const;
+
+	// Is the object invulnerable?
+	virtual bool IsInvulnerable() const;
 
 	//	
 	// Accessors
@@ -106,7 +117,6 @@ public:
 	bool IsAlive() const;
 	int GetHitPoints() const;
 	const Sprite& GetSprite() const;
-	int GetRadius() const;
 	ObjectType GetType() const;
 
 	void AdjustHitpoints(int change);

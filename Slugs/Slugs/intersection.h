@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vector2.h"
+#include "vec2.h"
 #include "fastmath.h"
 
-bool RayCircleIntersection(const Vector2& rayStart, const Vector2& rayDirection, const Vector2& circleCenter, float circleRadius, float maxRange, Vector2& intersection);
+bool RayCircleIntersection(const Vec2f& rayStart, const Vec2f& rayDirection, const Vec2f& circleCenter, float circleRadius, float maxRange, Vec2f& intersection);

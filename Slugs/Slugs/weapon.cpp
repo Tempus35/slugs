@@ -6,8 +6,9 @@
 //---------------------------------------------------------------
 
 #include "weapon.h"
-
+#include "game.h"
 #include "slug.h"
+#include "world.h"
 
 /*
 	class Weapon
@@ -37,8 +38,8 @@ Weapon* Weapon::CreateFromType(WeaponType t)
 	case WeaponType_Shotgun:
 		return new Weapon_Shotgun();
 
-	case WeaponType_MachineGun:
-		return new Weapon_MachineGun();
+	case WeaponType_Machinegun:
+		return new Weapon_Machinegun();
 
 	}
 
@@ -114,25 +115,25 @@ bool Weapon_Bazooka::Fire(Slug* owner)
 		//
 
 		float aimAngle = owner->GetAimAngle();
-		Vector2 aimDirection = Vector2(cosf(aimAngle), sinf(aimAngle));
+		Vec2f aimDirection = Vec2f(Cos(aimAngle), Sin(aimAngle));
 
 		if (owner->GetFacingDirection() != FACINGDIRECTION_RIGHT)
 			aimDirection.x = -aimDirection.x;
 
 		float shotVelocity = owner->GetPower() * 1000.0f;
-		Vector2 aimVelocity = aimDirection * shotVelocity;
+		Vec2f aimVelocity = aimDirection * shotVelocity;
 
 		Projectile_Bazooka* projectile = new Projectile_Bazooka(owner);
-		projectile->SetPosition(owner->GetPosition() + aimDirection * (float)owner->GetRadius());
+		projectile->SetPosition(owner->GetWeaponPoint());
 		projectile->SetStrength(75);
 		projectile->SetTimer(-1);
-		projectile->SetRadius(5);
+		projectile->SetBounds(5.0f, 5.0f);
 		projectile->SetImage(((ImageResource*)ResourceManager::Get()->GetResource("image_rocket")));
 
 		projectile->SetVelocity(aimVelocity);
 
 		// Add the projectile to the world
-		World::Get()->AddCreatedObject(projectile);
+		Game::Get()->GetWorld()->AddCreatedObject(projectile);
 
 		return true;
 
@@ -153,6 +154,40 @@ Weapon_Grenade::Weapon_Grenade(int initialAmmo) : Weapon(WeaponType_Grenade, ini
 
 bool Weapon_Grenade::Fire(Slug* owner)
 {
+
+	ASSERT(owner);
+
+	if (TakeAmmo() == true)
+	{
+
+		//
+		// Okay to fire
+		//
+
+		float aimAngle = owner->GetAimAngle();
+		Vec2f aimDirection = Vec2f(Cos(aimAngle), Sin(aimAngle));
+
+		if (owner->GetFacingDirection() != FACINGDIRECTION_RIGHT)
+			aimDirection.x = -aimDirection.x;
+
+		float shotVelocity = owner->GetPower() * 1000.0f;
+		Vec2f aimVelocity = aimDirection * shotVelocity;
+
+		Projectile_Grenade* projectile = new Projectile_Grenade(owner);
+		projectile->SetPosition(owner->GetWeaponPoint());
+		projectile->SetStrength(75);
+		projectile->SetTimer(3);
+		projectile->SetBounds(5.0f, 5.0f);
+		projectile->SetImage(((ImageResource*)ResourceManager::Get()->GetResource("image_grenade")));
+
+		projectile->SetVelocity(aimVelocity);
+
+		// Add the projectile to the world
+		Game::Get()->GetWorld()->AddCreatedObject(projectile);
+
+		return true;
+
+	}
 
 	return false;
 
@@ -180,27 +215,27 @@ bool Weapon_Shotgun::Fire(Slug* owner)
 		//
 
 		const float spread = Radians(10.0f);
-		const int strength = 10;
+		const float strength = 10.0f;
 		float baseAngle = owner->GetAimAngle();
 
 		for (int i = 0; i < 5; ++ i)
 		{
 
 			float angle = baseAngle + Random::RandomFloat(-spread, spread);
-			Vector2 direction = Vector2(Cos(angle), Sin(angle));
+			Vec2f direction = Vec2f(Cos(angle), Sin(angle));
 
 			if (owner->GetFacingDirection() != FACINGDIRECTION_RIGHT)
 			direction.x = -direction.x;
 
-			Vector2 collisionPos;
-			bool collision =  World::Get()->GetRayIntersection(owner->GetPosition(), direction, collisionPos, owner);	
+			Vec2f collisionPos;
+			World::IntersectionType intersection = Game::Get()->GetWorld()->GetRayIntersection(owner->GetPosition(), direction, collisionPos, owner);	
 
-			if (collision)
-				World::Get()->DeferExplosion((int)collisionPos.x, (int)collisionPos.y, strength);
+			if (intersection != World::IntersectionType_None)
+				Game::Get()->GetWorld()->DeferExplosion(collisionPos.x, collisionPos.y, strength);
 
 		}
 
-		World::Get()->SimulateExplosions();
+		Game::Get()->GetWorld()->SimulateExplosions();
 
 		return true;
 
@@ -211,10 +246,10 @@ bool Weapon_Shotgun::Fire(Slug* owner)
 }
 
 /*
-	Weapon_MachineGun
+	Weapon_Machinegun
 */
 
-Weapon_MachineGun::Weapon_MachineGun(int initialAmmo) : Weapon(WeaponType_MachineGun, initialAmmo, false)
+Weapon_Machinegun::Weapon_Machinegun(int initialAmmo) : Weapon(WeaponType_Machinegun, initialAmmo, false)
 {
 
 	firing = false;
@@ -223,7 +258,7 @@ Weapon_MachineGun::Weapon_MachineGun(int initialAmmo) : Weapon(WeaponType_Machin
 
 }
 
-bool Weapon_MachineGun::Fire(Slug* owner)
+bool Weapon_Machinegun::Fire(Slug* owner)
 {
 
 	ASSERT(owner);
@@ -246,7 +281,7 @@ bool Weapon_MachineGun::Fire(Slug* owner)
 		fireTimer = 0.0f;
 
 		// Register for updates so we can fire over time
-		UpdateManager::Get()->RegisterForUpdates(this);
+		Game::Get()->GetUpdateManager()->RegisterForUpdates(this);
 
 	}
 
@@ -254,7 +289,7 @@ bool Weapon_MachineGun::Fire(Slug* owner)
 
 }
 
-void Weapon_MachineGun::Update(float elapsedTime)
+void Weapon_Machinegun::Update(float elapsedTime)
 {
 
 	const float timeBetweenShots = 0.1f;				// Time between shots in seconds
@@ -269,19 +304,19 @@ void Weapon_MachineGun::Update(float elapsedTime)
 		// Make boom
 		//
 
-		const int strength = 10;
+		const float strength = 10.0f;
 		float angle = slug->GetAimAngle();
 
-		Vector2 direction = Vector2(Cos(angle), Sin(angle));
+		Vec2f direction = Vec2f(Cos(angle), Sin(angle));
 
 		if (slug->GetFacingDirection() != FACINGDIRECTION_RIGHT)
 			direction.x = -direction.x;
 
-		Vector2 collisionPos;
-		bool collision =  World::Get()->GetRayIntersection(slug->GetPosition(), direction, collisionPos, slug);	
+		Vec2f collisionPos;
+		World::IntersectionType collision = Game::Get()->GetWorld()->GetRayIntersection(slug->GetPosition(), direction, collisionPos, slug);	
 
-		if (collision)
-			World::Get()->SimulateExplosion((int)collisionPos.x, (int)collisionPos.y, strength);
+		if (collision != World::IntersectionType_None)
+			Game::Get()->GetWorld()->SimulateExplosion(collisionPos.x, collisionPos.y, strength, 5.0f);
 
 		// Force slug to aim up a little
 		slug->AdjustAim(upSwing);
@@ -289,7 +324,7 @@ void Weapon_MachineGun::Update(float elapsedTime)
 		fireCounter --;
 
 		if (fireCounter <= 0)
-			UpdateManager::Get()->UnregisterForUpdates(this);
+			Game::Get()->GetUpdateManager()->UnregisterForUpdates(this);
 		else
 			fireTimer = timeBetweenShots;
 

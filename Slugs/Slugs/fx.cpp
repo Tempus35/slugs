@@ -1,4 +1,5 @@
 #include "fx.h"
+#include "game.h"
 
 SnowSystem::SnowSystem(ImageResource* image, float density)
 {
@@ -11,7 +12,7 @@ SnowSystem::SnowSystem(ImageResource* image, float density)
 
 	imageResource = image;
 
-	World* world = World::Get();
+	World* world = Game::Get()->GetWorld();
 	spawnArea = sf::Rect<int>(0, -world->HeightInPixels() - 50, world->WidthInPixels(), -world->HeightInPixels() - 50); 
 
 	continuous = true;

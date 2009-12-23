@@ -12,7 +12,7 @@ ImageResource::ImageResource(int width, int height, bool smooth)
 
 }
 
-ImageResource::ImageResource(char* path)
+ImageResource::ImageResource(const std::string& path)
 {
 
 	image.LoadFromFile(path);

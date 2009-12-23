@@ -1,4 +1,5 @@
 #include "team.h"
+#include "game.h"
 
 Team::Team()
 {
@@ -60,7 +61,6 @@ bool Team::Add(Slug* slug)
 {
 
 	ASSERT(slug);
-	ASSERT(!slug->GetTeam());
 
 	if (!Contains(slug))
 	{
@@ -132,5 +132,61 @@ void Team::SetWeapons(WeaponStore* store)
 	// Assign the weapon store to the slugs on the team
 	for (unsigned int i = 0; i < slugs.size(); ++ i)
 		slugs[i]->SetWeapons(store);
+
+}
+
+void Team::Randomize(int numSlugs)
+{
+
+	// Get random team name
+	((TextResource*)ResourceManager::Get()->GetResource("text_teamnames"))->GetRandomLine(name, true);
+
+	TextResource* slugNames = (TextResource*)ResourceManager::Get()->GetResource("text_slugnames");
+
+	for (int i = 0; i < numSlugs; ++ i)
+	{
+
+		Slug* slug = new Slug(this);
+
+		std::string n;
+		slugNames->GetRandomLine(n, true);
+		slug->SetName(n);
+
+		Add(slug);
+
+	}
+
+	slugNames->ClearFlags();
+
+}
+
+void Team::GetSlugs(std::vector<Slug*>& list, bool aliveOnly)
+{
+
+	for (unsigned int i = 0; i < slugs.size(); ++ i)
+	{
+
+		if ((!aliveOnly) || (slugs[i]->GetHitPoints() > 0))
+			list.push_back(slugs[i]);
+
+	}
+
+}
+
+void Team::PlaceInWorld()
+{
+
+	std::vector<Vec2f> spawnPoints;
+	Game::Get()->GetWorld()->GetSpawnPoints(spawnPoints, slugs.size());
+
+	ASSERT(spawnPoints.size() == slugs.size());
+
+	for (unsigned int i = 0; i < slugs.size(); ++ i)
+	{
+
+		slugs[i]->SetPosition(spawnPoints[i]);
+		Game::Get()->GetWorld()->AddObject(slugs[i]);
+
+	}
 
 }

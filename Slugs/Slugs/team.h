@@ -4,6 +4,7 @@
 #include <string>
 
 #include "debug.h"
+#include "resourcemanager.h"
 #include "slug.h"
 #include "weaponstore.h"
 
@@ -53,8 +54,16 @@ public:
 	Slug* First();
 	Slug* Last();
 
-	// Weapons
-	// This function takes ownership of the WeaponStore instance
+	// Set the weaponstore for the team, takes ownership of the instance
 	void SetWeapons(WeaponStore* store);
+
+	// Randomizes the team, it will still need a weapon store
+	void Randomize(int numSlugs = 5);
+
+	// Gets slugs on the team
+	void GetSlugs(std::vector<Slug*>& list, bool aliveOnly = true);
+
+	// Places all slugs on the team into the world
+	void PlaceInWorld();
 
 };

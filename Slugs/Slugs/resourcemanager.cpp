@@ -24,21 +24,21 @@ ResourceManager::~ResourceManager()
 // Management
 //
 
-Resource* ResourceManager::GetResource(char* name)
+Resource* ResourceManager::GetResource(const std::string& name)
 {
 
 	return resources[name];
 
 }
 
-void ResourceManager::AddResource(char* name, Resource* resource)
+void ResourceManager::AddResource(const std::string& name, Resource* resource)
 {
 
-	resources.insert(pair<char*, Resource*>(name, resource));
+	resources.insert(std::pair<std::string, Resource*>(name, resource));
 
 }
 
-void ResourceManager::FreeResource(char* name)
+void ResourceManager::FreeResource(const std::string& name)
 {
 
 	void* r = resources[name];
@@ -53,9 +53,7 @@ void ResourceManager::FreeResource(char* name)
 void ResourceManager::FreeAllResources()
 {
 
-	hash_map<char*, Resource*>::iterator i;
-
-	for (i = resources.begin(); i != resources.end(); ++ i)
+	for (stdext::hash_map<std::string, Resource*>::iterator i = resources.begin(); i != resources.end(); ++ i)
 		delete i->second;
 
 	resources.clear();

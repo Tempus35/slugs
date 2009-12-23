@@ -13,7 +13,7 @@ Camera::Camera()
 
 }
 
-void Camera::SetPosition(const Vector2& point)
+void Camera::SetPosition(const Vec2f& point)
 {
 
 	view.SetCenter(point.x, -point.y);
@@ -41,14 +41,14 @@ const sf::View& Camera::GetView() const
 
 }
 
-Vector2 Camera::GetPosition() const
+Vec2f Camera::GetPosition() const
 {
 
-	return Vector2(view.GetCenter());
+	return Vec2f(view.GetCenter());
 
 }
 
-Vector2 Camera::GetWorldPosition() const
+Vec2f Camera::GetWorldPosition() const
 {
 
 	const sf::FloatRect& rect = view.GetRect();
@@ -57,12 +57,12 @@ Vector2 Camera::GetWorldPosition() const
 
 }
 
-Vector2 Camera::GetWorldPosition(int screenX, int screenY) const
+Vec2f Camera::GetWorldPosition(int screenX, int screenY) const
 {
 
 	const sf::FloatRect& rect = view.GetRect();
 
-	return Vector2(rect.Left + screenX, -rect.Bottom + (rect.GetHeight() - screenY));
+	return Vec2f(rect.Left + screenX, -rect.Bottom + (rect.GetHeight() - screenY));
 
 }
 
@@ -70,5 +70,13 @@ void Camera::Move(int deltaX, int deltaY)
 {
 
 	view.Move((float)deltaX, (float)deltaY);
+
+}
+
+void Camera::MoveTo(Object* object)
+{
+
+	// TODO : Move over time
+	view.Move(object->GetPosition().x, object->GetPosition().y);
 
 }

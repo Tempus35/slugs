@@ -21,7 +21,7 @@ protected:
 
 	Object*			owner;					// Pointer to the object which created the projectile
 	float			timer;					// Time in seconds remaining until the projectile detonates
-	int				strength;				// Strength of the projectile, used to calculate damage
+	float				strength;			// Strength of the projectile, used to calculate damage
 
 protected:
 
@@ -29,21 +29,24 @@ protected:
 	Projectile(Object* creator);
 
 	// Causes the projectile to explode, damage terrain and units in the vicinity
-	virtual void Explode(Terrain* terrain);
+	virtual void Explode();
 
 public:
 
 	// Updates the projectile based on delta time
-	virtual bool Update(float elapsedTime, Terrain* terrain, Vector2& gravity, Vector2& wind);
+	virtual bool Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind);
 
 	// Fired when the detonation timer runs out
-	virtual void OnDetonationTimer(Terrain* terrain);
+	virtual void OnDetonationTimer();
 
 	// Fired when the projectile collides with terrain
-	virtual void OnCollideWithTerrain(Terrain* terrain);
+	virtual bool OnCollideWithTerrain();
 
 	// Fired when the projectile collides with another bject
-	virtual void OnCollideWithObject(Terrain* terrain, Object* object);
+	virtual void OnCollideWithObject(Object* object);
+
+	// Kills the projectile
+	virtual void Die(bool instant = false);	
 
 	// Gets the object which created the projectile
 	virtual Object* GetOwner() const;
@@ -52,7 +55,7 @@ public:
 	virtual float GetTimer() const;
 
 	// Gets the strength of the projectile
-	virtual int GetStrength() const;
+	virtual float GetStrength() const;
 
 	// Sets the owner of the projectile
 	virtual void SetOwner(Object* object);
@@ -61,7 +64,7 @@ public:
 	virtual void SetTimer(float newTime);
 
 	// Sets the strength of the projectile
-	virtual void SetStrength(int newStrength);
+	virtual void SetStrength(float newStrength);
 
 };
 
@@ -82,9 +85,9 @@ public:
 	// Updates the orientation of the projectile to match its velocity
 	virtual void UpdateOrientation();
 
-	virtual void SetVelocity(const Vector2& newVelocity);
+	virtual void SetVelocity(const Vec2f& newVelocity);
 
-	bool Update(float elapsedTime, Terrain* terrain, Vector2& gravity, Vector2& wind);
+	virtual bool Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind);
 
 };
 
@@ -98,8 +101,16 @@ class Projectile_Grenade : public Projectile
 
 protected:
 
+	float tumble;
+
 public:
 
 	Projectile_Grenade(Object* creator);
+
+	virtual bool OnCollideWithTerrain();
+
+	virtual void OnCollideWithObject(Object* object);
+
+	virtual bool Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind);
 
 };

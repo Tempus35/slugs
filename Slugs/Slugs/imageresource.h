@@ -23,7 +23,7 @@ public:
 	//
 
 	ImageResource(int width, int height, bool smooth);
-	ImageResource(char* path);
+	ImageResource(const std::string& path);
 	~ImageResource();
 
 	//

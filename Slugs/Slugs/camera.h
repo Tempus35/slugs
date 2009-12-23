@@ -9,7 +9,8 @@
 
 #include <sfml/graphics.hpp>
 
-#include "vector2.h"
+#include "vec2.h"
+#include "object.h"
 
 /*
 	class Camera
@@ -28,7 +29,7 @@ public:
 	Camera();
 
 	// Moves the camera so that is focuses on a point in world space
-	void SetPosition(const Vector2& point);
+	void SetPosition(const Vec2f& point);
 	void SetPosition(int x, int y);
 
 	// Sets the view size (should be equal to window size)
@@ -38,15 +39,18 @@ public:
 	const sf::View& GetView() const;
 
 	// Gets the current camera position
-	Vector2 GetPosition() const;
+	Vec2f GetPosition() const;
 
 	// Gets the world space position on which the camera is focused
-	Vector2 GetWorldPosition() const;
+	Vec2f GetWorldPosition() const;
 
 	// Gets the world space position associated with a position in screen space
-	Vector2 GetWorldPosition(int screenX, int screenY) const;
+	Vec2f GetWorldPosition(int screenX, int screenY) const;
 
 	// Moves the camera
 	void Move(int deltaX, int deltaY);
+
+	// Moves the camera to an object
+	void MoveTo(Object* object);
 
 };

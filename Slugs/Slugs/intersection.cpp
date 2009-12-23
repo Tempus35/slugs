@@ -1,16 +1,17 @@
 #include "intersection.h"
+#include "renderer.h"
 
-bool RayCircleIntersection(const Vector2& rayStart, const Vector2& rayDirection, const Vector2& circleCenter, float circleRadius, float maxRange, Vector2& intersection)
+bool RayCircleIntersection(const Vec2f& rayStart, const Vec2f& rayDirection, const Vec2f& circleCenter, float circleRadius, float maxRange, Vec2f& intersection)
 {
 
-	Vector2 circleToRay = circleCenter - rayStart;
-	float d = VectorDot(rayDirection, circleToRay);
+	Vec2f circleToRay = circleCenter - rayStart;
+	float d = DotProduct(rayDirection, circleToRay);
 
-	if (d > maxRange)
+	if ((d > maxRange) || (d < 0.0f))
 		return false;
 
-	Vector2 pointOnRay = rayStart + rayDirection * d;
-	float t = VectorLength(pointOnRay - circleCenter);
+	Vec2f pointOnRay = rayStart + rayDirection * d;
+	float t = (pointOnRay - circleCenter).Length();
 
 	if (t > circleRadius)
 		return false;

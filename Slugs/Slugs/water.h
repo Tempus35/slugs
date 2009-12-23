@@ -5,7 +5,7 @@ using namespace std;
 
 #include <sfml/graphics.hpp>
 
-#include "vector2.h"
+#include "vec2.h"
 #include "resource.h"
 #include "random.h"
 #include "fastmath.h"
@@ -25,7 +25,7 @@ private:
 	Color color;
 	int width;
 	float speed;
-	Vector2 position;
+	Vec2i position;
 	int sectionWidth;
 	float offset;
 

@@ -180,10 +180,6 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\globals.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\main.cpp"
 				>
 			</File>
@@ -192,10 +188,6 @@
 				>
 				<File
 					RelativePath=".\animation.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\cFont.cpp"
 					>
 				</File>
 				<File
@@ -215,6 +207,14 @@
 				Name="Game"
 				>
 				<File
+					RelativePath=".\aiplayer.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\app.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\camera.cpp"
 					>
 				</File>
@@ -232,6 +232,10 @@
 				</File>
 				<File
 					RelativePath=".\object.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\player.cpp"
 					>
 				</File>
 				<File
@@ -274,10 +278,6 @@
 			<Filter
 				Name="Network"
 				>
-				<File
-					RelativePath=".\cNetwork.cpp"
-					>
-				</File>
 			</Filter>
 			<Filter
 				Name="Particles"
@@ -330,6 +330,10 @@
 					RelativePath=".\soundresource.cpp"
 					>
 				</File>
+				<File
+					RelativePath=".\textresource.cpp"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="Sound"
@@ -343,15 +347,19 @@
 				Name="Utility"
 				>
 				<File
+					RelativePath=".\box.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\circle.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\intersection.cpp"
 					>
 				</File>
 				<File
 					RelativePath=".\singleton.inl"
-					>
-				</File>
-				<File
-					RelativePath=".\xml.cpp"
 					>
 				</File>
 			</Filter>
@@ -390,11 +398,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\defs.h"
-				>
-			</File>
-			<File
-				RelativePath=".\globals.h"
+				RelativePath=".\global.h"
 				>
 			</File>
 			<Filter
@@ -425,6 +429,14 @@
 				Name="Utility"
 				>
 				<File
+					RelativePath=".\box.h"
+					>
+				</File>
+				<File
+					RelativePath=".\circle.h"
+					>
+				</File>
+				<File
 					RelativePath=".\fastmath.h"
 					>
 				</File>
@@ -445,11 +457,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\vector2.h"
-					>
-				</File>
-				<File
-					RelativePath=".\xml.h"
+					RelativePath=".\vec2.h"
 					>
 				</File>
 			</Filter>
@@ -458,10 +466,6 @@
 				>
 				<File
 					RelativePath=".\animation.h"
-					>
-				</File>
-				<File
-					RelativePath=".\cFont.h"
 					>
 				</File>
 				<File
@@ -489,6 +493,14 @@
 				Name="Game"
 				>
 				<File
+					RelativePath=".\aiplayer.h"
+					>
+				</File>
+				<File
+					RelativePath=".\app.h"
+					>
+				</File>
+				<File
 					RelativePath=".\camera.h"
 					>
 				</File>
@@ -506,6 +518,10 @@
 				</File>
 				<File
 					RelativePath=".\object.h"
+					>
+				</File>
+				<File
+					RelativePath=".\player.h"
 					>
 				</File>
 				<File
@@ -548,10 +564,6 @@
 			<Filter
 				Name="Network"
 				>
-				<File
-					RelativePath=".\cNetwork.h"
-					>
-				</File>
 			</Filter>
 			<Filter
 				Name="Sound"
@@ -606,6 +618,10 @@
 				</File>
 				<File
 					RelativePath=".\soundresource.h"
+					>
+				</File>
+				<File
+					RelativePath=".\textresource.h"
 					>
 				</File>
 			</Filter>

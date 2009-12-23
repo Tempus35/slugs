@@ -7,9 +7,8 @@
 PhysicsObject::PhysicsObject()
 {
 
-	position = Vector2(0, 0);
-	velocity = Vector2(0, 0);
-	acceleration = Vector2(0, 0);
+	velocity = Vec2f(0, 0);
+	acceleration = Vec2f(0, 0);
 
 	atRest = false;
 	affectedByGravity = true;
@@ -26,7 +25,7 @@ PhysicsObject::~PhysicsObject()
 // Simulation
 //
 
-bool PhysicsObject::Update(float elapsedTime, Terrain* terrain, Vector2& gravity, Vector2& wind)
+bool PhysicsObject::Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind)
 {
 
 	if (!atRest)
@@ -43,24 +42,26 @@ bool PhysicsObject::Update(float elapsedTime, Terrain* terrain, Vector2& gravity
 		velocity += acceleration * elapsedTime;
 
 		// Limit velocity
-		if (VectorLength(velocity) > PHYSICS_LIMIT_SPEED)
-		{
-
-			VectorNormalize(&velocity);
-			velocity *= PHYSICS_LIMIT_SPEED;
-
-		}
+		if (velocity.Length() > PHYSICS_LIMIT_SPEED)
+			velocity = velocity.Normalize() * PHYSICS_LIMIT_SPEED;
 
 		// Update position
-		int lastX = (int)position.x, lastY = (int)position.y;
-		position += velocity * elapsedTime;
+		int lastX = RoundDownToInt(bounds.center.x), lastY = RoundDownToInt(bounds.center.y);
+		bounds.center += velocity * elapsedTime;
 
 		// Return true if object moved
-		if (((int)position.x != lastX) || ((int)position.y != lastY))
+		if ((RoundDownToInt(bounds.center.x) != lastX) || (RoundDownToInt(bounds.center.y) != lastY))
 		{
 		
 			Moved();
 			return true;
+
+		}
+		else
+		{
+
+			bounds.center.x = (float)lastX;
+			bounds.center.y = (float)lastY;
 
 		}
 
@@ -75,21 +76,35 @@ bool PhysicsObject::Update(float elapsedTime, Terrain* terrain, Vector2& gravity
 // Accessors
 //
 
-Vector2 PhysicsObject::GetPosition()
+const Vec2f& PhysicsObject::GetPosition() const
 {
 
-	return position;
+	return bounds.center;
 
 }
 
-Vector2 PhysicsObject::GetVelocity()
+const Vec2f& PhysicsObject::GetExtents() const
+{
+
+	return bounds.extents;
+
+}
+
+const Box& PhysicsObject::GetBounds() const
+{
+
+	return bounds;
+
+}
+
+Vec2f PhysicsObject::GetVelocity()
 {
 
 	return velocity;
 
 }
 
-Vector2 PhysicsObject::GetAcceleration()
+Vec2f PhysicsObject::GetAcceleration()
 {
 
 	return acceleration;
@@ -127,26 +142,26 @@ void PhysicsObject::SetAtRest(bool state)
 
 }
 
-void PhysicsObject::SetPosition(Vector2 newPosition)
+void PhysicsObject::SetPosition(Vec2f newPosition)
 {
 	
-	position = newPosition;
+	bounds.center = newPosition;
 	
 }
 
 void PhysicsObject::SetPosition(float x, float y)
 {
 
-	SetPosition(Vector2(x, y));
+	SetPosition(Vec2f(x, y));
 
 }
 
-void PhysicsObject::SetVelocity(Vector2 newVelocity)
+void PhysicsObject::SetVelocity(Vec2f newVelocity)
 {
 
 	velocity = newVelocity;
 
-	if ((atRest) && (VectorLengthSquared(velocity) > 0.0f))
+	if ((atRest) && (velocity.LengthSquared() > 0.0f))
 		atRest = false;
 
 }
@@ -154,17 +169,17 @@ void PhysicsObject::SetVelocity(Vector2 newVelocity)
 void PhysicsObject::SetVelocity(float x, float y)
 {
 
-	SetVelocity(Vector2(x, y));
+	SetVelocity(Vec2f(x, y));
 
 }
 
 
-void PhysicsObject::SetAcceleration(Vector2 newAcceleration)
+void PhysicsObject::SetAcceleration(Vec2f newAcceleration)
 {
 
 	acceleration = newAcceleration;
 
-	if ((atRest) && (VectorLengthSquared(acceleration) > 0.0f))
+	if ((atRest) && (acceleration.LengthSquared() > 0.0f))
 		atRest = false;
 
 }
@@ -172,7 +187,7 @@ void PhysicsObject::SetAcceleration(Vector2 newAcceleration)
 void PhysicsObject::SetAcceleration(float x, float y)
 {
 
-	SetAcceleration(Vector2(x, y));
+	SetAcceleration(Vec2f(x, y));
 
 }
 
@@ -187,5 +202,12 @@ void PhysicsObject::SetAffectedByWind(bool state)
 {
 
 	affectedByWind = state;
+
+}
+
+void PhysicsObject::SetExtents(const Vec2f& extents)
+{
+
+	bounds.extents = extents;
 
 }

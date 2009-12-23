@@ -1,6 +1,7 @@
 #pragma once
 
-#include "vector2.h"
+#include "vec2.h"
+#include "box.h"
 #include "terrain.h"
 
 /*
@@ -15,13 +16,13 @@ class PhysicsObject
 
 protected:
 
-	Vector2 position;
-	Vector2 velocity;
-	Vector2 acceleration;
+	Box			bounds;
+	Vec2f		velocity;
+	Vec2f		acceleration;
 
-	bool atRest;
-	bool affectedByGravity;
-	bool affectedByWind;
+	bool		atRest;
+	bool		affectedByGravity;
+	bool		affectedByWind;
 
 public:
 
@@ -35,26 +36,35 @@ public:
 	//
 	// Simulation
 	//
-	virtual bool Update(float elapsedTime, Terrain* terrain, Vector2& gravity, Vector2& wind);
+	virtual bool Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind);
 	virtual void Moved() {};
 
 	//
 	// Accessors
 	//
 
-	Vector2 GetPosition();
-	Vector2 GetVelocity();
-	Vector2 GetAcceleration();
+	// Gets the position of the object
+	const Vec2f& GetPosition() const;
+
+	// Gets the bounding box extents of the object
+	const Vec2f& GetExtents() const;
+
+	// Gets the bounding box of the object
+	const Box& GetBounds() const;
+
+	Vec2f GetVelocity();
+	Vec2f GetAcceleration();
 	bool IsAtRest();
 	bool IsAffectedByGravity();
 	bool IsAffectedByWind();
 
 	virtual void SetAtRest(bool state);
-	virtual void SetPosition(Vector2 newPosition);
+	virtual void SetPosition(Vec2f newPosition);
 	virtual void SetPosition(float x, float y);
-	virtual void SetVelocity(Vector2 newVelocity);
+	virtual void SetExtents(const Vec2f& extents);
+	virtual void SetVelocity(Vec2f newVelocity);
 	virtual void SetVelocity(float x, float y);
-	virtual void SetAcceleration(Vector2 newVelocity);
+	virtual void SetAcceleration(Vec2f newVelocity);
 	virtual void SetAcceleration(float x, float y);
 	virtual void SetAffectedByGravity(bool state);
 	virtual void SetAffectedByWind(bool state);

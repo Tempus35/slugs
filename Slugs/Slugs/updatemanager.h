@@ -10,8 +10,6 @@
 #include <vector>
 #include <list>
 
-#include "singleton.h"
-
 /*
 	class Updateable
 	Derive from this class to be able to register with the update manager
@@ -37,10 +35,8 @@ public:
 	Registered objects should be sure to unregister as soon as they no longer require the update event
 */
 
-class UpdateManager : public Singleton<UpdateManager>
+class UpdateManager
 {
-
-friend class Singleton<UpdateManager>;
 
 private:
 

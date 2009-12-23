@@ -7,7 +7,7 @@
 
 #include "projectile.h"
 
-#include "world.h"
+#include "game.h"
 
 /*
 	class Projectile
@@ -22,7 +22,7 @@ Projectile::Projectile(Object* creator) : Object(ObjectType_Projectile)
 
 }
 
-bool Projectile::Update(float elapsedTime, Terrain* terrain, Vector2& gravity, Vector2& wind)
+bool Projectile::Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind)
 {
 
 	//
@@ -35,47 +35,53 @@ bool Projectile::Update(float elapsedTime, Terrain* terrain, Vector2& gravity, V
 		timer -= elapsedTime;
 
 		if (timer <= 0.0f)
-			OnDetonationTimer(terrain);
+			OnDetonationTimer();
 
 	}
 
-	return Object::Update(elapsedTime, terrain, gravity, wind);
+	return Object::Update(elapsedTime, gravity, wind);
 
 }
 
-void Projectile::OnDetonationTimer(Terrain* terrain)
+void Projectile::OnDetonationTimer()
 {
 
-	Explode(terrain);
+	Die();
 
 }
 
-void Projectile::OnCollideWithTerrain(Terrain* terrain)
+bool Projectile::OnCollideWithTerrain()
 {
 
-	Explode(terrain);
+	Die();
+
+	return true;
 
 }
 
-void Projectile::OnCollideWithObject(Terrain* terrain, Object* object)
+void Projectile::OnCollideWithObject(Object* object)
 {
 
 	if (object != owner)
-		Explode(terrain);
+		Die();
 
 }
 
-void Projectile::Explode(Terrain* terrain)
+void Projectile::Die(bool instant)
 {
 
-	int pix = (int)position.x;
-	int piy = (int)position.y;
+	alive = false;
 
-	// Kill the projectile
-	Die();
+	if (!instant)
+		Explode();
+
+}
+
+void Projectile::Explode()
+{
 
 	// Simulate the explosion on the world
-	World::Get()->SimulateExplosion(pix, piy, strength);
+	Game::Get()->GetWorld()->SimulateExplosion(bounds.center.x, bounds.center.y, strength);
 
 }
 
@@ -93,7 +99,7 @@ float Projectile::GetTimer() const
 
 }
 
-int Projectile::GetStrength() const
+float Projectile::GetStrength() const
 {
 
 	return strength;
@@ -114,7 +120,7 @@ void Projectile::SetTimer(float newTime)
 
 }
 
-void Projectile::SetStrength(int newStrength)
+void Projectile::SetStrength(float newStrength)
 {
 
 	strength = newStrength;
@@ -134,13 +140,12 @@ void Projectile_Bazooka::UpdateOrientation()
 {
 
 	// Update orientation to match velocity
-	Vector2 direction = velocity;
-	VectorNormalize(&direction);
+	Vec2f direction = velocity.Normalize();
 	sprite.SetOrientation(direction);
 
 }
 
-void Projectile_Bazooka::SetVelocity(const Vector2& newVelocity)
+void Projectile_Bazooka::SetVelocity(const Vec2f& newVelocity)
 {
 
 	Projectile::SetVelocity(newVelocity);
@@ -149,10 +154,10 @@ void Projectile_Bazooka::SetVelocity(const Vector2& newVelocity)
 
 }
 
-bool Projectile_Bazooka::Update(float elapsedTime, Terrain* terrain, Vector2& gravity, Vector2& wind)
+bool Projectile_Bazooka::Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind)
 {
 
-	bool result = Projectile::Update(elapsedTime, terrain, gravity, wind);
+	bool result = Projectile::Update(elapsedTime, gravity, wind);
 
 	UpdateOrientation();
 
@@ -166,5 +171,69 @@ bool Projectile_Bazooka::Update(float elapsedTime, Terrain* terrain, Vector2& gr
 
 Projectile_Grenade::Projectile_Grenade(Object* creator) : Projectile(creator)
 {
+
+	tumble = 0.0f;
+
+}
+
+bool Projectile_Grenade::OnCollideWithTerrain()
+{
+
+	// Get terrain normal at the collision point
+	Vec2f normal = Game::Get()->GetWorld()->GetNormalForBox(bounds.center.x, bounds.center.y, bounds.extents.x * 4.0f, bounds.extents.y * 4.0f);
+
+	//
+	// Bounce
+	//
+
+	const float bounceCoefficient = 0.40f;
+	const float minSpeed = 100.0f;
+
+	float speed = velocity.Length() * bounceCoefficient;
+
+	if (speed > minSpeed)
+	{
+
+		Vec2f direction = velocity.Normalize();
+
+		direction -= normal * (DotProduct(normal, direction)) * 2.0f;
+
+		velocity = direction * speed;
+
+		return false;
+
+	}
+	else
+		return true;
+}
+
+void Projectile_Grenade::OnCollideWithObject(Object* object)
+{
+
+
+
+}
+
+bool Projectile_Grenade::Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind)
+{
+
+	bool result = Projectile::Update(elapsedTime, gravity, wind);
+
+	const float rotationRate = 360.0f;
+
+	// Tumble while we are in the air
+	if (!atRest)
+	{
+
+		if (velocity.x > 0)
+			tumble -= elapsedTime * rotationRate;
+		else if (velocity.x < 0)
+			tumble += elapsedTime * rotationRate;
+			
+		sprite.SetRotation(tumble);
+
+	}
+
+	return result;
 
 }

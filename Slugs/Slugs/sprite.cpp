@@ -30,7 +30,7 @@ const sf::Sprite& Sprite::GetData() const
 // Accessors
 //
 
-void Sprite::SetPosition(Vector2& newPosition)
+void Sprite::SetPosition(Vec2f& newPosition)
 {
 
 	data.SetPosition(newPosition.ToSF());
@@ -52,6 +52,13 @@ void Sprite::SetImage(ImageResource* resource)
 
 }
 
+void Sprite::SetCenter(float x, float y)
+{
+
+	data.SetCenter(x, y);
+
+}
+
 void Sprite::SetPosition(float x, float y)
 {
 
@@ -66,7 +73,7 @@ void Sprite::SetRotation(float degrees)
 
 }
 
-void Sprite::SetOrientation(const Vector2& direction)
+void Sprite::SetOrientation(const Vec2f& direction)
 {
 
 	float angle = atan2f(direction.y, direction.x);
@@ -85,24 +92,24 @@ void Sprite::SetScale(float x, float y)
 
 }
 
-Vector2 Sprite::GetPosition() const
+Vec2f Sprite::GetPosition() const
 {
 
-	return Vector2(data.GetPosition());
+	return Vec2f(data.GetPosition());
 
 }
 
-Vector2 Sprite::GetSize() const
+Vec2f Sprite::GetSize() const
 {
 
-	return Vector2(data.GetSize());
+	return Vec2f(data.GetSize());
 
 }
 
-Vector2 Sprite::GetScale() const
+Vec2f Sprite::GetScale() const
 {
 
-	return Vector2(data.GetScale());
+	return Vec2f(data.GetScale());
 
 }
 
@@ -126,7 +133,7 @@ void Sprite::SetAlphaBlend(bool state)
 float Sprite::GetWidth() const
 {
 
-	Vector2 size = data.GetSize();
+	Vec2f size = data.GetSize();
 	return size.x;
 
 }
@@ -134,7 +141,7 @@ float Sprite::GetWidth() const
 float Sprite::GetHeight() const
 {
 
-	Vector2 size = data.GetSize();
+	Vec2f size = data.GetSize();
 	return size.y;
 
 }

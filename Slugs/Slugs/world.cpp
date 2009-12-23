@@ -1,4 +1,5 @@
 #include "world.h"
+#include "game.h"
 
 #define PB_DEBUG
 
@@ -11,8 +12,8 @@ World::World()
 
 	terrain = NULL;
 
-	gravity = Vector2(0, WORLD_DEFAULT_GRAVITY);
-	wind = Vector2(0, 0);
+	gravity = Vec2f(0, WORLD_DEFAULT_GRAVITY);
+	wind = Vec2f(0, 0);
 
 	selectedObject = NULL;
 
@@ -84,6 +85,15 @@ void World::Regenerate()
 void World::Update(float elapsedTime)
 {
 
+	// Deselect our selected slug if it is dying
+	if ((selectedObject) && (selectedObject->GetHitPoints() <= 0))
+	{
+
+		selectedObject->Deselect();
+		selectedObject = NULL;
+
+	}
+
 	// Update water
 	for (int i = 0; i < WORLD_WATER_LINES; ++ i)
 		water[i]->Update(elapsedTime);
@@ -103,44 +113,64 @@ void World::Update(float elapsedTime)
 		{
 
 			// Get starting position
-			Vector2 lastPos = obj->GetPosition();
+			Vec2f lastPos = obj->GetPosition();
+			Vec2f collisionPos, freePos;
+
+			// Ensure object is not colliding with terrain
+			//ASSERT(!terrain->BoxCollision(lastPos.x, lastPos.y, obj->GetBounds().extents.x * 2.0f, obj->GetBounds().extents.y * 2.0f, collisionPos));
 
 			// Update object
-			obj->Update(elapsedTime, terrain, gravity, wind);
+			bool moved = obj->Update(elapsedTime, gravity, wind);
 
-			// Get new position
-			Vector2 pos = obj->GetPosition();
-
-			if (!terrain->Contains(pos.x, pos.y))
+			if ((moved) && (!obj->IsAtRest()))
 			{
 
-				// Kill object instantly, it left the terrain area
-            	obj->Die(true);
-			
-			}
-			else
-			{
+				// Get new position
+				Vec2f pos = obj->GetPosition();
 
-				//
-				// Test for collision with the terrain
-				//
-
-				Vector2 collisionPos;
-				if (terrain->SquareCollisionIterated((int)lastPos.x, (int)lastPos.y, (int)pos.x, (int)pos.y, 2 * obj->GetRadius(), 2 * obj->GetRadius(), &collisionPos))
+				if (!terrain->Contains(pos.x, pos.y))
 				{
 
-					obj->SetPosition(collisionPos.x, collisionPos.y);
-					obj->OnCollideWithTerrain(terrain);
-					obj->SetAtRest(true);
-
+					// Kill object instantly, it left the terrain area
+            		obj->Die(true);
+				
 				}
 				else
 				{
 
-					// We didn't collide, start moving if we aren't already
-					obj->SetAtRest(false);
+					//
+					// Test for collision with the terrain
+					//
+
+					if (terrain->BoxCollisionIterated(lastPos.x, lastPos.y, pos.x, pos.y, obj->GetBounds().extents.x * 2.0f, obj->GetBounds().extents.y * 2.0f, collisionPos, freePos))
+					{
+
+						// Set back to the position where the collision actually happened
+ 						obj->SetPosition(collisionPos.x, collisionPos.y);
+
+						// Fire collide event
+						if (obj->OnCollideWithTerrain())
+							obj->SetAtRest(true);
+
+						// Back up so the object is free
+						obj->SetPosition(freePos.x, freePos.y);
+
+						// This should only be triggered if an object is placed in a colliding position
+						//ASSERT(!terrain->BoxCollision(freePos.x, freePos.y, obj->GetBounds().extents.x * 2.0f, obj->GetBounds().extents.y * 2.0f, collisionPos));
+
+					}
 
 				}
+
+			}
+			else
+			{
+
+				// Object is stationary, check to see if we still have terrain holding it up
+
+				//if (!terrain->BoxCollision(lastPos.x, lastPos.y, obj->GetBounds().extents.x * 2.0f + 2, obj->GetBounds().extents.y * 2.0f + 2, throwAway))						
+				if (terrain->GetHeightForBox(obj->GetBaseBox()) == -1.0f)			
+					obj->SetAtRest(false);
 
 			}
 
@@ -245,10 +275,10 @@ void World::SetBackground(ImageResource* farImage, ImageResource* nearImage)
 
 }
 
-void World::CameraMoved(const Vector2& newPosition)
+void World::CameraMoved(const Vec2f& newPosition)
 {
 
-	Vector2 size;
+	Vec2f size;
 
 	//
 	// Get the distance from the center of the terrain, calculate parallax params
@@ -273,10 +303,10 @@ void World::CameraMoved(const Vector2& newPosition)
 
 }
 
-Object* World::SelectObjectAtPosition(Vector2 point)
+Object* World::SelectObjectAtPosition(const Vec2f& position)
 {
 	
-	Object* object = GetObjectAtPosition(point);
+	Object* object = GetObjectAtPosition(position);
 	SelectObject(object);
 
 	return object;
@@ -298,7 +328,7 @@ void World::SelectObject(Object* object)
 
 }
 
-Object* World::GetObjectAtPosition(const Vector2& position)
+Object* World::GetObjectAtPosition(const Vec2f& position)
 {
 
 	//
@@ -310,10 +340,7 @@ Object* World::GetObjectAtPosition(const Vector2& position)
 	for (list<Object*>::iterator i = objects.begin(); i != objects.end(); ++ i)
 	{
 
-		int pix = (int)position.x;
-		int piy = (int)position.y;
-
-		if ((*i)->Contains(pix, piy))
+		if ((*i)->Contains(position.x, position.y))
 		{
 
 			obj = (*i);
@@ -327,7 +354,7 @@ Object* World::GetObjectAtPosition(const Vector2& position)
 
 }
 
-void World::SimulateExplosion(int x, int y, int strength)
+void World::SimulateExplosion(float x, float y, float strength, float forceMultiplier)
 {
 
 	// Update the terrain
@@ -339,18 +366,26 @@ void World::SimulateExplosion(int x, int y, int strength)
 
 	float dx, dy, d;
 	float hitStrength, hitPower;
-	Vector2 pos;
+	Vec2f pos;
 	for (list<Object*>::iterator i = objects.begin(); i != objects.end(); ++ i)
 	{
 
 		Object* obj = *i;
+
+		// Ignore dead objects
+		if (!obj->IsAlive())
+			continue;
+
+		// Ignore invulnerable objects
+		if (obj->IsInvulnerable())
+			continue;
 
 		pos = obj->GetPosition();
 		dx = pos.x - x;
 		dy = pos.y - y;
 		d = sqrtf(dx * dx + dy * dy);
 
-		if (d <= strength)
+		if (d <= strength * forceMultiplier)
 		{
 	
 			// Determine hit strength and adjust object hitpoints
@@ -360,7 +395,7 @@ void World::SimulateExplosion(int x, int y, int strength)
 
 			// Add force
 			obj->SetAtRest(false);
-			obj->SetVelocity(CopySign(dx, hitPower) * WORLD_EXPLOSION_MULTIPLIER, CopySign(dy, hitPower) * WORLD_EXPLOSION_MULTIPLIER);
+			obj->SetVelocity(CopySign(dx, hitPower) * forceMultiplier, CopySign(dy, hitPower) * forceMultiplier);
 
 		}
 
@@ -368,10 +403,10 @@ void World::SimulateExplosion(int x, int y, int strength)
 
 }
 
-void World::DeferExplosion(int x, int y, int strength)
+void World::DeferExplosion(float x, float y, float strength, float forceMultiplier)
 {
 
-	deferredExplosions.push_back(DeferredExplosion(x, y, strength));
+	deferredExplosions.push_back(DeferredExplosion(x, y, strength, forceMultiplier));
 
 }
 
@@ -379,7 +414,7 @@ void World::SimulateExplosions()
 {
 
 	for (unsigned int i = 0; i < deferredExplosions.size(); ++ i)
-		SimulateExplosion(deferredExplosions[i].x, deferredExplosions[i].y, deferredExplosions[i].strength);
+		SimulateExplosion(deferredExplosions[i].x, deferredExplosions[i].y, deferredExplosions[i].strength, deferredExplosions[i].forceMultiplier);
 
 	deferredExplosions.clear();
 
@@ -398,7 +433,7 @@ void World::Render()
 	renderer->Render(backgroundSprites[0]);
 	renderer->Render(backgroundSprites[1]);
 
-	FXManager::Get()->Render();
+	Game::Get()->GetFXManager()->Render();
 
 	// Render clouds
 	clouds->Render();
@@ -433,8 +468,8 @@ void World::Render()
 				// Aiming crosshair/arrow
 				Slug* slugObj = (Slug*)obj;
 				
-				Vector2 size;
-				Vector2 objPos = slugObj->GetPosition();
+				Vec2f size;
+				Vec2f objPos = slugObj->GetPosition();
 				float angle = slugObj->GetAimAngle();
 
 				size = crosshairSprite.GetSize();
@@ -482,14 +517,14 @@ void World::Render()
 // Accessors
 //
 
-Vector2 World::Gravity()
+Vec2f World::Gravity()
 {
 
 	return gravity;
 
 }
 
-Vector2 World::Wind()
+Vec2f World::Wind()
 {
 
 	return wind;
@@ -517,14 +552,14 @@ unsigned int World::Seed()
 
 }
 
-void World::SetGravity(Vector2 newGravity)
+void World::SetGravity(Vec2f newGravity)
 {
 
 	gravity = newGravity;
 
 }
 
-void World::SetWind(Vector2 newWind)
+void World::SetWind(Vec2f newWind)
 {
 
 	wind = newWind;
@@ -538,23 +573,39 @@ Object* World::SelectedObject()
 
 }
 
-bool World::GetRayIntersection(const Vector2& start, const Vector2& direction, Vector2& collisionPos, Object* ignore)
+World::IntersectionType World::GetRayIntersection(const Vec2f& start, const Vec2f& direction, Vec2f& collisionPos, Object* ignore)
 {
 
 	float maxRange = 1000000.0f;
-	Vector2 intersectionPos;
+	float maxX, maxY;
+
+	if (direction.x > 0)
+		maxX = terrain->WidthInPixels() - start.x;
+	else
+		maxX = start.x;
+
+	if (direction.y > 0)
+		maxY = terrain->HeightInPixels() - start.y;
+	else
+		maxY = start.y;
+
+	maxRange = Sqrt(maxX * maxX + maxY * maxY);
+
+	Vec2f intersectionPos;
 
 	//
 	// Check the terrain
 	//
 	
-	bool collision = terrain->RayIntersection(start, direction, maxRange, intersectionPos);
-
-	if (collision)
+	IntersectionType collision = IntersectionType_None;
+	
+	if (terrain->RayIntersection(start, direction, maxRange, intersectionPos))
 	{
 
 		collisionPos = intersectionPos;
-		maxRange = VectorLength(intersectionPos - start);
+		maxRange = (intersectionPos - start).Length();
+
+		collision = IntersectionType_Terrain;
 
 	}
 
@@ -562,7 +613,7 @@ bool World::GetRayIntersection(const Vector2& start, const Vector2& direction, V
 	// Check objects
 	//
 
-	for (list<Object*>::iterator i = objects.begin(); i != objects.end(); ++ i)
+	for (std::list<Object*>::iterator i = objects.begin(); i != objects.end(); ++ i)
 	{
 
 		Object* obj = *i;
@@ -576,12 +627,12 @@ bool World::GetRayIntersection(const Vector2& start, const Vector2& direction, V
 			continue;
 
 		// Test for an intersection
-		if (RayCircleIntersection(start, direction, obj->GetPosition(), (float)obj->GetRadius(), maxRange, intersectionPos))
+		if (RayCircleIntersection(start, direction, obj->GetPosition(), Max(obj->GetBounds().extents.x, obj->GetBounds().extents.y), maxRange, intersectionPos))
 		{
 
-			maxRange = VectorLength(intersectionPos - start);
+			maxRange = (intersectionPos - start).Length();
 			collisionPos = intersectionPos;
-			collision = true;
+			collision = IntersectionType_Object;
 
 		}
 
@@ -589,5 +640,96 @@ bool World::GetRayIntersection(const Vector2& start, const Vector2& direction, V
 
 	return collision;
 
+}
+
+Vec2f World::GetNormal(const Vec2f& position) const
+{
+
+	return terrain->NormalAtPoint((int)position.x, (int)position.y, NULL);
+
+}
+
+Vec2f World::GetNormalForBox(float centerX, float centerY, float width, float height) const
+{
+
+	return terrain->GetNormalForBox(centerX, centerY, width, height);
+
+}
+
+Terrain* World::GetTerrain() const
+{
+
+	return terrain;
+
+}
+
+void World::GetSpawnPoints(std::vector<Vec2f>& list, int count)
+{
+
+	const float blockRadius = 50.0f;
+
+	for (int i = 0; i < count; ++ i)
+		list.push_back(GetSpawnPointAndBlock(blockRadius));
+
+}
+
+Vec2f World::GetSpawnPointAndBlock(float blockRadius)
+{
+
+	int numAttempts = 100;
+
+	Vec2f spawnPosition;
+
+	while (numAttempts > 0)
+	{
+
+		spawnPosition = terrain->GetSpawnPoint();
+
+		if (!IsBlocked(spawnPosition))
+		{
+
+			//
+			// Add the block
+			//
+
+			Circle block;
+			block.center = spawnPosition;
+			block.radius = blockRadius;
+			areaBlocks.push_back(block);
+
+			// Return the position
+			return spawnPosition;
+
+		}
+
+		numAttempts --;
+
+	}
+
+	ASSERTMSG(0, "Failed to find valid spawn position!");
+
+	return Vec2f(0, 0);
+
+}
+
+bool World::IsBlocked(const Vec2f& position)
+{
+
+	for (unsigned int i = 0; i < areaBlocks.size(); ++ i)
+	{
+
+		if (areaBlocks[i].Contains(position))
+			return true;
+
+	}
+
+	return false;
+
+}
+
+void World::ClearBlocks()
+{
+
+	areaBlocks.clear();
 
 }

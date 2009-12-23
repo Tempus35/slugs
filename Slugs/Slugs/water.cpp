@@ -15,7 +15,7 @@ Water::Water(ImageResource* waterImage, Color& waterColor, int x, int y, int tot
 	{
 
 		image = waterImage;
-		position = Vector2(x, y);
+		position = Vec2i(x, y);
 		width = totalWidth;
 		speed = movementSpeed;
 		color = waterColor;
@@ -67,7 +67,7 @@ void Water::Update(float elapsedTime)
 	for (unsigned int i = 0; i < sprites.size(); ++ i)
 	{
 
-		sprites[i].SetPosition((float)cx, position.y);
+		sprites[i].SetPosition((float)cx, (float)position.y);
 		cx += sectionWidth;
 
 	}

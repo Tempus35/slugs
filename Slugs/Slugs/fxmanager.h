@@ -5,26 +5,23 @@ using namespace std;
 
 #include <SFML/graphics.hpp>
 
-#include "singleton.h"
 #include "effect.h"
 
 /*
 	class FXManager
 */
 
-class FXManager : public Singleton<FXManager>
+class FXManager
 {
-
-friend class Singleton<FXManager>;
 
 private:
 
 	list<Effect*> effects;
 
+public:
+
 	FXManager();
 	~FXManager();
-
-public:
 
 	bool IsRegistered(Effect* effect);
 	Effect* RegisterEffect(Effect* effect);

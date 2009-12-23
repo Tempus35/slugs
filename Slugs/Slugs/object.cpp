@@ -38,16 +38,23 @@ void Object::SetImage(ImageResource* image)
 {
 
 	sprite.SetImage(image);
+	sprite.SetCenter((float)image->Image().GetWidth() / 2, (float)image->Image().GetHeight() / 2);
+	
 	marker.SetImage(image);
 	marker.SetScale(1.0f / 16.0f, 1.0f / 16.0f);
 	marker.SetColor(Color(255, 0, 0));
 
 }
 
-void Object::SetPosition(Vector2 v)
+void Object::SetPosition(Vec2f v)
 {
 	
 	PhysicsObject::SetPosition(v);
+
+	baseBox.center.x = bounds.center.x;
+	baseBox.center.y = bounds.center.y - bounds.extents.y;
+	baseBox.extents.x = 2.5f;
+	baseBox.extents.y = 5 + 1.0f;
 
 	Moved();
 
@@ -57,6 +64,11 @@ void Object::SetPosition(float x, float y)
 {
 	
 	PhysicsObject::SetPosition(x, y);
+
+	baseBox.center.x = bounds.center.x;
+	baseBox.center.y = bounds.center.y - bounds.extents.y;
+	baseBox.extents.x = 2.5f;
+	baseBox.extents.y = 5 + 1.0f;
 
 	Moved();
 
@@ -72,19 +84,11 @@ void Object::SetHitpoints(int newHitpoints)
 
 }
 
-void Object::SetRadius(int newRadius)
-{
-
-	radius = newRadius;
-
-}
-
 void Object::Moved()
 {
 
-	Vector2 size = sprite.GetSize();
-	sprite.SetPosition(Round(position.x - 0.5f * size.x), -Round(position.y + 0.5f * size.y));
-	marker.SetPosition(Round(position.x), -Round(position.y));
+	sprite.SetPosition(bounds.center.x, -bounds.center.y);
+	marker.SetPosition(bounds.center.x, -bounds.center.y);
 
 }
 
@@ -111,16 +115,52 @@ void Object::Deselect()
 
 }
 
-bool Object::Contains(int x, int y) const
+bool Object::Contains(float x, float y) const
 {
 
-	int dx = x - (int)position.x;
-	int dy = y - (int)position.y;
+	return bounds.Contains(x, y);
 
-	if (dx * dx + dy * dy < radius * radius)
-		return true;
+}
 
-	return false;
+bool Object::OnCollideWithTerrain()
+{
+
+	// Stop moving
+	SetAtRest(true);
+
+	return true;
+
+}
+
+void Object::OnCollideWithObject(Object* object)
+{
+
+}
+
+void Object::SetBounds(float halfWidth, float halfHeight)
+{
+
+	bounds.extents.x = halfWidth;
+	bounds.extents.y = halfHeight;
+
+	baseBox.center.x = bounds.center.x;
+	baseBox.center.y = bounds.center.y - bounds.extents.y;
+	baseBox.extents.x = 2.5f;
+	baseBox.extents.y = 5 + 1.0f;
+
+}
+
+const Box& Object::GetBaseBox() const
+{
+
+	return baseBox;
+
+}
+
+bool Object::IsInvulnerable() const
+{
+
+	return invulnerable;
 
 }
 
@@ -142,13 +182,6 @@ const Sprite& Object::GetSprite() const
 {
 
 	return sprite;
-
-}
-
-int Object::GetRadius() const
-{
-
-	return radius;
 
 }
 

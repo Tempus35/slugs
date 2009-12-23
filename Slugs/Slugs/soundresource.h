@@ -18,7 +18,7 @@ private:
 
 public:
 
-	SoundResource(char* path);
+	SoundResource(const std::string& path);
 	 ~SoundResource();
 
 	sf::SoundBuffer& Sound();

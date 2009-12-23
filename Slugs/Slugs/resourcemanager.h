@@ -6,13 +6,14 @@
 */
 
 #include <hash_map>
-
-using namespace std;
-using namespace stdext;
+#include <string>
 
 #include "singleton.h"
-#include "defs.h"
+#include "global.h"
 #include "resource.h"
+#include "imageresource.h"
+#include "soundresource.h"
+#include "textresource.h"
 
 class ResourceManager : public Singleton<ResourceManager>
 {
@@ -21,7 +22,7 @@ friend class Singleton<ResourceManager>;
 
 private:
 
-	hash_map<char*, Resource*> resources;
+	stdext::hash_map<std::string, Resource*> resources;
 
 	//
 	// Initialization
@@ -36,9 +37,9 @@ public:
 	// Management
 	//
 
-	Resource* GetResource(char* name);
-	void AddResource(char* name, Resource* resource);
-	void FreeResource(char* name);
+	Resource* GetResource(const std::string& name);
+	void AddResource(const std::string& name, Resource* resource);
+	void FreeResource(const std::string& name);
 	void FreeAllResources();
 
 	//

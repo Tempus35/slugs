@@ -1,89 +1,112 @@
 #pragma once
 
-#include "sprite.h"
-#include "animation.h"
-#include "cFont.h"
-#include "xml.h"
-#include "cSFX.h"
-#include "resourcemanager.h"
+#include <sfml/system.hpp>
+
+#include "debug.h"
+#include "singleton.h"
 #include "world.h"
-#include "slug.h"
 #include "fxmanager.h"
-#include "fx.h"
-#include "renderer.h"
+#include "updatemanager.h"
+#include "player.h"
 #include "camera.h"
+#include "resourcemanager.h"
 
-#define CAMERA_MOVE_BORDER		20			// Pixel distance from the sides of the window in which the cursor causes the camera to move
-#define CAMERA_MOVE_SHIFT		5.0f		// Movement speed
-// #define CAMERA_EDGE_MOVE					// Move the camera when the cursor is at the window edge?
+/*
+	Enumeration of game flags
+	Each flag is a boolean
+*/
 
-class cSlugs 
+enum GameFlag
 {
-public:
-	cSlugs();
-	~cSlugs();
 
-	bool bInit();
-	void bUpdate();
-	void bRender();
-	void Clear();
-	bool bInput(sf::Event *myEvent);
+	GameFlag_CanChooseSlug,						// Allow players to choose which slug they want to use each turn
+	GameFlag_LAST,								// Must be last on the list
 
-	void UpdateScene(float elapsedTime);
-	void InitLevelTest();
-	void Shutdown();
-	//----
+};
+
+/*
+	Enumeration of game states
+*/
+
+enum GameState
+{
+
+	GameState_None,					// Initial state when the app is loaded
+	GameState_Game,					// In the game world
+
+};
+
+class Game : public Singleton<Game>
+{
+
+friend class Singleton<Game>;
 
 private:
-	void Game();
-	void GraphicTest();
-	void SoundTest();
-	void XMLTest();
-	void LevelTest();
-	void PhysicTest();
-	void Menu();
-	
-	void UpdateFPS(float elapsedTime);
-	void DrawMainMenue();
-	void DrawGame();
 
-	bool bPushed;
-	bool bPushedLeft;
-	bool bRunning;
+	std::vector<bool>				flags;				// List of game flags
 
-	char buffer[300];
-	char sFPS[25];
-	bool bFullscreen;
+	World*							world;				// Pointer to the game world
 
-	int iScreenWidth;
-	int	iScreenHeight;
-	int	iScene;
-	int	iGroundObject;
-	int frame;
-	float fps;
-	float time;
-	int iPlayerIndex;
+	UpdateManager*					updateManager;		// Pointer to UpdateManager instance
+	FXManager*						fxManager;			// Pointer to FXManager instance
 
-	int	iMouseX, lastMouseX;
-	int	iMouseY, lastMouseY;
-	bool rmbDown;
+	std::list<Player*>				players;			// List of all players currently in the game
 
-	sf::Clock clock;
-	
-	Camera camera;
-	bool lockCameraToLevel;
+	Camera*							camera;				// Camera instance
+	bool							lockCameraToLevel;  // Is the camera locked to the bounds of the level?
 
-	//Global Class
-	cGlobals global;
+	GameState						state;				// Current game state
 
-	//XML
-	cXML			config;
+private:
 
-	//Fonts
-	cFont			font;
-	cFont			font2;
-	cFont			font3;
+	Game();
+	~Game();
 
-	//Sounds
-	cSFX			sfx;
+public:
+
+	// Update the game
+	void Update(float elapsedTime);
+
+	// Render the game
+	void Render();
+
+	// Gets a pointer to the world
+	World* GetWorld() const;
+
+	// Gets a pointer to the update manager
+	UpdateManager* GetUpdateManager() const;
+
+	// Gets a pointer to the fx manager
+	FXManager* GetFXManager() const;
+
+	// Returns true if the specified flag is set
+	bool IsFlagSet(GameFlag flag) const;
+
+	// Handles key presses
+	bool KeyDown(sf::Key::Code key, bool shift, bool control, bool alt);
+
+	// Handles key releases
+	bool KeyUp(sf::Key::Code key, bool shift, bool control, bool alt);
+
+	// Handles mouse button presses
+	bool MouseDown(const Vec2i& position, sf::Mouse::Button button);
+
+	// Handles mouse button releases
+	bool MouseUp(const Vec2i& position, sf::Mouse::Button button);
+
+	// Handles mouse movement
+	bool MouseMoved(bool left, bool right, bool middle, const Vec2i& from, const Vec2i& to);
+
+	// Loads resources for a given game state
+	void LoadResourcesForState(GameState gameState);
+
+	// Changes the game state
+	void ChangeGameState(GameState gameState);
+
+	// Creates and sets up the world
+	void CreateWorld();
+		
+	// Gets the game camera
+	Camera* GetCamera() const;
+
 };

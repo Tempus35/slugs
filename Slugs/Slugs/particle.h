@@ -3,7 +3,7 @@
 #include <SFML/graphics.hpp>
 
 #include "imageresource.h"
-#include "vector2.h"
+#include "vec2.h"
 
 class Particle
 {
@@ -11,7 +11,7 @@ class Particle
 private:
 
 	sf::Sprite sprite;
-	Vector2 velocity;
+	Vec2f velocity;
 
 	float life;
 

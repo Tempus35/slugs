@@ -34,7 +34,7 @@ void TerrainBlock::Setup(int x, int y)
 
 		imageResource = new ImageResource(TERRAIN_BLOCK_SIZE, TERRAIN_BLOCK_SIZE, false);
 
-		position = Vector2(x, y);
+		position = Vec2i(x, y);
 
 		sprite.SetImage(imageResource);
 		sprite.SetPosition((float)x, -(float)y - TERRAIN_BLOCK_SIZE);
@@ -201,7 +201,7 @@ void Terrain::ProcessPoints()
 
 	// Determine direction of the first segment
 	currentDirection = TERRAINTRACE_NONE;
-	Vector2 f = points[1] - points[0];
+	Vec2f f = points[1] - points[0];
 
 	if (f.x >= 0)
 		currentDirection |= TERRAINTRACE_RIGHT;
@@ -223,7 +223,7 @@ void Terrain::ProcessPoints()
 		if (i < points.size() - 1)
 		{
 
-			Vector2 nextV = points[i + 1] - points[i];
+			Vec2f nextV = points[i + 1] - points[i];
 
 			if (i < points.size() - 1)
 			{
@@ -243,13 +243,13 @@ void Terrain::ProcessPoints()
 		}
 
 		// Get segment vector
-		Vector2 v = points[i] - points[i - 1];
-		float distance = VectorLength(v);
-		VectorNormalize(&v);
+		Vec2f v = points[i] - points[i - 1];
+		float distance = v.Length();
+		v = v.Normalize();
 
 		// Set start point
 		float lerp = 0.0f;
-		Vector2 pt = points[i - 1];
+		Vec2f pt = points[i - 1];
 
 		bool firstPoint = true;
 		bool lastPoint = false;
@@ -1025,13 +1025,18 @@ void Terrain::ClearSquare(int x0, int y0, int x1, int y1)
 
 }
 
-void Terrain::ClearCircle(int centerX, int centerY, int radius)
+void Terrain::ClearCircle(float centerX, float centerY, float radius)
 {
+
+	int sx = RoundDownToInt(centerX - radius);
+	int sy = RoundDownToInt(centerY - radius);
+	int ex = RoundDownToInt(centerX + radius);
+	int ey = RoundDownToInt(centerY + radius);
 
 	int x[2], y[2];
 
 	// Clamp the enclosing square to the buffer
-	if (textureBuffer->Intersection(centerX - radius, centerY - radius, centerX + radius, centerY + radius, x, y))
+	if (textureBuffer->Intersection(sx, sy, ex, ey, x, y))
 	{
 
 		// Get pointer to data
@@ -1042,8 +1047,8 @@ void Terrain::ClearCircle(int centerX, int centerY, int radius)
 
 			// Clear the section
 			int yAdvance = textureBuffer->Width() - (x[1] - x[0]);
-			int radiusSquared = radius * radius;
-			int dx, dy;
+			float radiusSquared = radius * radius;
+			float dx, dy;
 
 			for (int i = y[0]; i < y[1]; ++ i)
 			{
@@ -1072,14 +1077,19 @@ void Terrain::ClearCircle(int centerX, int centerY, int radius)
 
 }
 
-void Terrain::ClearCircle(int centerX, int centerY, int radius, int border)
+void Terrain::ClearCircle(float centerX, float centerY, float radius, float border)
 {
 
 	int x[2], y[2];
-	int maxRadius = radius + border;
+	float maxRadius = radius + border;
+
+	int sx = RoundDownToInt(centerX - maxRadius);
+	int sy = RoundDownToInt(centerY - maxRadius);
+	int ex = RoundDownToInt(centerX + maxRadius);
+	int ey = RoundDownToInt(centerY + maxRadius);
 
 	// Clamp the enclosing square to the buffer
-	if (textureBuffer->Intersection(centerX - maxRadius, centerY - maxRadius, centerX + maxRadius, centerY + maxRadius, x, y))
+	if (textureBuffer->Intersection(sx, sy, ex, ey, x, y))
 	{
 
 		// Set dirty rect
@@ -1093,9 +1103,9 @@ void Terrain::ClearCircle(int centerX, int centerY, int radius, int border)
 
 			// Clear the section
 			int yAdvance = textureBuffer->Width() - (x[1] - x[0]);
-			int radiusSquared = radius * radius;
-			int maxRadiusSquared = maxRadius * maxRadius;
-			int dx, dy, dsq;
+			float radiusSquared = radius * radius;
+			float maxRadiusSquared = maxRadius * maxRadius;
+			float dx, dy, dsq;
 
 			Color* color = (Color*)art[0]->Data();
 
@@ -1105,8 +1115,8 @@ void Terrain::ClearCircle(int centerX, int centerY, int radius, int border)
 				for (int j = x[0]; j < x[1]; ++ j)
 				{
 
-					dx = j - centerX;
-					dy = i - centerY;
+					dx = (float)j - centerX;
+					dy = (float)i - centerY;
 					dsq = dx * dx + dy * dy;
 
 					// Restrict to within radius of circle
@@ -1144,76 +1154,41 @@ void Terrain::ClearCircle(int centerX, int centerY, int radius, int border)
 // Collision detection
 //
 
-bool Terrain::PointCollision(int x, int y)
+bool Terrain::PointCollision(float x, float y)
 {
 
-	Color* data = (Color*)textureBuffer->Data(x, y);
+	Color* data = (Color*)textureBuffer->Data(RoundDownToInt(x), RoundDownToInt(y));
 	
 	return ((data != NULL) && (data->a != TERRAINALPHA_EMPTY));
 
 }
 
-bool Terrain::RowCollision(int centerX, int centerY, int width, int height, bool above)
+bool Terrain::RowCollision(float y, float startX, float endX)
 {
 
-	//
-	// Calculate row y
-	//
+	int iy = RoundDownToInt(y);
 
-	int halfHeight = height / 2;
-	int testY;
-	
-	if (above)
-	{
-
-		testY = centerY + halfHeight;
-
-		if (testY >= textureBuffer->Height())
-			return false;
-
-	}
-	else
-	{
-
-		testY = centerY - halfHeight;
-
-		if (testY < 0)
-			return false;
-
-	}
-
-	//
-	// Calculate x bounds
-	//
-
-	int halfWidth = width / 2;
-	int xMin = centerX - halfWidth;
-	int xMax = centerX + halfWidth;
-
-	if (xMin < 0)
-		xMin = 0;
-
-	if (xMax >= textureBuffer->Width())
-		xMax = textureBuffer->Width() - 1;
-
-	if (xMin > xMax)
+	// Ensure the row is on the terrain buffer
+	if ((iy < 0) || (iy >= HeightInPixels()))
 		return false;
 
-	//
-	// Test for collisions
-	//
+	// Ensure the start and end columns are on the terrain
+	int isx = Max(RoundDownToInt(startX), 0);	
+	int iex = Min(RoundDownToInt(endX), WidthInPixels() - 1);
 
-	int x = xMin;
-	Color* ptr = (Color*)textureBuffer->Data(x, testY);
+	if (isx > iex)
+		return false;
 
-	while (x != xMax)
+	// Test the buffer
+	Color* ptr = (Color*)textureBuffer->Data(isx, iy);
+
+	for (int x = isx; x <= iex; ++ x)
 	{
 
 		if (ptr->a != TERRAINALPHA_EMPTY)
 			return true;
 
-		ptr++;
-		x ++;
+		ptr ++;
 
 	}
 
@@ -1221,67 +1196,33 @@ bool Terrain::RowCollision(int centerX, int centerY, int width, int height, bool
 
 }
 
-bool Terrain::ColumnCollision(int centerX, int centerY, int width, int height, bool right)
+bool Terrain::ColumnCollision(float x, float startY, float endY)
 {
 
-	//
-	// Calculate column x
-	//
+	int ix = RoundDownToInt(x);
 
-	int halfWidth = width / 2;
-	int testX;
-	
-	if (right)
-	{
-
-		testX = centerX + halfWidth;
-
-		if (testX >= textureBuffer->Height())
-			return false;
-
-	}
-	else
-	{
-
-		testX = centerX - halfWidth;
-
-		if (testX < 0)
-			return false;
-
-	}
-
-	//
-	// Calculate y bounds
-	//
-
-	int halfHeight = height / 2;
-	int yMin = centerY - halfHeight;
-	int yMax = centerY + halfHeight;
-
-	if (yMin < 0)
-		yMin = 0;
-
-	if (yMax >= textureBuffer->Height())
-		yMax = textureBuffer->Height() - 1;
-
-	if (yMin > yMax)
+	// Ensure the column is on the terrain buffer
+	if ((ix < 0) || (ix >= WidthInPixels()))
 		return false;
 
-	//
-	// Test for collisions
-	//
+	// Ensure start and end rows are on the terrain buffer
+	int isy = Max(RoundDownToInt(startY), 0);
+	int iey = Min(RoundDownToInt(endY), HeightInPixels() - 1);
 
-	int y = yMin;
-	Color* ptr = (Color*)textureBuffer->Data(testX, y);
+	if (isy > iey)
+		return false;
 
-	while (y != yMax)
+	// Test the buffer
+	Color* ptr = (Color*)textureBuffer->Data(ix, isy);
+	int dx = WidthInPixels();
+
+	for (int y = isy; y <= iey; ++ y)
 	{
 
 		if (ptr->a != TERRAINALPHA_EMPTY)
 			return true;
 
-		ptr += textureBuffer->Width();
-		y ++;
+		ptr += dx;
 
 	}
 
@@ -1289,41 +1230,42 @@ bool Terrain::ColumnCollision(int centerX, int centerY, int width, int height, b
 
 }
 
-bool Terrain::SquareCollision(int centerX, int centerY, int width, int height)
+bool Terrain::BoxCollision(float centerX, float centerY, float width, float height, Vec2f& collisionPos)
 {
+
+	float halfWidth = width * 0.5f;
+	float halfHeight = height * 0.5f;
+
+	int sx = RoundDownToInt(centerX - halfWidth);
+	int sy = RoundDownToInt(centerY - halfHeight);
+	int ex = RoundDownToInt(centerX + halfWidth);
+	int ey = RoundDownToInt(centerY + halfHeight);
 
 	// Clamp the area to the buffer
 	int x[2], y[2];
-	int halfWidth = width / 2;
-	int halfHeight = height / 2;
 
-	if (textureBuffer->Intersection(centerX - halfWidth, centerY - halfHeight, centerX + halfWidth, centerY + halfHeight, x, y))
+	if (textureBuffer->Intersection(sx, sy, ex, ey, x, y))
 	{
 
-		// Get pointer to data
-		Color* ptr = (Color*)textureBuffer->Data(x[0], y[0]);
-
-		if (ptr)
+		for (int i = y[0]; i <= y[1]; ++ i)
 		{
 
-			// Clear the section
-			int yAdvance = textureBuffer->Width() - (x[1] - x[0]);
-
-			for (int i = y[0]; i < y[1]; ++ i)
+			for (int j = x[0]; j <= x[1]; ++ j)
 			{
 
-				for (int j = x[0]; j < x[1]; ++ j)
+				// Get pointer to data
+				Color* ptr = (Color*)textureBuffer->Data(j, i);
+
+				// Check for collision
+				if (ptr->a != TERRAINALPHA_EMPTY)
 				{
 
-					// Check for collision
-					if (ptr->a != TERRAINALPHA_EMPTY)
-						return true;
+					collisionPos.x = (float)j;
+					collisionPos.y = (float)i;
 
-					ptr ++;
+					return true;
 
 				}
-
-				ptr += yAdvance;
 
 			}
 
@@ -1335,328 +1277,113 @@ bool Terrain::SquareCollision(int centerX, int centerY, int width, int height)
 
 }
 
-bool Terrain::SquareCollisionIterated(int fromX, int fromY, int toX, int toY, int width, int height, Vector2* collisionPosition)
+bool Terrain::BoxCollisionIterated(float fromX, float fromY, float toX, float toY, float width, float height, Vec2f& collisionPosition, Vec2f& freePosition)
 {
 
 	bool initialTest = true;
 
-	float dx = (float)(toX - fromX);
-	float dy = (float)(toY - fromY);
-
 	//
-	// If our positions are the same we can just test the current bounds
+	// Calculate delta
 	//
 
-	if ((dx == 0) && (dy == 0))
+	float dx = toX - fromX;
+	float dy = toY - fromY;
+
+	ASSERT((dx != 0) || (dy != 0));
+
+	//
+	// Iterate over path
+	//
+
+	Vec2f direction = Vec2f(dx, dy);
+	float distance = direction.Length();
+	direction = direction.Normalize();
+
+	Vec2f pos = Vec2f(fromX, fromY);
+
+	float lerp = 0.0f;
+	float sx, sy, ex, ey;
+
+	float halfWidth = width * 0.5f;
+	float halfHeight = height * 0.5f;
+
+	bool collision = false;
+
+	while (lerp < distance)
 	{
 
-		if (SquareCollision(fromX, fromY, width, height))
+		// Store current pixel as free position and move to the next pixel
+		freePosition = pos;
+		pos += direction;
+		lerp += 1.0f;
+		
+		// Calculate test bounds
+		sx = pos.x - halfWidth;
+		sy = pos.y - halfHeight;
+		ex = pos.x + halfWidth;
+		ey = pos.y + halfHeight;
+		
+		if (direction.x >= 0.0f)
 		{
 
-			collisionPosition->x = (float)fromX;
-			collisionPosition->y = (float)fromY;
-			
+			// Test column to the right
+			if (ColumnCollision(ex, sy, ey))
+				collision = true;
+
+		}
+		else
+		{
+
+			// Test column to the left
+			if (ColumnCollision(sx, sy, ey))
+				collision = true;
+
+		}
+
+		if (!collision)
+		{
+
+			if (direction.y >= 0.0f)
+			{
+
+				// Test row above
+				if (RowCollision(ey, sx, ex))
+					collision = true;
+
+			}
+			else
+			{
+
+				// Test row below
+				if (RowCollision(sy, sx, ex))
+					collision = true;
+
+			}
+
+		}
+
+		if (collision)
+		{
+
+			//Vec2f throwAway;
+			//ASSERT(!BoxCollision(freePosition.x, freePosition.y, width, height, throwAway));
+
+			collisionPosition = pos;
 			return true;
 
 		}
 
-		return false;
-
-	}
-
-	//
-	// We need to iterate over the entire path of the object since the last frame
-	//
-
-	bool collision = false;
-
-	if (Abs(dx) > Abs(dy))
-	{
-
-		//
-		// X Major
-		//
-
-		float slope;
-		
-		if (dx != 0)
-			slope = dy / dx;
-		else
-			slope = 0.0f;
-
-		int d = toX > fromX ? 1 : -1;
-		float y = (float)fromY;
-		int iy, lastY = fromY;
-
-		for (int x = fromX; x != toX + d; x += d)
-		{
-
-			if (!initialTest)
-			{
-
-				//
-				// Test the difference
-				//
-
-				iy = (int)y;
-
-				if (iy != lastY)
-				{
-
-					if (slope > 0.0f)
-					{
-
-						// Row above
-						if (RowCollision(x, iy, width, height, true))
-							collision = true;
-
-					}
-					else
-					{
-
-						// Row below
-						if (RowCollision(x, iy, width, height, false))
-							collision = true;
-
-					}
-
-				}
-
-				lastY = iy;
-
-				if (!collision)
-				{
-
-					if (d > 0)
-					{
-
-						// Column right
-						if (ColumnCollision(x, iy, width, height, true))
-							collision = true;
-
-					}
-					else
-					{
-
-						// Column left
-						if (ColumnCollision(x, iy, width, height, false))
-							collision = true;
-
-					}
-
-				}
-
-				if (collision)
-				{
-
-					collisionPosition->x = (float)x;
-					collisionPosition->y = y;
-
-					return true;
-
-				}
-
-			}
-			else
-			{
-
-				//
-				// Test the area at the initial position
-				//
-
-				if (SquareCollision(fromX, fromY, width, height))
-				{
-
-					collisionPosition->x = (float)fromX;
-					collisionPosition->y = (float)fromY;
-
-					return true;
-
-				}
-
-				initialTest = false;
-
-			}
-
-			y += slope;
-
-		}
-
-	}
-	else
-	{
-
-		//
-		// Y Major
-		//
-
-		float slope;
-		
-		if (dy != 0)
-			slope = dx / dy;
-		else
-			slope = 0.0f;
-
-		int d = toY > fromY ? 1 : -1;
-		float x = (float)fromX;
-		int ix, lastX = fromX;
-
-		for (int y = fromY; y != toY + d; y += d)
-		{
-
-			if (!initialTest)
-			{
-
-				//
-				// Test the difference
-				//
-
-				ix = (int)x;
-
-				if (ix != lastX)
-				{
-
-					if (slope > 0.0f)
-					{
-
-						// Column right
-						if (ColumnCollision(ix, y, width, height, true))
-							collision = true;
-
-					}
-					else
-					{
-
-						// Column left
-						if (ColumnCollision(ix, y, width, height, false))
-							collision = true;
-
-					}
-
-				}
-
-				lastX = ix;
-
-				if (!collision)
-				{
-
-					if (d > 0)
-					{
-
-						// Row above
-						if (RowCollision(ix, y, width, height, true))
-							collision = true;
-
-					}
-					else
-					{
-
-						// Row below
-						if (RowCollision(ix, y, width, height, false))
-							collision = true;
-
-					}
-
-				}
-
-				if (collision)
-				{
-
-					collisionPosition->x = x;
-					collisionPosition->y = (float)y;
-
-					return true;
-
-				}
-
-			}
-			else
-			{
-
-				//
-				// Test the area at the initial position
-				//
-
-				if (SquareCollision(fromX, fromY, width, height))
-				{
-
-					collisionPosition->x = (float)fromX;
-					collisionPosition->y = (float)fromY;
-
-					return true;
-
-				}
-
-				initialTest = false;
-
-			}
-
-			x += slope;
-
-		}
-
 	}
 
 	return false;
 
 }
 
-bool Terrain::LineCollision(int x0, int y0, int x1, int y1, Vector2* collisionPosition)
-{
-
-	// Clamp the line to the buffer
-	int x[2], y[2];
-
-	if (textureBuffer->Intersection(x0, y0, x1, y1, x, y))
-	{
-
-		Vector2 v(x[1] - x[0], y[1] - y[0]);
-		float distance = VectorLength(v);
-		VectorNormalize(&v);
-		float lerp = 0.0f;
-		Vector2 p(x[0], y[0]);
-
-		while (lerp < distance)
-		{
-
-			Color* data = (Color*)textureBuffer->Data((int)p.x, (int)p.y);
-
-			if (data)
-			{
-
-				if (data->a != TERRAINALPHA_EMPTY)
-				{
-				
-					if (collisionPosition)
-					{
-
-						(*collisionPosition).x = p.x;
-						(*collisionPosition).y = p.y;
-
-					}
-
-					return true;
-
-				}
-
-			}
-
-			p += v;
-			lerp += 1.0f;
-
-		}
-
-	}
-
-	return false;
-
-}
-
-bool Terrain::RayIntersection(const Vector2& start, const Vector2& direction, float maxRange, Vector2& collisionPos)
+bool Terrain::RayIntersection(const Vec2f& start, const Vec2f& direction, float maxRange, Vec2f& collisionPos)
 {
 
 	bool collision = false;
-	Vector2 p = start;
+	Vec2f p = start;
 	float r = 0.0f;
 
 	while (1)
@@ -1686,6 +1413,109 @@ bool Terrain::RayIntersection(const Vector2& start, const Vector2& direction, fl
 	}
 
 	return collision;
+
+}
+
+Vec2f Terrain::GetNormalForBox(float centerX, float centerY, float width, float height)
+{
+
+	float halfWidth = width / 2;
+	float halfHeight = height / 2;
+	
+	int sx = RoundDownToInt(centerX - halfWidth);
+	int sy = RoundDownToInt(centerY - halfHeight);
+	int ex = RoundDownToInt(centerX + halfWidth);
+	int ey = RoundDownToInt(centerY + halfHeight);
+
+	// Clamp the area to the buffer
+	int x[2], y[2];
+
+	if (textureBuffer->Intersection(sx, sy, ex, ey, x, y))
+	{
+
+		Vec2f normal;
+		float dx, dy;
+
+		for (int ix = x[0]; ix <= x[1]; ++ ix)
+		{
+
+			for (int iy = y[0]; iy <= y[1]; ++ iy)
+			{
+
+				if (ix < centerX)
+					dx = 1.0f;
+				else
+					dx = -1.0f;
+
+				if (iy < centerY)
+					dy = 1.0f;
+				else
+					dy = -1.0f;
+
+				Color* ptr = (Color*)textureBuffer->Data(ix, iy);
+
+				if (ptr->a != TERRAINALPHA_EMPTY)
+				{
+
+					normal.x += dx;
+					normal.y += dy;
+
+				}
+
+			}
+
+		}
+
+		return normal.Normalize();
+
+	}
+
+	ASSERT(0);
+	return Vec2f(0.0f, 0.0f);
+
+}
+
+float Terrain::GetHeightForBox(const Box& box)
+{
+
+	int sx = RoundDownToInt(box.center.x - box.extents.x);
+	int sy = RoundDownToInt(box.center.y - box.extents.y);
+	int ex = RoundDownToInt(box.center.x + box.extents.x);
+	int ey = RoundDownToInt(box.center.y + box.extents.y);
+
+	// Clamp the area to the buffer
+	int x[2], y[2];
+
+	float height = -1.0f;
+
+	if (textureBuffer->Intersection(sx, sy, ex, ey, x, y))
+	{
+
+		for (int ix = x[0]; ix <= x[1]; ++ ix)
+		{
+
+			for (int iy = y[0]; iy <= y[1]; ++ iy)
+			{
+
+				Color* ptr = (Color*)textureBuffer->Data(ix, iy);
+
+				if (ptr->a != TERRAINALPHA_EMPTY)
+				{
+
+					if (iy > height)
+						height = (float)iy;
+
+				}
+
+			}
+
+		}
+
+		return height;
+
+	}
+
+	return -1.0f;
 
 }
 
@@ -1845,12 +1675,12 @@ float Terrain::AngleAtPoint(int x, int y)
 
 }
 
-Vector2 Terrain::NormalAtPoint(int x, int y, float* angle)
+Vec2f Terrain::NormalAtPoint(int x, int y, float* angle)
 {
 
 	Color* data = (Color*)textureBuffer->Data(x, y);
 
-	Vector2 n(0, 0);
+	Vec2f n(0, 0);
 	if (data->a != TERRAINALPHA_EMPTY)
 	{
 
@@ -1937,7 +1767,7 @@ Vector2 Terrain::NormalAtPoint(int x, int y, float* angle)
 		}
 
 		// Normalize vector
-		VectorNormalize(&n);
+		n = n.Normalize();
 
 	}
 
@@ -1997,7 +1827,7 @@ bool Terrain::Generate(float landmass, float smoothness, float chaosity, float p
 	float maxDistance = 2 * minDistance;		
 
 	// Set starting point
-	Vector2 p = Vector2(0, (int)((float)textureBuffer->Height() * landmass * 0.5f));
+	Vec2f p = Vec2f(0, ((float)textureBuffer->Height() * landmass * 0.5f));
 	points.insert(points.end(), p);
 
 	// Set angles and separation
@@ -2081,11 +1911,11 @@ bool Terrain::Generate(float landmass, float smoothness, float chaosity, float p
 			}
 
 			// Update with new min xs
-			Vector2 v = p - points[i - 1];
-			float distance = VectorLength(v);
+			Vec2f v = p - points[i - 1];
+			float distance = v.Length();
 			float lerp = 0.0f;
-			VectorNormalize(&v);
-			Vector2 c = points[i - 1];
+			v = v.Normalize();
+			Vec2f c = points[i - 1];
 			int cix, ciy;
 
 			while (lerp < distance)
@@ -2286,5 +2116,43 @@ int Terrain::HeightInPixels()
 
 }
 
+Vec2f Terrain::GetSpawnPoint()
+{
+
+	const int radius = 20;
+	const int diameter = 2 * radius;
+	int numAttempts = 100;
+	Vec2f throwAway;
+
+	while (numAttempts > 0)
+	{
+
+		int x = Random::RandomInt(diameter, WidthInPixels() - diameter - 1);
+		int y = Random::RandomInt(diameter, HeightInPixels() - diameter - 1);
+
+		while (y > 0)
+		{
+
+			Color* ptr = (Color*)textureBuffer->Data(x, y);
+
+			if (ptr->a == TERRAINALPHA_EMPTY)
+			{
+
+				if (!BoxCollision((float)x, (float)y, (float)diameter, (float)diameter, throwAway))
+					return Vec2f((float)x, (float)y);
+
+			}
+
+			y -= radius;
+
+		}
+
+		numAttempts --;
+
+	}
+
+	return Vec2f(0, 0);
+
+}
 
 

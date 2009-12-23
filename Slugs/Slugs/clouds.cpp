@@ -43,7 +43,7 @@ Clouds::~Clouds()
 void Clouds::Update(float elapsedTime)
 {
 
-	Vector2 position, size, scale;
+	Vec2f position, size, scale;
 
 	for (unsigned int i = 0; i < sprites.size(); ++ i)
 	{

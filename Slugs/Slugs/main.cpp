@@ -1,12 +1,11 @@
-#include "game.h"
+#include "app.h"
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR test, int)
 {
-	cSlugs game;
-
-	if (game.bInit()) {
-		game.bUpdate();
-	}
+	
+	App app;
+	app.MainLoop();
 
 	return 0;
+
 }

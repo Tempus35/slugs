@@ -28,7 +28,7 @@ enum WeaponType
 	WeaponType_Bazooka,
 	WeaponType_Grenade,
 	WeaponType_Shotgun,
-	WeaponType_MachineGun,
+	WeaponType_Machinegun,
 	WeaponType_LAST,					// Should be last on the list, used to determine number of available weapon types
 
 };
@@ -131,11 +131,11 @@ public:
 };
 
 /*
-	class Weapon_MachineGun
+	class Weapon_Machinegun
 	Machine gun weapon - fires a spray of bullets
 */
 
-class Weapon_MachineGun : public Weapon, public Updateable
+class Weapon_Machinegun : public Weapon, public Updateable
 {
 
 protected:
@@ -147,7 +147,7 @@ protected:
 
 public:
 
-	Weapon_MachineGun(int initialAmmo = -1);
+	Weapon_Machinegun(int initialAmmo = -1);
 
 	virtual bool Fire(Slug* owner);
 

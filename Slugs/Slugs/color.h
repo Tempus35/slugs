@@ -1,6 +1,6 @@
 #pragma once
 
-#include "defs.h"
+#include "global.h"
 
 struct Color
 {
@@ -21,7 +21,7 @@ struct Color
 
 	}
 
-	sf::Color ToSF()
+	sf::Color ToSF() const
 	{
 
 		return sf::Color(r, g, b, a);

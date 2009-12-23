@@ -141,7 +141,7 @@ bool TextureBuffer::Intersection(int x0, int y0, int x1, int y1, int* x, int* y)
 	x[1] = min(x1, width - 1);
 	y[1] = min(y1, height - 1);
 
-	if ((x[1] != x[0]) || (y[1] !=y[0]))
+	if ((x[1] != x[0]) || (y[1] != y[0]))
 		return true;
 
 	return false;

@@ -3,7 +3,7 @@
 #include <fstream>
 #include <iostream>
 
-#include "defs.h"
+#include "global.h"
 #include "resource.h"
 
 using namespace std;

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "debug.h"
-#include "world.h"
 #include "object.h"
 #include "weaponstore.h"
 #include "projectile.h"
@@ -29,20 +28,35 @@ enum MovementDirection
 
 #define SLUG_MOVEMENT_SPEED		50.0f						// Pixels/sec
 #define SLUG_AIM_SPEED			45.0f * PI_OVER_180			// Radians/sec 
-#define SLUG_MAX_UP_STEP		5							// Maximum number of pixels that can be moved vertically per step
+#define SLUG_MAX_UP_STEP		5							// Maximum number of pixels that can be moved up per step
+#define SLUG_MAX_DOWN_STEP		5							// Maximum number of pixels that can be move down per step
 #define SLUG_DEATH_TIMER		2.0f						// Time between reaching 0 hps and exploding
-#define SLUG_EXPLOSION_STRENGTH 30							// Strength of the slug death explosion
+#define SLUG_EXPLOSION_STRENGTH 30.0f							// Strength of the slug death explosion
 #define SHOT_POWER_CHARGE_RATE	1.0f						// Rate of weapon charge		
 
+/*
+	Forward Declarations
+*/
+
 class Team;
+
+/*
+
+	class Slug
+	A self contained slug!
+
+	NOTE:	To check if a slug is alive, use GetHitPoints() > 0 rather than IsAlive()
+	.		The alive flag is still set to true as a slug is dying!
+
+*/
 
 class Slug : public Object
 {
 
 private:
 
-	int				movementDirection;
-	FaceDirection	facingDirection;								
+	int				movementDirection;								// Current movement direction
+	FaceDirection	facingDirection;								// Current facing direction
 	float			aimAngle;										// View/aiming angle, -PI/2 <= x <= PI/2
 
 	Weapon*			currentWeapon;									// Pointer to the currently selected weapon
@@ -57,10 +71,10 @@ private:
 
 public:
 
-	Slug();
+	Slug(Team* _team);
 	~Slug();
 
-	virtual bool Update(float elapsedTime, Terrain* terrain, Vector2& gravity, Vector2& wind);
+	virtual bool Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind);
 	void StartMovingLeft();
 	void StartMovingRight();
 	void StopMoving();
@@ -106,6 +120,9 @@ public:
 	
 	// Sets the weapons store available to the slug
 	void SetWeapons(WeaponStore* store, bool slugOwns = false);
+
+	// Gets the spawn point for projectiles
+	Vec2f GetWeaponPoint() const;
 
 	// Gets the team to which the slug is assigned
 	Team* GetTeam() const;

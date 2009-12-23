@@ -1,783 +1,490 @@
 #include "game.h"
+#include "player.h"
+#include "aiplayer.h"
 
-cSlugs::cSlugs() {
-	bPushed = false;
+Game::Game()
+{
 
-	//change scene here 
-	iScene = SCENE_ENGINE_TEST;  //SCENE_LEVEL_TEST
+	world = NULL;
+	updateManager = new UpdateManager();
+	fxManager = new FXManager();
 
-	bFullscreen = false;
-	iGroundObject = 0;
-	iScreenWidth = 1024;
-	iScreenHeight = 768;
-	bPushedLeft = false;
-	iPlayerIndex = 0;
-	bRunning = true;
-	frame = 0;
-	fps = 0;
-	time = 0.0f;
-	clock.Reset();
+	for (int i = 0; i < GameFlag_LAST; ++ i)
+		flags.push_back(false);
 
-	rmbDown = false;
 	lockCameraToLevel = true;
 
-}
+	state = GameState_None;
 
-cSlugs::~cSlugs() {
-
-	Shutdown();
+	camera = new Camera();
 
 }
 
-void cSlugs::UpdateFPS(float elapsedTime)
+Game::~Game()
 {
 
-	if (elapsedTime < 1.0f)
-	{
-
-		frame++;
-		time += elapsedTime;
-
-		if (time > 1e-6f)
-			fps = (float)frame / time;
-		else
-			fps = 0;
-
-	}
+	SafeDelete(camera);
+	SafeDelete(world);
+	SafeDelete(updateManager);
+	SafeDelete(fxManager);
 
 }
 
-void cSlugs::bUpdate()
+void Game::Update(float elapsedTime)
 {
 
-	Renderer* renderer = Renderer::Get();
+	// Update the update manager
+	if (updateManager)
+		updateManager->Update(elapsedTime);
 
-	// Game Loop	
-	float elapsedTime;
+	// Update world
+	if (world)
+		world->Update(elapsedTime);
 
-	while (bRunning)
+	if (fxManager)
+		fxManager->Update(elapsedTime);
+
+}
+
+void Game::Render()
+{
+
+	if (world)
 	{
-	
-		// Get time since last frame
-		elapsedTime = clock.GetElapsedTime();
 
-		// Update FPS counter
-		UpdateFPS(elapsedTime);
+		world->Render();
 
-		// Reset clock
-		clock.Reset();
-
-		// Process SFML events
-		sf::Event Event;
-		while (renderer->GetWindow().GetEvent(Event))
+		if (world->SelectedObject())
 		{
-			
-			if (!bInput(&Event)) 
-				bRunning = false;
+
+			Vec2f pos = world->SelectedObject()->GetPosition();
+			char str[64];
+			sprintf_s(str, 64, "%i", world->SelectedObject()->GetHitPoints());
+			//font.Draw(pos.x, pos.y - 30, str);
 
 		}
 
-		// Update
-		UpdateScene(elapsedTime);
-			
-		// Main render loop
-		bRender();
-
 	}
+
+	Renderer::Get()->DebugDraw();
+
 }
 
-void cSlugs::UpdateScene(float elapsedTime)
+World* Game::GetWorld() const
 {
 
-	switch (iScene)
+	return world;
+
+}
+
+UpdateManager* Game::GetUpdateManager() const
+{
+
+	return updateManager;
+
+}
+
+FXManager* Game::GetFXManager() const
+{
+
+	return fxManager;
+
+}
+
+bool Game::IsFlagSet(GameFlag flag) const
+{
+
+	return flags[flag];
+
+}
+
+bool Game::KeyDown(sf::Key::Code key, bool shift, bool control, bool alt)
+{
+
+	if (state == GameState_Game)
 	{
 
-		case SCENE_LEVEL_TEST:
+		Object* selectedObject = world->SelectedObject();
 
-#ifdef CAMERA_EDGE_MOVE
+		switch (key)
+		{
 
-			bool camMoved = false;
+		//
+		// Debugging
+		//
 
-			//
-			// Camera movement when mouse is at edge of screen
-			//
+		case sf::Key::G:
+			world->Regenerate();
+			break;
 
-			if (!lockCameraToLevel)
+		case sf::Key::L:
+			lockCameraToLevel = !lockCameraToLevel;
+			break;
+
+		case sf::Key::K:
+
+			if (selectedObject)
+				selectedObject->SetHitpoints(-1);
+			
+			break;
+	
+		//
+		// Slug Controls
+		//
+
+		case sf::Key::Left:
+
+			if (selectedObject)
+				selectedObject->StartMovingLeft();
+
+			break;
+
+		case sf::Key::Right:
+
+			if (selectedObject)
+				selectedObject->StartMovingRight();
+
+			break;
+
+		case sf::Key::Up:
+
+			if (selectedObject)
+				selectedObject->StartAimingUp();
+
+			break;
+
+		case sf::Key::Down:
+			
+			if (selectedObject)
+				selectedObject->StartAimingDown();
+
+			break;
+
+		case sf::Key::Return:
+
+			if (selectedObject)
+				selectedObject->Jump();
+
+			break;
+
+		case sf::Key::Space:
+
+			if (selectedObject)
+				selectedObject->StartCharging();
+
+			break;
+
+		case sf::Key::Num1:
+
+			if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
+				((Slug*)selectedObject)->ArmSelf(WeaponType_Bazooka);
+
+			break;
+
+		case sf::Key::Num2:
+
+			if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
+				((Slug*)selectedObject)->ArmSelf(WeaponType_Grenade);
+
+			break;
+
+		case sf::Key::Num3:
+
+			if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
+				((Slug*)selectedObject)->ArmSelf(WeaponType_Shotgun);
+
+			break;
+
+		case sf::Key::Num4:
+
+			if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
+				((Slug*)selectedObject)->ArmSelf(WeaponType_Machinegun);
+
+			break;
+
+		}
+
+	}
+
+	return true;
+
+}
+
+bool Game::KeyUp(sf::Key::Code key, bool shift, bool control, bool alt)
+{
+
+	if (state == GameState_Game)
+	{
+		
+		Object* selectedObject = Game::Get()->GetWorld()->SelectedObject();
+		
+		switch (key)
+		{
+
+			case sf::Key::Left:
+			case sf::Key::Right:
+
+				if (selectedObject)
+					selectedObject->StopMoving();
+			
+				break;
+
+			case sf::Key::Up:
+			case sf::Key::Down:
+
+				if (selectedObject)
+					selectedObject->StopAiming();
+
+				break;
+
+			case sf::Key::Space:
+
+				if (selectedObject)
+					selectedObject->Fire();
+
+				break;
+
+		}
+
+	}
+
+	return true;
+
+}
+
+bool Game::MouseDown(const Vec2i& position, sf::Mouse::Button button)
+{
+
+	if (state == GameState_Game)
+	{
+
+		if (button == sf::Mouse::Left)
+		{
+						
+			Vec2f pickPosition = camera->GetWorldPosition(position.x, position.y);
+			Object* pickedObject = Game::Get()->GetWorld()->GetObjectAtPosition(pickPosition);
+
+			if (pickedObject)
+				world->SelectObject(pickedObject);
+			//else
+			//	world->SimulateExplosion(pickPosition.x, pickPosition.y, Random::RandomFloat(30.0f, 100.0f));
+
+		}
+
+	}
+
+	return true;
+
+}
+
+bool Game::MouseUp(const Vec2i& position, sf::Mouse::Button button)
+{
+
+	return true;
+
+}
+
+bool Game::MouseMoved(bool left, bool right, bool middle, const Vec2i& from, const Vec2i& to)
+{
+
+	if ((state == GameState_Game) && (right == true))
+	{
+
+		//
+		// RMB moves the camera
+		//
+
+		Vec2i delta = from - to;
+
+		sf::Rect<float> viewRect = camera->GetView().GetRect();
+
+		if (lockCameraToLevel)
+		{
+
+			if (delta.x < 0)
 			{
 
-				// Free movement
-				if (iMouseX < CAMERA_MOVE_BORDER)
-				{
-
-					cam->Move(-CAMERA_MOVE_SHIFT, 0);
-					camMoved = true;
-
-				}
-				else if (iMouseX > iScreenWidth - CAMERA_MOVE_BORDER)
-				{
-					
-					cam->Move(CAMERA_MOVE_SHIFT, 0);
-					camMoved = true;
-
-				}
-
-				if (iMouseY < CAMERA_MOVE_BORDER)
-				{
-					
-					cam->Move(0, -CAMERA_MOVE_SHIFT);
-					camMoved = true;
-				
-				}		
-				else if (iMouseY > iScreenHeight - CAMERA_MOVE_BORDER)
-				{
-
-					cam->Move(0, CAMERA_MOVE_SHIFT);
-					camMoved = true;
-
-				}
+				if (-delta.x > (int)viewRect.Left)
+					delta.x = -(int)viewRect.Left; 
 
 			}
 			else
 			{
 
-				// Clamp camera to level bounds
-				sf::Rect<float> viewRect = cam->GetRect();
-				float d;
+				int d = Game::Get()->GetWorld()->WidthInPixels() - (int)viewRect.Right;
 				
-				if (iMouseX < CAMERA_MOVE_BORDER)
-				{
-
-					if (viewRect.Left > 0)
-					{
-
-						d = viewRect.Left;
-						cam->Move(-min(CAMERA_MOVE_SHIFT, d), 0);
-						camMoved = true;
-
-					}
-
-				}
-				else if (iMouseX > iScreenWidth - CAMERA_MOVE_BORDER)
-				{
-
-					if (viewRect.Right < world->WidthInPixels())
-					{
-
-						d = (float)world->WidthInPixels() - viewRect.Right;
-						cam->Move(min(CAMERA_MOVE_SHIFT, d), 0);
-						camMoved = true;
-
-					}
-
-				}
-
-				if (iMouseY < CAMERA_MOVE_BORDER)
-				{
-
-					if (viewRect.Top > -world->HeightInPixels())
-					{
-
-						d = viewRect.Top + (float)world->HeightInPixels();
-						cam->Move(0, -min(CAMERA_MOVE_SHIFT, d));
-						camMoved = true;
-
-					}
-
-				}
-				else if (iMouseY > iScreenHeight - CAMERA_MOVE_BORDER)
-				{
-
-					if (viewRect.Bottom < 0)
-					{
-
-						d = -viewRect.Bottom;
-						cam->Move(0, min(CAMERA_MOVE_SHIFT, d));
-						camMoved = true;
-
-					}
-
-				}
+				if (d < delta.x)
+					delta.x = d;
 
 			}
 
-			if (camMoved)
-				world->CameraMoved(cam->GetCenter());
+			if (delta.y < 0)
+			{
 
-#endif
+				int d = -Game::Get()->GetWorld()->HeightInPixels() - (int)viewRect.Top;
 
-			// Update the update manager
-			UpdateManager::Get()->Update(elapsedTime);
+				if (d > delta.y)
+					delta.y = d;
 
-			// Update world
-			World::Get()->Update(elapsedTime);
+			}
+			else
+			{
 
-			// Update fx
-			FXManager::Get()->Update(elapsedTime);
+				if (delta.y > -(int)viewRect.Bottom)
+					delta.y = -(int)viewRect.Bottom;
+
+			}
+
+		}
+
+		camera->Move(delta.x, delta.y);
+
+		// Lets the world know the camera moved
+		world->CameraMoved(camera->GetPosition());
+
+	}
+
+	return true;
+
+}
+
+void Game::LoadResourcesForState(GameState gameState)
+{
+
+	ResourceManager* resourceManager = ResourceManager::Get();
+
+	if (gameState == GameState_Game)
+	{
+
+		//
+		// Build debugging text resources
+		//
+
+		std::vector<std::string> names;
+
+		names.push_back("Read Team"); names.push_back("Green Team"); names.push_back("Blue Team"); names.push_back("Yellow Team");
+		names.push_back("Pink Team"); names.push_back("Purple Team"); names.push_back("White Team"); names.push_back("Black Team");
+		names.push_back("Orange Team");
+		resourceManager->AddResource("text_teamnames", new TextResource(names));
+		names.clear();
+
+		names.push_back("Paul"); names.push_back("Tim"); names.push_back("Andreas"); names.push_back("Bob"); names.push_back("George");
+		names.push_back("Texas"); names.push_back("Pete"); names.push_back("Adam"); names.push_back("Angela"); names.push_back("Richard");
+		names.push_back("Bill"); names.push_back("Tony"); names.push_back("Travis"); names.push_back("Theodore"); names.push_back("Amy");
+		names.push_back("Josie"); names.push_back("Clint"); names.push_back("Chris"); names.push_back("Jesus"); names.push_back("Jose");
+		names.push_back("Katie"); names.push_back("Steve"); names.push_back("Sarah");
+		resourceManager->AddResource("text_slugnames", new TextResource(names));
+		names.clear();
+
+		//
+		// Load other resources
+		//
+
+		resourceManager->AddResource("image_gravestone", new ImageResource("gfx\\graves\\gravestone16x16.png"));
+		resourceManager->AddResource("image_water0", new ImageResource("gfx\\levels\\test\\water.tga"));
+		resourceManager->AddResource("image_backgroundfar", new ImageResource("gfx\\levels\\test\\back2.png"));
+		resourceManager->AddResource("image_backgroundnear", new ImageResource("gfx\\levels\\test\\back1.png"));
+		resourceManager->AddResource("image_crosshair", new ImageResource("gfx\\levels\\test\\crosshair.tga"));
+		resourceManager->AddResource("image_arrow", new ImageResource("gfx\\arrow-sprite.png"));
+		resourceManager->AddResource("image_cloud", new ImageResource("gfx\\clouds\\standard\\smallcloud0.png"));
+		resourceManager->AddResource("tb_ground", new TextureBuffer("gfx\\levels\\test\\ground.raw", 256, 256, 4));
+		resourceManager->AddResource("tb_over", new TextureBuffer("gfx\\levels\\test\\over.raw", 256, 12, 4));
+		resourceManager->AddResource("tb_under", new TextureBuffer("gfx\\levels\\test\\under.raw", 256, 4, 4));
+		resourceManager->AddResource("image_jumping_right", new ImageResource("gfx\\jumping_right.png"));
+		resourceManager->AddResource("image_explosion", new ImageResource("gfx\\SkybusterExplosion.jpg"));
+		resourceManager->AddResource("image_options_notselected", new ImageResource("gfx\\menu\\menu_options_not_selected.png"));
+		resourceManager->AddResource("image_options_selected", new ImageResource("gfx\\menu\\menu_options_selected.png"));
+		resourceManager->AddResource("image_credits_notselected", new ImageResource("gfx\\menu\\menu_credits_not_selected.png"));
+		resourceManager->AddResource("image_credits_selected", new ImageResource("gfx\\menu\\menu_credits_selected.png"));
+		resourceManager->AddResource("image_SP_not_selected", new ImageResource("gfx\\menu\\menu_SP_not_selected.png"));
+		resourceManager->AddResource("image_SP_selected", new ImageResource("gfx\\menu\\menu_SP_selected.png"));
+		resourceManager->AddResource("image_MP_not_selected", new ImageResource("gfx\\menu\\menu_MP_not_selected.png"));
+		resourceManager->AddResource("image_MP_selected", new ImageResource("gfx\\menu\\menu_MP_selected.png"));
+		resourceManager->AddResource("image_menu_background", new ImageResource("gfx\\menu\\menu_background.png"));
+		resourceManager->AddResource("image_logo", new ImageResource("gfx\\2uoo2ti.png"));
+		resourceManager->AddResource("image_slug_left", new ImageResource("gfx\\slug_ph_left.tga"));
+		resourceManager->AddResource("image_slug_right", new ImageResource("gfx\\slug_ph_right.tga"));
+		resourceManager->AddResource("image_rocket", new ImageResource("gfx\\rocket_ph.tga"));
+		resourceManager->AddResource("image_grenade", new ImageResource("gfx\\grenade_ph.tga"));
+
+		resourceManager->AddResource("image_snowflake", new ImageResource("gfx\\snowflake.tga"));
+
+		resourceManager->AddResource("menu_click", new SoundResource("sfx\\menu_click.WAV"));
+
+		TextureBuffer* rawTex[3];
+		rawTex[0] = new TextureBuffer("gfx\\levels\\test\\ground.raw", 256, 256, 4);
+		resourceManager->AddResource("test_ground", rawTex[0]);
+		rawTex[1] = new TextureBuffer("gfx\\levels\\test\\over.raw", 256, 12, 4);
+		resourceManager->AddResource("test_over", rawTex[1]);
+		rawTex[2] = new TextureBuffer("gfx\\levels\\test\\under.raw", 256, 4, 4);
+		resourceManager->AddResource("test_under", rawTex[2]);
+
+	}
+
+}
+
+void Game::ChangeGameState(GameState gameState)
+{
+
+	LoadResourcesForState(gameState);
+
+	switch (gameState)
+	{
+
+	case GameState_Game:
+
+		CreateWorld();
 
 		break;
 
 	}
 
-}
-
-bool cSlugs::bInput(sf::Event *myEvent) {
-
-
-	// Check for close events
-	if (myEvent->Type == sf::Event::Closed)
-		return false;
-
-	// Check for escape key pressed (fixed)
-	if ((myEvent->Type == sf::Event::KeyPressed) && (myEvent->Key.Code == sf::Key::Escape))
-		return false;
-
-	// Update mouse position if the mouse moved
-	if (myEvent->Type == sf::Event::MouseMoved)
-	{
-
-		lastMouseX = iMouseX;
-		lastMouseY = iMouseY;
-		iMouseX = myEvent->MouseMove.X;
-		iMouseY = myEvent->MouseMove.Y;
-
-	}
-
-	if ((iScene != SCENE_LEVEL_TEST) && (myEvent->Type == sf::Event::KeyPressed) && (myEvent->Key.Code == sf::Key::P))
-	{
-
-		InitLevelTest();
-		iScene = SCENE_LEVEL_TEST;
-
-	}
-
-	switch (iScene) {
-		case SCENE_LOGO:
-			//Controls
-			//if (hge->Input_GetKeyState(HGEK_SPACE)) { iScene = SCENE_MENUE; bPushedLeft = true; }
-			//if (hge->Input_GetKeyState(HGEK_ENTER)) { iScene = SCENE_MENUE; bPushedLeft = true; }
-			//if (hge->Input_GetKeyState(HGEK_LBUTTON)) { iScene = SCENE_MENUE; bPushedLeft = true; }
-			break;
-		case SCENE_MENUE:
-			//if (hge->Input_GetKeyState(HGEK_LEFT)) unitSlugs[iPlayerIndex]->Move(-1, 0);
-			//if (hge->Input_GetKeyState(HGEK_RIGHT)) unitSlugs[iPlayerIndex]->Move(+1, 0);
-			//if (hge->Input_GetKeyState(HGEK_UP)) unitSlugs[iPlayerIndex]->Rotation((float)+0.1);
-			//if (hge->Input_GetKeyState(HGEK_DOWN)) unitSlugs[iPlayerIndex]->Rotation((float)-0.1);
-			//if (hge->Input_KeyUp(HGEK_TAB)) {
-			//	bPushed = false;
-			//}
-			//if (hge->Input_KeyDown(HGEK_TAB)) {
-			//	if (!bPushed) {
-			//		if (iPlayerIndex == 0) iPlayerIndex = 1; else iPlayerIndex = 0;
-			//		bPushed = true;
-			//	}
-			//}
-
-			//if (hge->Input_GetKeyState(HGEK_LBUTTON) && !bPushedLeft) {
-			//	if (credits->Collision(fMouseX, fMouseY)) { 
-			//		iScene = SCENE_MENUE;
-			//		sfx->PlaySnd(false);
-			//	}
-			//	if (singleplayer->Collision(fMouseX, fMouseY)) {
-			//		//bodies clearen
-			//		//physic->clearBodyList();
-			//		unitGround->Kill();
-
-			//		for (int i = 0; i < 2; i++) {
-			//			unitSlugs[i]->Kill();
-			//		}
-
-			//		//Level generation
-			//		level = new cLevel(hge, physic);
-			//		level->Create (1024*2, iScreenHeight, deform_test, ground_test, sky_test);	
-			//		level->generateMap();
-			//		//level->textureLevel(tex_test);
-
-			//		//Change Scene
-			//		iScene = SCENE_LEVEL_TEST;
-			//		sfx->PlaySnd(false);
-			//	}
-			//	if (multiplayer->Collision(fMouseX, fMouseY)) {
-			//		iScene = SCENE_MENUE;
-			//		sfx->PlaySnd(false);
-			//	}
-			//	if (options->Collision(fMouseX, fMouseY)) {
-			//		iScene = SCENE_MENUE;	
-			//		sfx->PlaySnd(false);
-			//	}
-			//}
-			break;
-		case SCENE_GAME:
-			
-			break;
-		case SCENE_MENUE_SINGLEPLAYER:
-			break;
-		case SCENE_MENUE_MULTYPLAYER:
-			break;
-		case SCENE_MENUE_OPTIONS:
-			break;
-		case SCENE_OPTIONS_SOUND:
-			break;
-		case SCENE_OPTIONS_GRAPHIC:
-			break;
-		case SCENE_OPTIONS_TEAM:
-			break;
-		case SCENE_SOUND_TEST:
-			/*if (hge->Input_GetKeyState(HGEK_UP)) if (sfx->get_volume() < 100) sfx->change_volume(+1);
-			if (hge->Input_GetKeyState(HGEK_DOWN)) if (sfx->get_volume() > 0) sfx->change_volume(-1);
-			if (hge->Input_GetKeyState(HGEK_LEFT)) if (sfx->get_pan() > -100) sfx->change_pan(-1);
-			if (hge->Input_GetKeyState(HGEK_RIGHT)) if (sfx->get_pan() < 100) sfx->change_pan(+1);
-			if (hge->Input_GetKeyState(HGEK_SPACE)) sfx->Stop();
-			if (hge->Input_GetKeyState(HGEK_ENTER)) sfx->PlaySnd(true);*/
-			break;
-		case SCENE_PHYSIC_TEST:
-
-			break;
-		case SCENE_LEVEL_TEST:
-				
-			Object* selectedObject = World::Get()->SelectedObject();
-
-			if (myEvent->Type == sf::Event::KeyPressed)
-			{
-
-				if (myEvent->Key.Code == sf::Key::G)
-					World::Get()->Regenerate();
-				else if (myEvent->Key.Code == sf::Key::S)
-				{
-
-					char str[32];
-					sprintf_s(str, 32, "Seed: %u", World::Get()->Seed());
-					MessageBox(NULL, str, "Information", MB_OK);
-
-				}
-				else if (myEvent->Key.Code == sf::Key::L)
-				{
-
-					lockCameraToLevel = !lockCameraToLevel;
-				
-				}
-				else if (myEvent->Key.Code == sf::Key::Num1)
-				{
-
-					Object* selectedObject = World::Get()->SelectedObject();
-
-					if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
-					{
-
-						Slug* slug = (Slug*)selectedObject;
-						slug->ArmSelf(WeaponType_Bazooka);
-
-					}
-				
-				}
-				else if (myEvent->Key.Code == sf::Key::Num2)
-				{
-
-					Object* selectedObject = World::Get()->SelectedObject();
-
-					if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
-					{
-
-						Slug* slug = (Slug*)selectedObject;
-						slug->ArmSelf(WeaponType_Grenade);
-
-					}
-				
-				}
-				else if (myEvent->Key.Code == sf::Key::Num3)
-				{
-
-					Object* selectedObject = World::Get()->SelectedObject();
-
-					if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
-					{
-
-						Slug* slug = (Slug*)selectedObject;
-						slug->ArmSelf(WeaponType_Shotgun);
-
-					}
-				
-				}
-				else if (myEvent->Key.Code == sf::Key::Num4)
-				{
-
-					Object* selectedObject = World::Get()->SelectedObject();
-
-					if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
-					{
-
-						Slug* slug = (Slug*)selectedObject;
-						slug->ArmSelf(WeaponType_MachineGun);
-
-					}
-				
-				}
-				else if (selectedObject)
-				{
-					
-					if (myEvent->Key.Code == sf::Key::Left)
-						selectedObject->StartMovingLeft();
-					else if (myEvent->Key.Code == sf::Key::Right)
-						selectedObject->StartMovingRight();
-					else if (myEvent->Key.Code == sf::Key::Up)
-						selectedObject->StartAimingUp();
-					else if (myEvent->Key.Code == sf::Key::Down)
-						selectedObject->StartAimingDown();
-					else if (myEvent->Key.Code == sf::Key::Return)
-						selectedObject->Jump();
-					else if (myEvent->Key.Code == sf::Key::Space)
-						selectedObject->StartCharging();
-
-				}
-
-			}
-			else if (myEvent->Type == sf::Event::KeyReleased)
-			{
-
-				if (selectedObject)
-				{
-
-					if (myEvent->Key.Code == sf::Key::Left)
-						selectedObject->StopMoving();
-					else if (myEvent->Key.Code == sf::Key::Right)
-						selectedObject->StopMoving();
-					else if (myEvent->Key.Code == sf::Key::Up)
-						selectedObject->StopAiming();
-					else if (myEvent->Key.Code == sf::Key::Down)
-						selectedObject->StopAiming();
-					else if (myEvent->Key.Code == sf::Key::Space)
-						selectedObject->Fire();
-
-				}
-			
-			}
-			else if (myEvent->Type == sf::Event::MouseButtonPressed)
-			{
-
-				if (myEvent->MouseButton.Button == sf::Mouse::Left)
-				{
-					
-					Vector2 pickPosition = camera.GetWorldPosition(myEvent->MouseButton.X, myEvent->MouseButton.Y);
-					Object* pickedObject = World::Get()->GetObjectAtPosition(pickPosition);
-
-					if (pickedObject)
-						World::Get()->SelectObject(pickedObject);
-					else
-						World::Get()->SimulateExplosion((int)pickPosition.x, (int)pickPosition.y, Random::RandomInt(30, 100));
-
-				}
-				else if (myEvent->MouseButton.Button == sf::Mouse::Middle)
-				{
-
-					Slug* slug = new Slug();
-					ImageResource* r = (ImageResource*)ResourceManager::Get()->GetResource("image_slug_right");
-					slug->SetImage(r);
-					slug->SetPosition(camera.GetWorldPosition(myEvent->MouseButton.X, myEvent->MouseButton.Y));
-					slug->SetVelocity(0, -200);
-					slug->SetRadius(8);
-					slug->SetWeapons(new WeaponStore(true), true);
-					slug->ArmSelf();
-					World::Get()->AddObject(slug);
-
-				}
-				else
-					rmbDown = true;
-
-			}
-			else if (myEvent->Type == sf::Event::MouseButtonReleased)
-			{
-
-				if (myEvent->MouseButton.Button == sf::Mouse::Right)
-					rmbDown = false;
-
-			}
-			else if (myEvent->Type == sf::Event::MouseMoved)
-			{
-
-				// RMB Camera Drag
-				if (rmbDown)
-				{
-
-					int mx = iMouseX - lastMouseX;
-					int my = iMouseY - lastMouseY;
-
-					sf::Rect<float> viewRect = camera.GetView().GetRect();
-
-					if (lockCameraToLevel)
-					{
-
-						if (mx < 0)
-						{
-
-							if (-mx > (int)viewRect.Left)
-								mx = -(int)viewRect.Left; 
-
-						}
-						else
-						{
-
-							int d = World::Get()->WidthInPixels() - (int)viewRect.Right;
-							
-							if (d < mx)
-								mx = d;
-
-						}
-
-						if (my < 0)
-						{
-
-							int d = -World::Get()->HeightInPixels() - (int)viewRect.Top;
-
-							if (d > my)
-								my = d;
-
-						}
-						else
-						{
-
-							if (my > -(int)viewRect.Bottom)
-								my = -(int)viewRect.Bottom;
-
-						}
-
-					}
-
-					camera.Move(mx, my);
-
-					World::Get()->CameraMoved(camera.GetPosition());
-
-				}
-
-			}
-
-			break;
-	}
-	
-	return true;
-}
-
-void cSlugs::bRender() {
-
-	
-	Renderer::Get()->Clear(Color(100, 100, 100));
-
-	switch (iScene) {
-		case SCENE_LOGO:
-			break;
-		case SCENE_MENUE:
-			Menu();
-			break;		
-		case SCENE_XML_TEST:
-			XMLTest();
-			break;
-		case SCENE_ENGINE_TEST:
-			GraphicTest();
-			break;
-		case SCENE_SOUND_TEST:
-			SoundTest();
-			break;
-		case SCENE_LEVEL_TEST:
-			LevelTest();
-			break;
-		case SCENE_PHYSIC_TEST:
-			PhysicTest();
-			break;
-		case SCENE_MENUE_OPTIONS:
-			break;
-		case SCENE_MENUE_SINGLEPLAYER:
-			break;
-		case SCENE_MENUE_MULTYPLAYER:
-			break;
-		case SCENE_OPTIONS_SOUND:
-			break;
-		case SCENE_OPTIONS_GRAPHIC:
-			break;
-		case SCENE_OPTIONS_TEAM:
-			break;
-		case SCENE_GAME:
-			Game();
-			break;
-	}
-
-	//FPS
-	sprintf_s(sFPS, "FPS: %.1f", fps);
-	font.Draw(5, 5, sFPS);	
-
-	Renderer::Get()->Present();
+	state = gameState;
 
 }
 
-bool cSlugs::bInit()
+void Game::CreateWorld()
 {
 
-	//Loading XML
-	if (!config.bLoad(global.CombiStr("data\\config.xml"))) return false;
+	SafeDelete(world);
+	world = new World();
 
-	iScreenWidth = atoi(config.get_element("screen_width")->GetText());
-	iScreenHeight = atoi(config.get_element("screen_height")->GetText());
-
-	//Init Engine
-	Renderer::Get()->Initialize(iScreenWidth, iScreenHeight, "Slugs");
-
-	camera.SetViewSize(iScreenWidth, iScreenHeight);
-	Renderer::Get()->SetCamera(camera);
-
-	//Logo
-	sf::Image img_icon;
-	if (!img_icon.LoadFromFile(global.CombiStr("Slug.png"))) 
-		return false;
-
-	Renderer::Get()->SetIcon(img_icon); 
-
-	if (strcmp(config.get_element("fullscreen")->GetText(), "true") == 0) {
-		bFullscreen = false;
-	} else {
-		bFullscreen = true;
-	}
-
-	// Initialize resource manager and world, load test textures
-	ResourceManager* resourceManager = ResourceManager::Get();
-
-	resourceManager->AddResource("image_gravestone", new ImageResource("gfx\\graves\\gravestone16x16.png"));
-	resourceManager->AddResource("image_water0", new ImageResource("gfx\\levels\\test\\water.tga"));
-	resourceManager->AddResource("image_backgroundfar", new ImageResource("gfx\\levels\\test\\back2.png"));
-	resourceManager->AddResource("image_backgroundnear", new ImageResource("gfx\\levels\\test\\back1.png"));
-	resourceManager->AddResource("image_crosshair", new ImageResource("gfx\\levels\\test\\crosshair.tga"));
-	resourceManager->AddResource("image_arrow", new ImageResource("gfx\\arrow-sprite.png"));
-	resourceManager->AddResource("image_cloud", new ImageResource("gfx\\clouds\\standard\\smallcloud0.png"));
-	resourceManager->AddResource("tb_ground", new TextureBuffer("gfx\\levels\\test\\ground.raw", 256, 256, 4));
-	resourceManager->AddResource("tb_over", new TextureBuffer("gfx\\levels\\test\\over.raw", 256, 12, 4));
-	resourceManager->AddResource("tb_under", new TextureBuffer("gfx\\levels\\test\\under.raw", 256, 4, 4));
-	resourceManager->AddResource("image_jumping_right", new ImageResource("gfx\\jumping_right.png"));
-	resourceManager->AddResource("image_explosion", new ImageResource("gfx\\SkybusterExplosion.jpg"));
-	resourceManager->AddResource("image_options_notselected", new ImageResource("gfx\\menu\\menu_options_not_selected.png"));
-	resourceManager->AddResource("image_options_selected", new ImageResource("gfx\\menu\\menu_options_selected.png"));
-	resourceManager->AddResource("image_credits_notselected", new ImageResource("gfx\\menu\\menu_credits_not_selected.png"));
-	resourceManager->AddResource("image_credits_selected", new ImageResource("gfx\\menu\\menu_credits_selected.png"));
-	resourceManager->AddResource("image_SP_not_selected", new ImageResource("gfx\\menu\\menu_SP_not_selected.png"));
-	resourceManager->AddResource("image_SP_selected", new ImageResource("gfx\\menu\\menu_SP_selected.png"));
-	resourceManager->AddResource("image_MP_not_selected", new ImageResource("gfx\\menu\\menu_MP_not_selected.png"));
-	resourceManager->AddResource("image_MP_selected", new ImageResource("gfx\\menu\\menu_MP_selected.png"));
-	resourceManager->AddResource("image_menu_background", new ImageResource("gfx\\menu\\menu_background.png"));
-	resourceManager->AddResource("image_logo", new ImageResource("gfx\\2uoo2ti.png"));
-	resourceManager->AddResource("image_slug_left", new ImageResource("gfx\\slug_ph_left.tga"));
-	resourceManager->AddResource("image_slug_right", new ImageResource("gfx\\slug_ph_right.tga"));
-	resourceManager->AddResource("image_rocket", new ImageResource("gfx\\rocket_ph.tga"));
-
-	resourceManager->AddResource("image_snowflake", new ImageResource("gfx\\snowflake.tga"));
-
-	resourceManager->AddResource("menu_click", new SoundResource("sfx\\menu_click.WAV"));
-
-	TextureBuffer* rawTex[3];
-	rawTex[0] = new TextureBuffer("gfx\\levels\\test\\ground.raw", 256, 256, 4);
-	resourceManager->AddResource("test_ground", rawTex[0]);
-	rawTex[1] = new TextureBuffer("gfx\\levels\\test\\over.raw", 256, 12, 4);
-	resourceManager->AddResource("test_over", rawTex[1]);
-	rawTex[2] = new TextureBuffer("gfx\\levels\\test\\under.raw", 256, 4, 4);
-	resourceManager->AddResource("test_under", rawTex[2]);
-
-	//---------------------------------------------fonts-------------------------
-
-	if (!font.bLoad(&Renderer::Get()->GetWindow(), global.CombiStr("gfx\\fonts\\arial.ttf"))) return false; 
-	if (!font2.bLoad(&Renderer::Get()->GetWindow(), global.CombiStr("gfx\\fonts\\arial.ttf"))) return false;
-	if (!font3.bLoad(&Renderer::Get()->GetWindow(), global.CombiStr("gfx\\fonts\\arial.ttf"))) return false;
-
-	//----------------------------Sounds--------------------------------------------
-
-	if (!sfx.bLoadSnd((SoundResource*)resourceManager->GetResource("menu_click"))) return false;
-
-	//only if its the right scene (later we have to do it on some click event)
-	if (iScene == SCENE_LEVEL_TEST)
-		InitLevelTest();
-	
-	return true;
-}
-
-void cSlugs::InitLevelTest()
-{
-
-	World* world = World::Get();
 	ResourceManager* resources = ResourceManager::Get();
 
 	world->Build(2, 2, (TextureBuffer*)resources->GetResource("tb_ground"), (TextureBuffer*)resources->GetResource("tb_over"), (TextureBuffer*)resources->GetResource("tb_under"), (ImageResource*)resources->GetResource("image_water0"));
-	//world->SetWaterColor(sf::Color(255, 0, 0));
 	world->SetBackground((ImageResource*)resources->GetResource("image_backgroundfar"), (ImageResource*)resources->GetResource("image_backgroundnear"));
 
 	// Center the camera in the world
-	camera.SetPosition(world->WidthInPixels() / 2, world->HeightInPixels() / 2);
+	camera->SetPosition(world->WidthInPixels() / 2, world->HeightInPixels() / 2);
 	lockCameraToLevel = true;
 
 	// Notify the world that the camera moved (updates parallax)
-	world->CameraMoved(camera.GetPosition());
+	world->CameraMoved(camera->GetPosition());
 
-	FXManager* fxManager = FXManager::Get();
-	fxManager->ClearEffects();
-	
-	SnowSystem* snowSystem = new SnowSystem((ImageResource*)resources->GetResource("image_snowflake"), 1.0f);
-	fxManager->RegisterEffect(snowSystem);
+	// Create 2 players
+	Player* player = new Player();
+	AIPlayer* computer = new AIPlayer();
+
+	// Create 2 teams
+	Team* teamA = new Team();
+	teamA->Randomize();
+
+	Team* teamB = new Team();
+	teamB->Randomize();
+
+	// Assign teams to players
+	player->AddTeam(teamA);
+	computer->AddTeam(teamB);
+
+	// Place teams in world
+	player->PlaceInWorld();
+	computer->PlaceInWorld();
 
 }
 
-void cSlugs::Shutdown()
+Camera* Game::GetCamera() const
 {
 
-	World::Get()->Destroy();
-	FXManager::Get()->Destroy();
-	ResourceManager::Get()->Destroy();
+	return camera;
 
-}
-
-void cSlugs::Clear() {
-		 
-}
-
-void cSlugs::Game() {
-	
-}
-
-void cSlugs::Menu() {
-
-	sprintf_s(buffer, "ver. %1.3f", VERSION);
-	font2.setColor(sf::Color(0, 0, 0));
-	font2.Draw((float)iScreenWidth-65, (float)iScreenHeight-20, buffer);
-
-}
-
-void cSlugs::GraphicTest()
-{
-
-}
-
-void cSlugs::SoundTest()
-{
-
-}
-
-void cSlugs::PhysicTest()
-{
-	
-}
-
-void cSlugs::XMLTest()
-{
-
-}
-
-void cSlugs::LevelTest()
-{
-
-	World* world = World::Get();
-
-	if (world)
-		world->Render();
-
-	if (world->SelectedObject())
-	{
-
-		Vector2 pos = world->SelectedObject()->GetPosition();
-		char str[64];
-		sprintf_s(str, 64, "%i", world->SelectedObject()->GetHitPoints());
-		font.Draw(pos.x, pos.y - 30, str);
-
-	}
-	
 }

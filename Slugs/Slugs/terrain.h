@@ -1,11 +1,15 @@
 #pragma once
 
+#include "debug.h"
 #include "fastmath.h"
 #include "random.h"
 #include "texturebuffer.h"
-#include "vector2.h"
+#include "vec2.h"
 #include "color.h"
 #include "renderer.h"
+#include "box.h"
+#include "imageresource.h"
+#include "sprite.h"
 
 //
 // Definitions
@@ -98,7 +102,7 @@ class TerrainBlock
 
 private:
 
-	Vector2 position;
+	Vec2i position;
 	bool empty;
 	ImageResource* imageResource;
 	Sprite sprite;
@@ -147,7 +151,7 @@ private:
 	int width, height;
 	int numBlocks;
 
-	vector<Vector2> points;
+	vector<Vec2f> points;
 
 	TextureBuffer* textureBuffer;
 
@@ -188,8 +192,8 @@ public:
 	//
 
 	void ClearSquare(int x0, int y0, int x1, int y1);
-	void ClearCircle(int x, int y, int radius);
-	void ClearCircle(int x, int y, int radius, int border);
+	void ClearCircle(float x, float y, float radius);
+	void ClearCircle(float x, float y, float radius, float border);
 
 	//
 	// Generation
@@ -202,14 +206,8 @@ public:
 	// Collision detection
 	//
 
-	bool PointCollision(int x, int y);
-	bool RowCollision(int centerX, int centerY, int width, int height, bool above);
-	bool ColumnCollision(int centerX, int centerY, int width, int height, bool right);
-	bool SquareCollision(int centerX, int centerY, int width, int height);
-	bool SquareCollisionIterated(int fromX, int fromY, int toX, int toY, int width, int height, Vector2* collisionPosition);
-	bool LineCollision(int x0, int y0, int x1, int y1, Vector2* collisionPosition);
 	bool CircleCollision(int centerX, int centerY, int radius);
-	Vector2 NormalAtPoint(int x, int y, float* angle);
+	Vec2f NormalAtPoint(int x, int y, float* angle);
 	float AngleAtPoint(int x, int y);
 	bool Contains(float x, float y);
 
@@ -237,7 +235,31 @@ public:
 	void BufferAll();
 	void BufferDirty();
 
+	// Tests a point in the terrainbuffer for a collision
+	bool PointCollision(float x, float y);
+
+	// Tests a row of the terrainbuffer for a collision
+	bool RowCollision(float y, float startX, float endX);
+
+	// Tests a column of the terrainbuffer for a collision
+	bool ColumnCollision(float x, float startY, float endY);
+
+	// Tests a box for collision with the terrain
+	bool BoxCollision(float centerX, float centerY, float width, float height, Vec2f& collisionPos);
+
+	// Tests a box for collision with the terrain as it moves betwene two points
+	bool BoxCollisionIterated(float fromX, float fromY, float toX, float toY, float width, float height, Vec2f& collisionPosition, Vec2f& freePosition);
+
 	// Finds the first intersection between a ray and the terrain
-	bool RayIntersection(const Vector2& start, const Vector2& direction, float maxRange, Vector2& collisionPos);
+	bool RayIntersection(const Vec2f& start, const Vec2f& direction, float maxRange, Vec2f& collisionPos);
+
+	// Calculates the terrain normal over a box
+	Vec2f GetNormalForBox(float centerX, float centerY, float width, float height);
+
+	// Calculates the average height over a box
+	float GetHeightForBox(const Box& box);
+
+	// Gets the location of a free area on the terrain
+	Vec2f GetSpawnPoint();
 
 };
