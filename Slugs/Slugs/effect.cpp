@@ -4,40 +4,37 @@
 	class Effect
 */
 
-Effect::Effect()
+Effect::Effect(float _life)
 {
+
+	life = _life;
 
 }
 
-Effect::~Effect()
+const Vec2f& Effect::GetPosition() const
 {
+
+	return position;
 
 }
 
-bool Effect::Continuous()
+void Effect::SetPosition(const Vec2f& newPosition)
 {
 
-	return continuous;
+	position = newPosition;
 
 }
 
-float Effect::Life()
+float Effect::GetLife() const
 {
 
 	return life;
 
 }
 
-void Effect::SetContinuous(bool isContinuous)
+bool Effect::IsAlive() const
 {
 
-	continuous = isContinuous;
-
-}
-
-void Effect::SetLife(float newLife)
-{
-
-	life = newLife;
+	return (life > 0.0f);
 
 }

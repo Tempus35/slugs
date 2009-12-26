@@ -21,6 +21,7 @@ class Team
 private:
 
 	std::string				name;				// Team Name
+	Color					color;				// Team color;
 
 	vector<Slug*>			slugs;				// Slugs on the team
 
@@ -37,9 +38,17 @@ public:
 	Team();
 	~Team();
 
-	// Team name accessors
+	// Gets the name of the team
 	const std::string& GetName() const;
+
+	// Sets the name of the team
 	void SetName(const std::string& newName);
+
+	// Gets the color of the team
+	const Color& GetColor() const;
+
+	// Sets the color of the team
+	void SetColor(const Color& newColor);
 
 	// Does this team contain the slug?
 	bool Contains(Slug* slug) const;

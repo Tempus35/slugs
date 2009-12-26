@@ -1,13 +1,19 @@
 #include "player.h"
 #include "game.h"
 
+Player::Player()
+{
+
+	activeSlug = NULL;
+	activeTeam = NULL;
+
+}
+
 void Player::TurnBegins()
 {
 
 	if (!Game::Get()->IsFlagSet(GameFlag_CanChooseSlug))
 		SelectNextSlug();
-
-	MoveCameraToActiveSlug();
 
 }
 
@@ -40,47 +46,59 @@ void Player::SelectNextSlug()
 	for (unsigned int i = 0; i < teams.size(); ++ i)
 		teams[i]->GetSlugs(availableSlugs, false);
 
-	//
-	// Find the next slug in the chain
-	//
-
 	Slug* slug = NULL;
-	bool get = false;
-	int lastSlugIndex = -1;
-	for (unsigned int i = 0; i < availableSlugs.size(); ++ i)
+
+	if (activeSlug == NULL)
 	{
 
-		if ((get) && (availableSlugs[i]->GetHitPoints() > 0))
-		{
-
-			slug = availableSlugs[i];
-			break;
-
-		}
-
-		if (availableSlugs[i] == activeSlug)
-		{
-
-			lastSlugIndex = i;
-			get = true;
-
-		}
+		slug = availableSlugs[0];
 
 	}
-
-	if (!slug)
+	else
 	{
 
-		ASSERT(lastSlugIndex != -1);
+		//
+		// Find the next slug in the chain
+		//
 
-		for (int i = 0; i < lastSlugIndex; ++ i)
+		bool get = false;
+		int lastSlugIndex = -1;
+		for (unsigned int i = 0; i < availableSlugs.size(); ++ i)
 		{
 
-			if (availableSlugs[i]->GetHitPoints() > 0)
+			if ((get) && (availableSlugs[i]->GetHitPoints() > 0))
 			{
 
 				slug = availableSlugs[i];
 				break;
+
+			}
+
+			if (availableSlugs[i] == activeSlug)
+			{
+
+				lastSlugIndex = i;
+				get = true;
+
+			}
+
+		}
+
+		if (!slug)
+		{
+
+			ASSERT(lastSlugIndex != -1);
+
+			for (int i = 0; i < lastSlugIndex; ++ i)
+			{
+
+				if (availableSlugs[i]->GetHitPoints() > 0)
+				{
+
+					slug = availableSlugs[i];
+					break;
+
+				}
 
 			}
 
@@ -92,6 +110,8 @@ void Player::SelectNextSlug()
 
 	activeSlug = slug;
 	activeTeam = slug->GetTeam();
+
+	MoveCameraToActiveSlug();
 
 }
 

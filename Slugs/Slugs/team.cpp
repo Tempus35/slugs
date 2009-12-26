@@ -5,6 +5,7 @@ Team::Team()
 {
 
 	name = "";
+	color = Color(128, 0, 0);
 
 	numAlive = 0;
 	maxHealth = 0;
@@ -39,6 +40,20 @@ void Team::SetName(const std::string& newName)
 {
 
 	name = newName;
+
+}
+
+const Color& Team::GetColor() const
+{
+
+	return color;
+
+}
+
+void Team::SetColor(const Color& newColor)
+{
+
+	color = newColor;
 
 }
 
@@ -140,6 +155,7 @@ void Team::Randomize(int numSlugs)
 
 	// Get random team name
 	((TextResource*)ResourceManager::Get()->GetResource("text_teamnames"))->GetRandomLine(name, true);
+	color = Color(Random::RandomInt(64, 255), Random::RandomInt(64, 255), Random::RandomInt(64, 255));
 
 	TextResource* slugNames = (TextResource*)ResourceManager::Get()->GetResource("text_slugnames");
 
@@ -155,8 +171,6 @@ void Team::Randomize(int numSlugs)
 		Add(slug);
 
 	}
-
-	slugNames->ClearFlags();
 
 }
 

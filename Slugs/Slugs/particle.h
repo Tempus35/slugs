@@ -5,32 +5,24 @@
 #include "imageresource.h"
 #include "vec2.h"
 
-class Particle
+struct Particle
 {
 
-private:
+public:
 
-	sf::Sprite sprite;
+	Vec2f position;
 	Vec2f velocity;
 
 	float life;
 
+	sf::Sprite sprite;
+
 public:
 
-	Particle(ImageResource* imageResource);
+	// Constructor
 	Particle();
-	~Particle();
 
-	void Update(float elapsedTime);
-	void Render(sf::RenderWindow& renderer);
-
-	void SetImage(ImageResource* imageResource);
-
-	void SetPosition(int x, int y);
-	void SetScale(float newScale);
-	void SetVelocity(float x, float y);
-
-	float Life();
-	void SetLife(float newLife);
+	// Updates the sprite to match the current particle params
+	void UpdateSprite();
 
 };

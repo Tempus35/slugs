@@ -12,8 +12,10 @@
 // Initialization
 //
 
-Object::Object(ObjectType t)
+Object::Object(Object* creator, ObjectType t)
 {
+
+	owner = creator;
 
 	type = t;
 
@@ -42,6 +44,27 @@ void Object::SetName(const std::string& newName)
 {
 
 	name = newName;
+
+}
+
+Object* Object::GetOwner() const
+{
+
+	return owner;
+
+}
+
+bool Object::IsOwnedBy(Object* object) const
+{
+
+	return (owner == object);
+
+}
+
+void Object::SetOwner(Object* object)
+{
+
+	owner = object;
 
 }
 

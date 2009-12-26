@@ -11,11 +11,32 @@ Renderer::~Renderer()
 
 }
 
-void Renderer::Initialize(int width, int height, char* name)
+void Renderer::Initialize(int width, int height, char* name, bool windowed)
 {
 
-	window.Create(sf::VideoMode(width, height, 32), name);
-	window.UseVerticalSync(false);
+	resolution.x = width;
+	resolution.y = height;
+
+	fullscreen = !windowed;
+
+	windowTitle = name;
+
+	UpdateWindow();
+
+}
+
+void Renderer::UpdateWindow()
+{
+
+	window.Close();
+
+	unsigned long style = sf::Style::Close;
+
+	if (fullscreen)
+		style |= sf::Style::Fullscreen;
+
+	window.Create(sf::VideoMode(resolution.x, resolution.y, 32), windowTitle, style);
+	window.UseVerticalSync(true);
 	window.SetFramerateLimit(60);
 	window.EnableKeyRepeat(false);
 
@@ -59,7 +80,10 @@ void Renderer::SetIcon(sf::Image& image)
 void Renderer::SetCamera(Camera* camera)
 {
 
-	window.SetView(camera->GetView());
+	if (camera)
+		window.SetView(camera->GetView());
+	else
+		window.SetView(window.GetDefaultView());
 
 }
 
@@ -92,5 +116,77 @@ void Renderer::DebugDraw()
 		window.Draw(debugShapes[i]);
 
 	debugShapes.clear();
+
+}
+
+void Renderer::RenderText(float x, float y, FontResource* fontResource, const std::string& text, float size, const Color& color, unsigned int flags)
+{
+
+	ASSERT(fontResource);
+
+	sf::String outString(text, fontResource->GetFont(), size);
+
+	if (flags & FontFlag_Centered)
+	{
+		sf::FloatRect bounds = outString.GetRect();
+		outString.SetPosition(x - bounds.GetWidth() / 2, y - bounds.GetHeight() / 2);
+	}
+	else
+		outString.SetPosition(x, y);
+
+	outString.SetColor(color.ToSF());
+
+	unsigned long style = 0;
+
+	if (flags & FontFlag_Bold)
+		style |= sf::String::Bold;
+
+	outString.SetStyle(style);
+
+	window.Draw(outString);
+
+}
+
+void Renderer::RenderTextShadowed(float x, float y, FontResource* fontResource, const std::string& text, float size, const Color& color, const Color& shadow, unsigned int flags)
+{
+
+	const float spacing = 2.0f;
+
+	RenderText(x + spacing, y + spacing, fontResource, text, size, shadow, flags);
+	RenderText(x, y, fontResource, text, size, color, flags);
+
+}
+
+void Renderer::SetFullscreen(bool state)
+{
+
+	if (fullscreen != state)
+	{
+
+		fullscreen = state;
+		UpdateWindow();
+
+	}
+
+}
+
+bool Renderer::IsFullscreen() const
+{
+
+	return Renderer::fullscreen;
+
+}
+
+int Renderer::GetWidth() const
+{
+
+	return resolution.x;
+
+}
+
+int Renderer::GetHeight() const
+{
+
+	return resolution.y;
 
 }

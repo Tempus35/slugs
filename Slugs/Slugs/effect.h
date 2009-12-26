@@ -1,5 +1,7 @@
 #pragma once
 
+#include "vec2.h"
+
 /*
 	class Effect
 	Base class fo all effects handled by the FXManager
@@ -10,21 +12,30 @@ class Effect
 
 protected:
 
-	bool continuous;
-	float life;
+	Vec2f			position;								// World space position of the effect
+	float			life;									// Life remaining in seconds
 
 public:
 
-	Effect();
-	~Effect();
+	// Constructor
+	Effect(float _life);
 
-	virtual void Update(float elaspedTime) {};
-	virtual void Render() {};
+	// Updates the effect
+	virtual void Update(float elaspedTime) = 0;
+	
+	// Renders the effect
+	virtual void Render(sf::RenderWindow& renderer) = 0;
 
-	bool Continuous();
-	float Life();
+	// Gets the position of the effect
+	virtual const Vec2f& GetPosition() const;
 
-	void SetContinuous(bool isContinuous);
-	void SetLife(float newLife);
+	// Sets the position of the effect
+	virtual void SetPosition(const Vec2f& newPosition);
+
+	// Gets the remaining life of the effect
+	virtual float GetLife() const;
+
+	// Returns true if the effect is alive
+	virtual bool IsAlive() const;
 
 };

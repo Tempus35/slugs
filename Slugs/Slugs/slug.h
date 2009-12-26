@@ -46,6 +46,7 @@ enum MovementDirection
 */
 
 class Team;
+class AIController;
 
 /*
 
@@ -76,10 +77,12 @@ private:
 
 	float			death;											// Death timer
 
+	AIController*	controller;										// Pointer to our AI controller if we have one
+
 public:
 
 	// Constructor
-	Slug(Team* _team);
+	Slug(Team* _team, AIController* aiController = NULL);
 
 	// Destructor
 	~Slug();

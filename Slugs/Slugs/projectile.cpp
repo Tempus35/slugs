@@ -13,12 +13,8 @@
 	class Projectile
 */
 
-Projectile::Projectile(Object* creator) : Object(ObjectType_Projectile)
+Projectile::Projectile(Object* creator) : Object(creator, ObjectType_Projectile)
 {
-
-	ASSERT(creator);
-
-	owner = creator;
 
 }
 
@@ -62,8 +58,7 @@ bool Projectile::OnCollideWithTerrain()
 void Projectile::OnCollideWithObject(Object* object)
 {
 
-	if (object != owner)
-		Die();
+	Die();
 
 }
 
@@ -80,15 +75,13 @@ void Projectile::Die(bool instant)
 void Projectile::Explode()
 {
 
+	// Create a particle effect
+	ParticleSystem* explosion = new ParticleSystem((ImageResource*)ResourceManager::Get()->GetResource("particle_explosion"), 0.5f);
+	explosion->SetPosition(bounds.center);
+	Game::Get()->GetFXManager()->RegisterEffect(explosion);
+
 	// Simulate the explosion on the world
 	Game::Get()->GetWorld()->SimulateExplosion(bounds.center, strength);
-
-}
-
-Object* Projectile::GetOwner() const
-{
-
-	return owner;
 
 }
 
@@ -103,13 +96,6 @@ float Projectile::GetStrength() const
 {
 
 	return strength;
-
-}
-
-void Projectile::SetOwner(Object* object)
-{
-
-	owner = object;
 
 }
 

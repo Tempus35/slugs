@@ -1,11 +1,12 @@
 #pragma once
 
 #include <list>
-using namespace std;
 
 #include <SFML/graphics.hpp>
 
+#include "renderer.h"
 #include "effect.h"
+#include "particlesystem.h"
 
 /*
 	class FXManager
@@ -16,7 +17,7 @@ class FXManager
 
 private:
 
-	list<Effect*> effects;
+	std::list<Effect*> effects;
 
 public:
 
@@ -28,7 +29,10 @@ public:
 	bool UnregisterEffect(Effect* effect);
 	void ClearEffects();
 
+	// Updates all current fx
 	void Update(float elapsedTime);
+
+	// Renders all current fx
 	void Render();
 
 };

@@ -7,7 +7,7 @@
 
 #include "gravestone.h"
 
-Gravestone::Gravestone(ImageResource* imageResource) : Object(ObjectType_Flavor)
+Gravestone::Gravestone(ImageResource* imageResource) : Object(NULL, ObjectType_Flavor)
 {
 
 	// Gravestones are invulnerable

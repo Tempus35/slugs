@@ -46,6 +46,7 @@ private:
 protected:
 
 	std::string				name;				// Object name
+	Object*					owner;				// Pointer to the object which created the object
 
 	bool					alive;				// Is this object alive (dead objects are removed by the world)
 	int						hps;				// Hit points
@@ -62,7 +63,7 @@ protected:
 protected:
 
 	// Constructor
-	Object(ObjectType t);
+	Object(Object* creator, ObjectType t);
 
 public:
 
@@ -79,6 +80,15 @@ public:
 	
 	// Sets the name of the object
 	void SetName(const std::string& newName);
+
+	// Gets the object which created the projectile
+	virtual Object* GetOwner() const;
+
+	// Returns true if object owns us
+	virtual bool IsOwnedBy(Object* object) const;
+
+	// Sets the owner of the projectile
+	virtual void SetOwner(Object* object);
 
 	// Sets the image resource used by the object
 	virtual void SetImage(ImageResource* image);

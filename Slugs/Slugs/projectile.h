@@ -8,6 +8,7 @@
 #pragma once
 
 #include "object.h"
+#include "fxmanager.h"
 
 /*
 	class Projectile
@@ -19,7 +20,6 @@ class Projectile : public Object
 
 protected:
 
-	Object*			owner;					// Pointer to the object which created the projectile
 	float			timer;					// Time in seconds remaining until the projectile detonates
 	float			strength;				// Strength of the projectile, used to calculate damage
 
@@ -47,18 +47,12 @@ public:
 
 	// Kills the projectile
 	virtual void Die(bool instant = false);	
-
-	// Gets the object which created the projectile
-	virtual Object* GetOwner() const;
-
+	
 	// Gets the amount of timer remaining until the projectile detonates
 	virtual float GetTimer() const;
 
 	// Gets the strength of the projectile
 	virtual float GetStrength() const;
-
-	// Sets the owner of the projectile
-	virtual void SetOwner(Object* object);
 
 	// Sets the detonation timer
 	virtual void SetTimer(float newTime);

@@ -1,7 +1,7 @@
 #include "world.h"
 #include "game.h"
 
-#define PB_DEBUG
+//#define PB_DEBUG
 
 /*
 	class World
@@ -188,11 +188,16 @@ void World::Update(float elapsedTime)
 
 				Object* collider = (Object*)(*k);
 
-				if (BoxBoxIntersection(obj->GetBounds(), collider->GetBounds()) == true)
+				if ((obj != collider) && (!collider->IsOwnedBy(obj)) && (!obj->IsOwnedBy(collider)))
 				{
 
-					obj->OnCollideWithObject(collider);
-					collider->OnCollideWithObject(obj);
+					if (BoxBoxIntersection(obj->GetBounds(), collider->GetBounds()) == true)
+					{
+
+						obj->OnCollideWithObject(collider);
+						collider->OnCollideWithObject(obj);
+
+					}
 
 				}
 
@@ -331,7 +336,7 @@ void World::CameraMoved(const Vec2f& newPosition)
 	//
 
 	int offCenterX = RoundToInt(newPosition.x - terrain->WidthInPixels() / 2.0f);
-	int offCenterY = RoundToInt(newPosition.y + terrain->HeightInPixels() / 2.0f);
+	int offCenterY = RoundToInt(-newPosition.y + terrain->HeightInPixels() / 2.0f);
 	int halfXDifference, halfYDifference;
 
 	size = backgroundSprites[0].GetSize();
@@ -478,8 +483,6 @@ void World::Render()
 	renderer->Render(backgroundSprites[0]);
 	renderer->Render(backgroundSprites[1]);
 
-	Game::Get()->GetFXManager()->Render();
-
 	// Render clouds
 	clouds->Render();
 
@@ -507,28 +510,34 @@ void World::Render()
 				renderer->Render(obj->marker);
 			#endif
 
-			if ((selectedObject == obj) && (obj->GetType() == ObjectType_Slug))
+			if (obj->GetType() == ObjectType_Slug)
 			{
 
-				// Aiming crosshair/arrow
 				Slug* slugObj = (Slug*)obj;
-				
-				Vec2f size;
 				Vec2f objPos = slugObj->GetPosition();
-				float angle = slugObj->GetAimAngle();
 
-				size = crosshairSprite.GetSize();
+				if (slugObj == selectedObject)
+				{
 
-				if (slugObj->GetFacingDirection() == FACINGDIRECTION_RIGHT)
-					crosshairSprite.SetPosition(objPos.x + cosf(angle) * WORLD_CROSSHAIR_DISTANCE - size.x / 2, -objPos.y - sinf(angle) * WORLD_CROSSHAIR_DISTANCE - size.y / 2);
-				else
-					crosshairSprite.SetPosition(objPos.x - cosf(angle) * WORLD_CROSSHAIR_DISTANCE - size.x / 2, -objPos.y - sinf(angle) * WORLD_CROSSHAIR_DISTANCE - size.y / 2);
-				
-				size = arrowSprite.GetSize();
-				arrowSprite.SetPosition(objPos.x - size.x / 2, objPos.y - WORLD_ARROW_DISTANCE - size.y / 2);				
+					Vec2f size;
+					float angle = slugObj->GetAimAngle();
 
-				renderer->Render(crosshairSprite);
-				//renderer->Render(arrowSprite);
+					size = crosshairSprite.GetSize();
+
+					if (slugObj->GetFacingDirection() == FACINGDIRECTION_RIGHT)
+						crosshairSprite.SetPosition(objPos.x + cosf(angle) * WORLD_CROSSHAIR_DISTANCE - size.x / 2, -objPos.y - sinf(angle) * WORLD_CROSSHAIR_DISTANCE - size.y / 2);
+					else
+						crosshairSprite.SetPosition(objPos.x - cosf(angle) * WORLD_CROSSHAIR_DISTANCE - size.x / 2, -objPos.y - sinf(angle) * WORLD_CROSSHAIR_DISTANCE - size.y / 2);
+					
+					size = arrowSprite.GetSize();
+					arrowSprite.SetPosition(objPos.x - size.x / 2, objPos.y - WORLD_ARROW_DISTANCE - size.y / 2);				
+
+					renderer->Render(crosshairSprite);
+
+				}
+
+				if (Game::Get()->IsFlagSet(GameFlag_AlwaysShowNames))
+					Renderer::Get()->RenderTextShadowed(objPos.x, -objPos.y - 30.0f, (FontResource*)ResourceManager::Get()->GetResource("font_copacetix"), slugObj->GetName(), 16.0f, slugObj->GetTeam()->GetColor(), Color(0, 0, 0), FontFlag_Bold|FontFlag_Centered);
 
 			}
 
@@ -540,21 +549,8 @@ void World::Render()
 	for (int i = WORLD_WATER_LINES / 2; i < WORLD_WATER_LINES; ++ i)
 		water[i]->Render();
 
-	/*
-	// Debug Bounds
-	#ifdef PB_DEBUG
-
-		sf::Shape bounds;
-		bounds.EnableFill(false);
-		bounds.SetOutlineWidth(1.0f);
-		bounds.AddPoint(0, 0, sf::Color(0, 0, 0), sf::Color(255, 255, 255));
-		bounds.AddPoint((float)terrain->WidthInPixels(), 0, sf::Color(0, 0, 0), sf::Color(255, 255, 255));
-		bounds.AddPoint((float)terrain->WidthInPixels(), -(float)terrain->HeightInPixels(), sf::Color(0, 0, 0), sf::Color(255, 255, 255));
-		bounds.AddPoint(0, -(float)terrain->HeightInPixels(), sf::Color(0, 0, 0), sf::Color(255, 255, 255));
-		renderer.Draw(bounds);
-
-	#endif
-	*/
+	// Render FX
+	Game::Get()->GetFXManager()->Render();
 
 }
 

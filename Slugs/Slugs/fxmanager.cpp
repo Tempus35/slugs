@@ -17,7 +17,7 @@ FXManager::~FXManager()
 bool FXManager::IsRegistered(Effect* effect)
 {
 
-	list<Effect*>::iterator i = effects.begin();
+	std::list<Effect*>::iterator i = effects.begin();
 
 	while (i != effects.end())
 	{
@@ -45,7 +45,7 @@ Effect* FXManager::RegisterEffect(Effect* effect)
 bool FXManager::UnregisterEffect(Effect* effect)
 {
 
-	list<Effect*>::iterator i = effects.begin();
+	std::list<Effect*>::iterator i = effects.begin();
 
 	while (i != effects.end())
 	{
@@ -71,7 +71,7 @@ bool FXManager::UnregisterEffect(Effect* effect)
 void FXManager::ClearEffects()
 {
 
-	list<Effect*>::iterator i = effects.begin();
+	std::list<Effect*>::iterator i = effects.begin();
 
 	while (i != effects.end())
 	{
@@ -89,14 +89,27 @@ void FXManager::ClearEffects()
 void FXManager::Update(float elapsedTime)
 {
 
-	list<Effect*>::iterator i = effects.begin();
+	std::list<Effect*>::iterator i = effects.begin();
 
 	while (i != effects.end())
 	{
 
-		(*i)->Update(elapsedTime);
+		Effect* effect = (Effect*)(*i);
 
-		i ++;
+		if (effect->IsAlive())
+		{
+
+			effect->Update(elapsedTime);
+			i ++;
+
+		}
+		else
+		{
+
+			SafeDelete(effect);
+			i = effects.erase(i);
+
+		}
 
 	}
 
@@ -105,12 +118,12 @@ void FXManager::Update(float elapsedTime)
 void FXManager::Render()
 {
 
-	list<Effect*>::iterator i = effects.begin();
+	std::list<Effect*>::iterator i = effects.begin();
 
 	while (i != effects.end())
 	{
 
-		(*i)->Render();
+		(*i)->Render(Renderer::Get()->GetWindow());
 
 		i ++;
 

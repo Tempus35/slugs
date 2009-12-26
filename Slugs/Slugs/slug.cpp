@@ -12,12 +12,14 @@
 #include "resourcemanager.h"
 #include "world.h"
 #include "terrain.h"
+#include "aicontroller.h"
 
-Slug::Slug(Team* _team) : Object(ObjectType_Slug)
+Slug::Slug(Team* _team, AIController* aiController) : Object(NULL, ObjectType_Slug)
 {
 
 	const float SLUG_DEATH_TIMER = 2.0f;			// Numbers of seconds before a slug explodes after reaching 0 hps
 
+	controller = aiController;
 	team = _team;
 
 	movementDirection = MOVEMENTDIRECTION_NONE;
@@ -65,6 +67,10 @@ bool Slug::Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind)
 
 	if (hps > 0)
 	{
+
+		// Update our ai controller if we have one
+		if (controller)
+			controller->Update(this, elapsedTime);
 
 		//
 		// Update shot power if slug is charging a weapon
@@ -172,10 +178,9 @@ bool Slug::Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind)
 		if (moved)
 		{
 
-			// Update out sprite since we moved
+			// Update our sprite since we moved
 			Moved();
 			
-
 		}
 
 	}
@@ -337,8 +342,8 @@ void Slug::AdjustAim(float amount)
 
 	aimAngle += amount;
 
-	if (aimAngle >= Math::TWO_PI)
-		aimAngle = Math::TWO_PI;
+	if (aimAngle >= Math::PI_OVER_2)
+		aimAngle = Math::PI_OVER_2;
 
 }
 

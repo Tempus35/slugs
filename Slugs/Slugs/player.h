@@ -19,6 +19,9 @@ protected:
 
 public:
 
+	// Constructor
+	Player();
+
 	// Fired when the players turn begins
 	virtual void TurnBegins();
 

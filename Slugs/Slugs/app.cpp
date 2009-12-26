@@ -3,10 +3,29 @@
 App::App()
 {
 
+	//
 	// Get and store current working directory
+	//
+
 	char* dir = _getcwd(NULL, 0);
 	workingDirectory = dir;
 	free(dir);
+
+	//
+	// Load configuration settings
+	//
+
+	IniReader ini(workingDirectory + "\\slugs.ini");
+
+	Vec2i resolution;
+	resolution.x = ini.ReadInt("display", "width", 1024);
+	resolution.y = ini.ReadInt("display", "height", 768);
+
+	bool fullscreen = ini.ReadBool("display", "fullscreen", false);
+
+	//
+	// Setup states
+	//
 
 	frame = 0;
 	fps = 0;
@@ -19,22 +38,36 @@ App::App()
 	mouseButtonStates[1] = false;
 	mouseButtonStates[2] = false;
 
-	resolution = Vec2i(1024, 768);
-
+	//
 	// Set application icon
+	//
+
 	sf::Image icon;
 	std::string iconPath = workingDirectory + "\\Slug.png";
 	icon.LoadFromFile(iconPath);
 	Renderer::Get()->SetIcon(icon); 
 
-	Renderer::Get()->Initialize(resolution.x, resolution.y, "Slugs");
+	//
+	// Initialize renderer and game
+	//
+
+	Renderer::Get()->Initialize(resolution.x, resolution.y, "Slugs", !fullscreen);
 	Game::Get()->GetCamera()->SetViewSize(resolution.x, resolution.y);
-	Renderer::Get()->SetCamera(Game::Get()->GetCamera());
 
 }
 
 App::~App()
 {
+
+	//
+	// Write configuration settings
+	//
+
+	IniWriter ini(workingDirectory + "\\slugs.ini");
+
+	ini.WriteInt("display", "width", Renderer::Get()->GetWidth());
+	ini.WriteInt("display", "height", Renderer::Get()->GetHeight());
+	ini.WriteBool("display", "fullscreen", Renderer::Get()->IsFullscreen());
 
 	//
 	// Destroy singletons
@@ -102,6 +135,18 @@ bool App::HandleKeyDown(sf::Key::Code key, bool shift, bool control, bool alt)
 
 	case sf::Key::Escape:
 		return false;
+
+	case sf::Key::Return:
+
+		if (alt == true)
+		{
+
+			Renderer::Get()->SetFullscreen(!Renderer::Get()->IsFullscreen());		
+			return true;
+
+		}
+
+		break;
 
 	}
 
@@ -240,9 +285,11 @@ void App::Render()
 	// Render game
 	Game::Get()->Render();
 
+	Renderer::Get()->SetCamera(NULL);
+
 	// Draw FPS counter
 	sprintf_s(fpsBuffer, "FPS: %.1f", fps);
-	//font.Draw(5, 5, fpsBuffer);	
+	Renderer::Get()->RenderTextShadowed(10, 10, (FontResource*)ResourceManager::Get()->GetResource("font_arial"), fpsBuffer);
 
 	// Present frame
 	Renderer::Get()->Present();

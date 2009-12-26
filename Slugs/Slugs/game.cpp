@@ -10,7 +10,7 @@ Game::Game()
 	fxManager = new FXManager();
 
 	for (int i = 0; i < GameFlag_LAST; ++ i)
-		flags.push_back(false);
+		flags.push_back(true);
 
 	lockCameraToLevel = true;
 
@@ -23,6 +23,16 @@ Game::Game()
 Game::~Game()
 {
 
+	std::list<Player*>::iterator i = players.begin();
+
+	while (i != players.end())
+	{
+
+		SafeDelete(*i);
+		++i;
+
+	}
+
 	SafeDelete(camera);
 	SafeDelete(world);
 	SafeDelete(updateManager);
@@ -32,6 +42,10 @@ Game::~Game()
 
 void Game::Update(float elapsedTime)
 {
+
+	// Update the camera
+	if (camera->Update(elapsedTime))
+		world->CameraMoved(camera->GetPosition());
 
 	// Update the update manager
 	if (updateManager)
@@ -49,20 +63,12 @@ void Game::Update(float elapsedTime)
 void Game::Render()
 {
 
+	Renderer::Get()->SetCamera(camera);
+
 	if (world)
 	{
 
 		world->Render();
-
-		if (world->SelectedObject())
-		{
-
-			Vec2f pos = world->SelectedObject()->GetPosition();
-			char str[64];
-			sprintf_s(str, 64, "%i", world->SelectedObject()->GetHitPoints());
-			//font.Draw(pos.x, pos.y - 30, str);
-
-		}
 
 	}
 
@@ -126,6 +132,17 @@ bool Game::KeyDown(sf::Key::Code key, bool shift, bool control, bool alt)
 			if (selectedObject)
 				selectedObject->SetHitpoints(-1);
 			
+			break;
+
+		//
+		// Team Controls
+		//
+
+		case sf::Key::Tab:
+
+			if (IsFlagSet(GameFlag_CanChooseSlug))
+				(*(players.begin()))->SelectNextSlug();
+
 			break;
 	
 		//
@@ -344,7 +361,7 @@ bool Game::MouseMoved(bool left, bool right, bool middle, const Vec2i& from, con
 
 		}
 
-		camera->Move(delta.x, delta.y);
+		camera->Move(delta.x, -delta.y);
 
 		// Lets the world know the camera moved
 		world->CameraMoved(camera->GetPosition());
@@ -414,8 +431,10 @@ void Game::LoadResourcesForState(GameState gameState)
 		resourceManager->AddResource("image_rocket", new ImageResource("gfx\\rocket_ph.tga"));
 		resourceManager->AddResource("image_grenade", new ImageResource("gfx\\grenade_ph.tga"));
 		resourceManager->AddResource("image_mine", new ImageResource("gfx\\mine_ph.tga"));
-
+		resourceManager->AddResource("particle_explosion", new ImageResource("gfx\\explosion0.tga"));
 		resourceManager->AddResource("image_snowflake", new ImageResource("gfx\\snowflake.tga"));
+		resourceManager->AddResource("font_arial", new FontResource("gfx\\fonts\\arial.ttf"));
+		resourceManager->AddResource("font_copacetix", new FontResource("gfx\\fonts\\copacetix.ttf", 64));
 
 		resourceManager->AddResource("menu_click", new SoundResource("sfx\\menu_click.WAV"));
 
@@ -463,7 +482,7 @@ void Game::CreateWorld()
 	world->SetBackground((ImageResource*)resources->GetResource("image_backgroundfar"), (ImageResource*)resources->GetResource("image_backgroundnear"));
 
 	// Center the camera in the world
-	camera->SetPosition(world->WidthInPixels() / 2, world->HeightInPixels() / 2);
+	camera->SetPosition(Vec2f((float)world->WidthInPixels() / 2.0f, (float)world->HeightInPixels() / 2.0f));
 	lockCameraToLevel = true;
 
 	// Notify the world that the camera moved (updates parallax)
@@ -487,6 +506,9 @@ void Game::CreateWorld()
 	// Place teams in world
 	player->PlaceInWorld();
 	computer->PlaceInWorld();
+
+	players.push_back(player);
+	players.push_back(computer);
 
 }
 

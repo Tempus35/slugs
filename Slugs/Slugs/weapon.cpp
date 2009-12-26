@@ -353,7 +353,7 @@ bool Weapon_Mine::Fire(Slug* owner)
 		const float armTime = 3.0f;
 		const float dudChance = 0.05f;
 
-		Projectile_Mine* projectile = new Projectile_Mine(owner, armTime, dudChance);
+		Projectile_Mine* projectile = new Projectile_Mine(NULL, armTime, dudChance);
 		projectile->SetPosition(owner->GetWeaponPoint());
 		projectile->SetStrength(75.0f);
 		projectile->SetTimer(-1.0f);

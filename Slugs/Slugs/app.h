@@ -12,6 +12,7 @@
 #include "renderer.h"
 #include "resourcemanager.h"
 #include "game.h"
+#include "ini.h"
 
 class App
 {
@@ -19,8 +20,6 @@ class App
 private:
 
 	std::string			workingDirectory;		// Application path at startup
-
-	Vec2i				resolution;				// Rendering area size in pixels
 
 	unsigned int		frame;					// Current frame number
 	float				fps;					// Current frames per second
