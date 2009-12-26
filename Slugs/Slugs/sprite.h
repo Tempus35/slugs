@@ -1,5 +1,6 @@
 #pragma once
 
+#include "debug.h"
 #include "imageresource.h"
 #include "vec2.h"
 #include "color.h"

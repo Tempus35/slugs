@@ -1,6 +1,24 @@
 #include "intersection.h"
 #include "renderer.h"
 
+/*
+	class Intersection
+*/
+
+Intersection::Intersection()
+{
+
+	object = NULL;
+	position = Vec2f(Math::INFINITY, Math::INFINITY);
+	distance = Math::INFINITY;
+	type = IntersectionType_None;
+
+}
+
+/*
+	Geometric Intersection Tests
+*/
+
 bool RayCircleIntersection(const Vec2f& rayStart, const Vec2f& rayDirection, const Vec2f& circleCenter, float circleRadius, float maxRange, Vec2f& intersection)
 {
 
@@ -34,4 +52,20 @@ bool RayCircleIntersection(const Vec2f& rayStart, const Vec2f& rayDirection, con
 
 	}
 	
+}
+
+bool BoxBoxIntersection(const Box& a, const Box& b)
+{
+
+	Vec2f minA = a.GetMin();
+	Vec2f maxA = a.GetMax();
+
+	Vec2f minB = b.GetMin();
+	Vec2f maxB = b.GetMax();
+
+	if ((maxA.y < minB.y) || (minA.y > maxB.y) || (maxA.x < minB.x) || (minA.x > maxB.x))
+		return false;
+
+	return true;
+
 }

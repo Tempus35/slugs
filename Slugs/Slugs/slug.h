@@ -1,3 +1,10 @@
+//---------------------------------------------------------------
+//
+// Slugs
+// slug.h
+//
+//---------------------------------------------------------------
+
 #pragma once
 
 #include "debug.h"
@@ -7,6 +14,10 @@
 #include "weapon.h"
 #include "gravestone.h"
 
+/*
+	Enumeration of possible facing directions
+*/
+
 enum FaceDirection
 {
 
@@ -15,24 +26,20 @@ enum FaceDirection
 
 };
 
+/*
+	Enumeration of possible movement directions
+*/
+
 enum MovementDirection
 {
 
-	MOVEMENTDIRECTION_NONE		= 0,
-	MOVEMENTDIRECTION_LEFT		= 1,
-	MOVEMENTDIRECTION_RIGHT		= 2,
-	MOVEMENTDIRECTION_UP		= 4,
-	MOVEMENTDIRECTION_DOWN		= 8,
+	MOVEMENTDIRECTION_NONE		= 0,			// Not moving
+	MOVEMENTDIRECTION_LEFT		= 1,			// Moving left
+	MOVEMENTDIRECTION_RIGHT		= 2,			// Moving right
+	MOVEMENTDIRECTION_UP		= 4,			// Aiming up
+	MOVEMENTDIRECTION_DOWN		= 8,			// Aiming down
 
 };
-
-#define SLUG_MOVEMENT_SPEED		50.0f						// Pixels/sec
-#define SLUG_AIM_SPEED			45.0f * PI_OVER_180			// Radians/sec 
-#define SLUG_MAX_UP_STEP		5							// Maximum number of pixels that can be moved up per step
-#define SLUG_MAX_DOWN_STEP		5							// Maximum number of pixels that can be move down per step
-#define SLUG_DEATH_TIMER		2.0f						// Time between reaching 0 hps and exploding
-#define SLUG_EXPLOSION_STRENGTH 30.0f							// Strength of the slug death explosion
-#define SHOT_POWER_CHARGE_RATE	1.0f						// Rate of weapon charge		
 
 /*
 	Forward Declarations
@@ -71,15 +78,31 @@ private:
 
 public:
 
+	// Constructor
 	Slug(Team* _team);
+
+	// Destructor
 	~Slug();
 
+	// Main update, all processing is done here
 	virtual bool Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind);
+
+	// Starts the slug moving left
 	void StartMovingLeft();
+	
+	// Starts the slug moving right
 	void StartMovingRight();
+
+	// Stops any current movement
 	void StopMoving();
+
+	// Starts aiming upwards
 	void StartAimingUp();
+
+	// Starts aiming downwards
 	void StartAimingDown();
+
+	// Stops any aiming movement
 	void StopAiming();
 
 	// Begins charging the current weapon

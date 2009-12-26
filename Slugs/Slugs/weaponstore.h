@@ -24,7 +24,7 @@ class WeaponStore
 
 private:
 
-	std::vector<Weapon*> weapons;
+	std::vector<Weapon*> weapons;										// List of weapons in this store
 
 public:
 
@@ -32,8 +32,7 @@ public:
 	WeaponStore(bool debug = false);
 	~WeaponStore();
 
-	// Adds a weapon to the store
-	// This function takes ownership of the weapon instance
+	// Adds a weapon to the store, this function takes ownership of the weapon instance
 	void Add(Weapon* weapon);
 
 	// Gets the first weapon that has ammo from the store

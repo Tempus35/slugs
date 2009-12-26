@@ -2,14 +2,28 @@
 
 #include <math.h>
 
-#define PI				3.14159f
-#define PI_OVER_2		1.57080f
-#define PI_OVER_4		0.78540f
-#define PI_OVER_180		0.01745f
-#define TWO_PI			6.28319f
-#define ONE_OVER_PI		0.31831f
-#define SMALL_AMOUNT	1e-6f
+/*
+	class Math
+	Container for mathmatical constants
+*/
 
+class Math
+{
+
+public:
+
+	static const float PI;
+	static const float TWO_PI;
+	static const float PI_OVER_2;
+	static const float PI_OVER_4;
+	static const float PI_OVER_180;
+	static const float ONE_OVER_PI;
+	static const float EPSILON;
+	static const float INFINITY;
+
+};
+
+// Absolute value
 template <class T>
 inline T Abs(T x)
 {
@@ -18,6 +32,7 @@ inline T Abs(T x)
 	
 }
 
+// Rounds a floating point value to the nearest int
 inline int RoundToInt(float f)
 {
 
@@ -25,6 +40,7 @@ inline int RoundToInt(float f)
 
 }
 
+// Rounds a floating point value down to an int
 inline int RoundDownToInt(float x)
 {
 
@@ -32,7 +48,7 @@ inline int RoundDownToInt(float x)
 
 }
 
-
+// Rounds a floating point value down
 inline float Floor(float x)
 {
 
@@ -40,6 +56,7 @@ inline float Floor(float x)
 
 }
 
+// Rounds a floating point value up
 inline float Ceil(float x)
 {
 
@@ -47,6 +64,7 @@ inline float Ceil(float x)
 
 }
 
+// Rounds a floating point value
 inline float Round(float f)
 {
 
@@ -54,6 +72,7 @@ inline float Round(float f)
 
 }
 
+// Calculates the sin of x
 inline float Sin(float x)
 {
 
@@ -61,6 +80,7 @@ inline float Sin(float x)
 	
 }
 
+// Calculates the cosine of x
 inline float Cos(float x)
 {
 	
@@ -68,6 +88,7 @@ inline float Cos(float x)
 	
 }
 
+// Copys the sign from one value to another
 template <class T>
 inline T CopySign(T from, T to)
 {
@@ -76,6 +97,7 @@ inline T CopySign(T from, T to)
 
 }
 
+// Returns the maximum of two values
 template <class T>
 inline T Max(T a, T b)
 {
@@ -84,6 +106,7 @@ inline T Max(T a, T b)
 
 }
 
+// Returns the minimum of two values
 template <class T>
 inline T Min(T a, T b)
 {
@@ -92,6 +115,7 @@ inline T Min(T a, T b)
 
 }
 
+// Clamps a value between a minimum and a maximum
 template <class T>
 inline T Clamp(T value, T min, T max)
 {
@@ -100,21 +124,23 @@ inline T Clamp(T value, T min, T max)
 
 }
 
-
+// Converrs radians to degrees
 inline float Degrees(float radians)
 {
 
-	return radians / TWO_PI * 360.0f;
+	return radians / Math::TWO_PI * 360.0f;
 
 }
 
+// Converst degrees to radians
 inline float Radians(float degrees)
 {
 
-	return degrees / 360.0f * TWO_PI;
+	return degrees / 360.0f * Math::TWO_PI;
 
 }
 
+// Calculates the square root of a value
 inline float Sqrt(float x)
 {
 
@@ -122,6 +148,7 @@ inline float Sqrt(float x)
 
 }
 
+// Calculates the square of a value
 inline float Sqr(float x)
 {
 
@@ -129,6 +156,7 @@ inline float Sqr(float x)
 
 }
 
+// Calculates the cube of a value
 inline float Cube(float x)
 {
 

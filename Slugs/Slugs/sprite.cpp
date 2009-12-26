@@ -48,6 +48,8 @@ void Sprite::SetColor(Color& newColor)
 void Sprite::SetImage(ImageResource* resource)
 {
 
+	ASSERT(resource);
+
 	data.SetImage(resource->Image());
 
 }
@@ -79,7 +81,7 @@ void Sprite::SetOrientation(const Vec2f& direction)
 	float angle = atan2f(direction.y, direction.x);
 
 	if (angle < 0)
-		angle += TWO_PI;
+		angle += Math::TWO_PI;
 
    	data.SetRotation(Degrees(angle));
 

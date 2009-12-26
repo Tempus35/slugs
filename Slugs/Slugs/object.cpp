@@ -1,4 +1,12 @@
+//---------------------------------------------------------------
+//
+// Slugs
+// object.cpp
+//
+//---------------------------------------------------------------
+
 #include "object.h"
+#include "game.h"
 
 //
 // Initialization
@@ -12,6 +20,9 @@ Object::Object(ObjectType t)
 	alive = true;
 	hps = 1;
 	invulnerable = false;
+
+	// Objects don't bounce much by default
+	bounceCoefficient = 0.2f;
 
 }
 
@@ -115,20 +126,41 @@ void Object::Deselect()
 
 }
 
-bool Object::Contains(float x, float y) const
+bool Object::Contains(const Vec2f& position) const
 {
 
-	return bounds.Contains(x, y);
+	return bounds.Contains(position);
 
 }
 
 bool Object::OnCollideWithTerrain()
 {
 
-	// Stop moving
-	SetAtRest(true);
+	// Get terrain normal at the collision point
+	Vec2f normal = Game::Get()->GetWorld()->GetNormalForBox(bounds.center.x, bounds.center.y, Max(bounds.extents.x, 5.0f) * 2.0f, Max(bounds.extents.y, 5.0f) * 2.0f);
 
-	return true;
+	//
+	// Bounce
+	//
+
+	const float minSpeed = 100.0f;
+
+	float speed = velocity.Length() * bounceCoefficient;
+
+	if (speed > minSpeed)
+	{
+
+		Vec2f direction = velocity.Normalize();
+
+		direction -= normal * (DotProduct(normal, direction)) * 2.0f;
+
+		velocity = direction * speed;
+
+		return false;
+
+	}
+	else
+		return true;
 
 }
 
@@ -178,21 +210,6 @@ int Object::GetHitPoints() const
 
 }
 
-const Sprite& Object::GetSprite() const
-{
-
-	return sprite;
-
-}
-
-ObjectType Object::GetType() const
-{
-
-	return type;
-
-}
-
-
 void Object::AdjustHitpoints(int change)
 {
 
@@ -205,5 +222,19 @@ void Object::AdjustHitpoints(int change)
 			Die();
 
 	}
+
+}
+
+const Sprite& Object::GetSprite() const
+{
+
+	return sprite;
+
+}
+
+ObjectType Object::GetType() const
+{
+
+	return type;
 
 }

@@ -1,3 +1,10 @@
+//---------------------------------------------------------------
+//
+// Slugs
+// box.cpp
+//
+//---------------------------------------------------------------
+
 #include "box.h"
 
 Box::Box()
@@ -47,5 +54,12 @@ bool Box::Contains(float x, float y) const
 		return true;
 
 	return false;
+
+}
+
+Box Box::Expand(float x, float y) const
+{
+
+	return Box(center, Vec2f(extents.x + x, extents.y + y));
 
 }

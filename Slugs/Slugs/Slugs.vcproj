@@ -235,6 +235,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\physicsobject.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\player.cpp"
 					>
 				</File>
@@ -287,10 +291,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\fx.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\fxmanager.cpp"
 					>
 				</File>
@@ -300,14 +300,6 @@
 				</File>
 				<File
 					RelativePath=".\particlesystem.cpp"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="Physics"
-				>
-				<File
-					RelativePath=".\physicsobject.cpp"
 					>
 				</File>
 			</Filter>
@@ -352,6 +344,10 @@
 				</File>
 				<File
 					RelativePath=".\circle.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\fastmath.cpp"
 					>
 				</File>
 				<File
@@ -521,6 +517,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\physicsobject.h"
+					>
+				</File>
+				<File
 					RelativePath=".\player.h"
 					>
 				</File>
@@ -577,7 +577,7 @@
 				Name="Particles"
 				>
 				<File
-					RelativePath=".\fx.h"
+					RelativePath=".\explosion.h"
 					>
 				</File>
 				<File
@@ -590,14 +590,6 @@
 				</File>
 				<File
 					RelativePath=".\particlesystem.h"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="Physics"
-				>
-				<File
-					RelativePath=".\physicsobject.h"
 					>
 				</File>
 			</Filter>

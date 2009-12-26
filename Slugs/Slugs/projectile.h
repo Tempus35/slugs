@@ -21,7 +21,7 @@ protected:
 
 	Object*			owner;					// Pointer to the object which created the projectile
 	float			timer;					// Time in seconds remaining until the projectile detonates
-	float				strength;			// Strength of the projectile, used to calculate damage
+	float			strength;				// Strength of the projectile, used to calculate damage
 
 protected:
 
@@ -108,7 +108,30 @@ public:
 	Projectile_Grenade(Object* creator);
 
 	virtual bool OnCollideWithTerrain();
+	virtual void OnCollideWithObject(Object* object);
 
+	virtual bool Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind);
+
+};
+
+/*
+	class Projectile_Mine
+	A mine that which stays on the ground until triggered
+*/
+
+class Projectile_Mine : public Projectile
+{
+
+protected:
+
+	bool			dud;						// Is this mine a dud?
+	float			armTimer;					// Arming timer
+
+public:
+
+	Projectile_Mine(Object* creator, float armTime, float dudChance);
+
+	virtual bool OnCollideWithTerrain();
 	virtual void OnCollideWithObject(Object* object);
 
 	virtual bool Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind);

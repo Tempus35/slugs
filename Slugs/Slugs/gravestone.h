@@ -9,6 +9,11 @@
 
 #include "object.h"
 
+/*
+	class Gravestone
+	A gravestone left behind when a slug dies
+*/
+
 class Gravestone : public Object
 {
 

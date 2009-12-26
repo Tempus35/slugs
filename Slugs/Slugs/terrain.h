@@ -187,13 +187,8 @@ public:
 
 	void SetArt(TextureBuffer* ground, TextureBuffer* over, TextureBuffer* under);
 
-	//
-	// Modification
-	//
-
-	void ClearSquare(int x0, int y0, int x1, int y1);
-	void ClearCircle(float x, float y, float radius);
-	void ClearCircle(float x, float y, float radius, float border);
+	// Removes a circular section of the terrain
+	void ClearCircle(const Vec2f& position, float radius, float border);
 
 	//
 	// Generation
@@ -207,8 +202,6 @@ public:
 	//
 
 	bool CircleCollision(int centerX, int centerY, int radius);
-	Vec2f NormalAtPoint(int x, int y, float* angle);
-	float AngleAtPoint(int x, int y);
 	bool Contains(float x, float y);
 
 	//
@@ -256,8 +249,11 @@ public:
 	// Calculates the terrain normal over a box
 	Vec2f GetNormalForBox(float centerX, float centerY, float width, float height);
 
-	// Calculates the average height over a box
+	// Calculates the highest height over a box
 	float GetHeightForBox(const Box& box);
+
+	// Gets the terrain height below a point
+	float GetHeightAt(const Vec2f& position);
 
 	// Gets the location of a free area on the terrain
 	Vec2f GetSpawnPoint();

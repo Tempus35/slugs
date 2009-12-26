@@ -3,6 +3,11 @@
 App::App()
 {
 
+	// Get and store current working directory
+	char* dir = _getcwd(NULL, 0);
+	workingDirectory = dir;
+	free(dir);
+
 	frame = 0;
 	fps = 0;
 	time = 0.0f;
@@ -18,7 +23,8 @@ App::App()
 
 	// Set application icon
 	sf::Image icon;
-	icon.LoadFromFile("slug.png");
+	std::string iconPath = workingDirectory + "\\Slug.png";
+	icon.LoadFromFile(iconPath);
 	Renderer::Get()->SetIcon(icon); 
 
 	Renderer::Get()->Initialize(resolution.x, resolution.y, "Slugs");

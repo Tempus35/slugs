@@ -1,37 +1,29 @@
 #include "particlesystem.h"
 
-ParticleSystem::ParticleSystem()
+ParticleSystem::ParticleSystem(ImageResource* image, float _life)
 {
 
-	maxParticles = 0;
-	particles = NULL;
+	alive = true;
 		
 }
 
 ParticleSystem::~ParticleSystem()
 {
 
-	SafeDeleteArray(particles);
-
 }
 
 void ParticleSystem::Update(float elapsedTime)
 {
 
-
-	for (int i = 0; i < maxParticles; ++ i)
-	{
-
+	for (unsigned int i = 0; i < particles.size(); ++ i)
 		particles[i].Update(elapsedTime);
-
-	}
 
 }
 
 void ParticleSystem::Render(sf::RenderWindow& renderer)
 {
 
-	for (int i = 0; i < maxParticles; ++ i)
+	for (unsigned int i = 0; i < particles.size(); ++ i)
 	{
 
 		if (particles[i].Life() > 0.0f)

@@ -29,6 +29,7 @@ enum WeaponType
 	WeaponType_Grenade,
 	WeaponType_Shotgun,
 	WeaponType_Machinegun,
+	WeaponType_Mine,
 	WeaponType_LAST,					// Should be last on the list, used to determine number of available weapon types
 
 };
@@ -154,5 +155,23 @@ public:
 	// Hooked so that we can fire the machinegun over time
 	virtual void Update(float elapsedTime);
 
+
+};
+
+/*
+	class Weapon_Mine
+	Drops mines
+*/
+
+class Weapon_Mine : public Weapon
+{
+
+protected:
+
+public:
+
+	Weapon_Mine(int initialAmmo = -1);
+
+	virtual bool Fire(Slug* owner);
 
 };

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <direct.h>
 #include <sfml/graphics.hpp>
 #include <sfml/audio.hpp>
 #include <sfml/config.hpp>
@@ -16,6 +17,8 @@ class App
 {
 
 private:
+
+	std::string			workingDirectory;		// Application path at startup
 
 	Vec2i				resolution;				// Rendering area size in pixels
 

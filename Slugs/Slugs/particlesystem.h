@@ -9,12 +9,14 @@ class ParticleSystem : public Effect
 
 protected:
 
-	Particle* particles;
-	int maxParticles;
+	ImageResource*				imageResource;
+	std::vector<Particle>		particles;
+	float						life;
+	bool						alive;
 
 public:
 
-	ParticleSystem();
+	ParticleSystem(ImageResource* _imageResource, float life);
 	~ParticleSystem();
 
 	virtual void Update(float elapsedTime);

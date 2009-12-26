@@ -134,43 +134,43 @@ bool Game::KeyDown(sf::Key::Code key, bool shift, bool control, bool alt)
 
 		case sf::Key::Left:
 
-			if (selectedObject)
-				selectedObject->StartMovingLeft();
+			if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
+				((Slug*)selectedObject)->StartMovingLeft();
 
 			break;
 
 		case sf::Key::Right:
 
-			if (selectedObject)
-				selectedObject->StartMovingRight();
+			if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
+				((Slug*)selectedObject)->StartMovingRight();
 
 			break;
 
 		case sf::Key::Up:
 
-			if (selectedObject)
-				selectedObject->StartAimingUp();
+			if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
+				((Slug*)selectedObject)->StartAimingUp();
 
 			break;
 
 		case sf::Key::Down:
 			
-			if (selectedObject)
-				selectedObject->StartAimingDown();
+			if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
+				((Slug*)selectedObject)->StartAimingDown();
 
 			break;
 
 		case sf::Key::Return:
 
-			if (selectedObject)
-				selectedObject->Jump();
+			if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
+				((Slug*)selectedObject)->Jump();
 
 			break;
 
 		case sf::Key::Space:
 
-			if (selectedObject)
-				selectedObject->StartCharging();
+			if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
+				((Slug*)selectedObject)->StartCharging();
 
 			break;
 
@@ -202,6 +202,13 @@ bool Game::KeyDown(sf::Key::Code key, bool shift, bool control, bool alt)
 
 			break;
 
+		case sf::Key::Num5:
+
+			if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
+				((Slug*)selectedObject)->ArmSelf(WeaponType_Mine);
+
+			break;
+
 		}
 
 	}
@@ -224,23 +231,23 @@ bool Game::KeyUp(sf::Key::Code key, bool shift, bool control, bool alt)
 			case sf::Key::Left:
 			case sf::Key::Right:
 
-				if (selectedObject)
-					selectedObject->StopMoving();
+				if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
+					((Slug*)selectedObject)->StopMoving();
 			
 				break;
 
 			case sf::Key::Up:
 			case sf::Key::Down:
 
-				if (selectedObject)
-					selectedObject->StopAiming();
+				if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
+					((Slug*)selectedObject)->StopAiming();
 
 				break;
 
 			case sf::Key::Space:
 
-				if (selectedObject)
-					selectedObject->Fire();
+				if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
+					((Slug*)selectedObject)->Fire();
 
 				break;
 
@@ -406,6 +413,7 @@ void Game::LoadResourcesForState(GameState gameState)
 		resourceManager->AddResource("image_slug_right", new ImageResource("gfx\\slug_ph_right.tga"));
 		resourceManager->AddResource("image_rocket", new ImageResource("gfx\\rocket_ph.tga"));
 		resourceManager->AddResource("image_grenade", new ImageResource("gfx\\grenade_ph.tga"));
+		resourceManager->AddResource("image_mine", new ImageResource("gfx\\mine_ph.tga"));
 
 		resourceManager->AddResource("image_snowflake", new ImageResource("gfx\\snowflake.tga"));
 

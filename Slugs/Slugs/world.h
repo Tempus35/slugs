@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include "vec2.h"
 #include "terrain.h"
 #include "clouds.h"
@@ -33,22 +35,11 @@ private:
 	struct DeferredExplosion
 	{
 
-		float x, y;
+		Vec2f position;
 		float strength;
 		float forceMultiplier;
 
-		DeferredExplosion(float _x, float _y, float _strength, float _forceMultiplier) : x(_x), y(_y), strength(_strength), forceMultiplier(_forceMultiplier) {}
-
-	};
-
-public:
-
-	enum IntersectionType
-	{
-
-		IntersectionType_None,
-		IntersectionType_Terrain,
-		IntersectionType_Object,
+		DeferredExplosion(const Vec2f& _position, float _strength, float _forceMultiplier) : position(_position), strength(_strength), forceMultiplier(_forceMultiplier) {}
 
 	};
 
@@ -125,19 +116,19 @@ public:
 	Object* SelectedObject();	
 
 	// Method used to simulate an explosion, destroys terrain and damages objects
-	void SimulateExplosion(float x, float y, float strength, float forceMultiplier = 1.25f);
+	void SimulateExplosion(const Vec2f& position, float strength, float forceMultiplier = 1.25f);
 
 	// Defers and explosion for processing later, used by the shotgun and other weapons
-	void DeferExplosion(float x, float y, float strength, float forceMultiplier = 1.25f);
+	void DeferExplosion(const Vec2f& position, float strength, float forceMultiplier = 1.25f);
 
 	// Processes all deferred explosions
 	void SimulateExplosions();
 
-	// Finds a collision along a ray
-	IntersectionType GetRayIntersection(const Vec2f& start, const Vec2f& direction, Vec2f& collisionPos, Object* ignore);
+	// Finds a intersection with the world along a ray
+	Intersection GetRayIntersection(const Vec2f& start, const Vec2f& direction, Object* ignore, float range = Math::INFINITY);
 
-	// Gets the terrain normal at a point
-	Vec2f GetNormal(const Vec2f& position) const;
+	// Finds an intersection with the world along a line
+	Intersection GetLineIntersection(const Vec2f& start, const Vec2f& end, Object* ignore);
 
 	// Gets the terrain normal evaluated over a box
 	Vec2f GetNormalForBox(float centerX, float centerY, float width, float height) const;
@@ -156,5 +147,17 @@ public:
 
 	// Removes all area blocks from the world
 	void ClearBlocks();
+
+	// Gets the nearest object of a given type to an object
+	Object* GetNearestObject(Object* object, ObjectType type);
+
+	// Gets all objects within a given radius of an object
+	void GetObjectsNear(std::vector<Object*>& list, Object* object, float radius, ObjectType type);
+
+	// Returns true if a direct line of sight exists between two objects
+	bool ObjectCanSee(Object* from, Object* to);
+
+	// Returns true if an object can hit another with a parabolic weapon
+	bool ObjectCanSeeParabolic(Object* from, Object* to);
 
 };

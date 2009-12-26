@@ -81,7 +81,7 @@ void Projectile::Explode()
 {
 
 	// Simulate the explosion on the world
-	Game::Get()->GetWorld()->SimulateExplosion(bounds.center.x, bounds.center.y, strength);
+	Game::Get()->GetWorld()->SimulateExplosion(bounds.center, strength);
 
 }
 
@@ -173,38 +173,16 @@ Projectile_Grenade::Projectile_Grenade(Object* creator) : Projectile(creator)
 {
 
 	tumble = 0.0f;
+	bounceCoefficient = 0.4f;
 
 }
 
 bool Projectile_Grenade::OnCollideWithTerrain()
 {
 
-	// Get terrain normal at the collision point
-	Vec2f normal = Game::Get()->GetWorld()->GetNormalForBox(bounds.center.x, bounds.center.y, bounds.extents.x * 4.0f, bounds.extents.y * 4.0f);
-
-	//
-	// Bounce
-	//
-
-	const float bounceCoefficient = 0.40f;
-	const float minSpeed = 100.0f;
-
-	float speed = velocity.Length() * bounceCoefficient;
-
-	if (speed > minSpeed)
-	{
-
-		Vec2f direction = velocity.Normalize();
-
-		direction -= normal * (DotProduct(normal, direction)) * 2.0f;
-
-		velocity = direction * speed;
-
-		return false;
-
-	}
-	else
-		return true;
+	// Use the default object implementation
+	return Object::OnCollideWithTerrain();
+	
 }
 
 void Projectile_Grenade::OnCollideWithObject(Object* object)
@@ -235,5 +213,56 @@ bool Projectile_Grenade::Update(float elapsedTime, const Vec2f& gravity, const V
 	}
 
 	return result;
+
+}
+
+/*
+	class Projectile_Mine
+*/
+
+Projectile_Mine::Projectile_Mine(Object* creator, float armTime, float dudChance) : Projectile(creator)
+{
+
+	armTimer = armTime;
+
+	float pick = Random::RandomFloat(0.0f, 1.0f);
+
+	if (pick < dudChance)
+		dud = true;
+	else
+		dud = false;
+
+}
+
+bool Projectile_Mine::OnCollideWithTerrain()
+{
+
+	// Use the default object implementation
+	return Object::OnCollideWithTerrain();
+
+}
+
+void Projectile_Mine::OnCollideWithObject(Object* object)
+{
+
+	if ((!dud) && (armTimer <= 0.0f))
+	{
+
+
+		// Mines only explode on contact with slugs
+		if (object->GetType() == ObjectType_Slug)
+			Die();
+
+	}
+
+}
+
+bool Projectile_Mine::Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind)
+{
+
+	if (armTimer > 0.0f)
+		armTimer -= elapsedTime;
+
+	return Projectile::Update(elapsedTime, gravity, wind);
 
 }

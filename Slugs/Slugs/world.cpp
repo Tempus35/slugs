@@ -101,8 +101,12 @@ void World::Update(float elapsedTime)
 	// Update clouds
 	clouds->Update(elapsedTime);
 
-	// Update all alive objects, remove dead ones
+	//
+	// Update objects
+	//
+
 	list<Object*>::iterator i = objects.begin();
+	list<Object*>::iterator j = objects.begin(), k;
 
 	while (i != objects.end())
 	{
@@ -115,9 +119,6 @@ void World::Update(float elapsedTime)
 			// Get starting position
 			Vec2f lastPos = obj->GetPosition();
 			Vec2f collisionPos, freePos;
-
-			// Ensure object is not colliding with terrain
-			//ASSERT(!terrain->BoxCollision(lastPos.x, lastPos.y, obj->GetBounds().extents.x * 2.0f, obj->GetBounds().extents.y * 2.0f, collisionPos));
 
 			// Update object
 			bool moved = obj->Update(elapsedTime, gravity, wind);
@@ -140,9 +141,10 @@ void World::Update(float elapsedTime)
 
 					//
 					// Test for collision with the terrain
+					// This test uses a one pixel wide bounding box
 					//
 
-					if (terrain->BoxCollisionIterated(lastPos.x, lastPos.y, pos.x, pos.y, obj->GetBounds().extents.x * 2.0f, obj->GetBounds().extents.y * 2.0f, collisionPos, freePos))
+					if (terrain->BoxCollisionIterated(lastPos.x, lastPos.y, pos.x, pos.y, 1.0f, obj->GetBounds().extents.y * 2.0f, collisionPos, freePos))
 					{
 
 						// Set back to the position where the collision actually happened
@@ -155,9 +157,6 @@ void World::Update(float elapsedTime)
 						// Back up so the object is free
 						obj->SetPosition(freePos.x, freePos.y);
 
-						// This should only be triggered if an object is placed in a colliding position
-						//ASSERT(!terrain->BoxCollision(freePos.x, freePos.y, obj->GetBounds().extents.x * 2.0f, obj->GetBounds().extents.y * 2.0f, collisionPos));
-
 					}
 
 				}
@@ -166,31 +165,77 @@ void World::Update(float elapsedTime)
 			else
 			{
 
-				// Object is stationary, check to see if we still have terrain holding it up
+				//
+				// Object is at rest, check to see if we still have terrain holding it up
+				//
 
-				//if (!terrain->BoxCollision(lastPos.x, lastPos.y, obj->GetBounds().extents.x * 2.0f + 2, obj->GetBounds().extents.y * 2.0f + 2, throwAway))						
 				if (terrain->GetHeightForBox(obj->GetBaseBox()) == -1.0f)			
 					obj->SetAtRest(false);
 
 			}
 
-			++i;
+			//
+			// Check for collisions with objects
+			//
+
+			k = j;
+
+			if (j != objects.end())
+				j++;
+
+			while (k != objects.end())
+			{
+
+				Object* collider = (Object*)(*k);
+
+				if (BoxBoxIntersection(obj->GetBounds(), collider->GetBounds()) == true)
+				{
+
+					obj->OnCollideWithObject(collider);
+					collider->OnCollideWithObject(obj);
+
+				}
+
+				++ k;
+
+			}
 
 		}
-		else
-		{
 
-			if (selectedObject == *i)
-				selectedObject = NULL;
-
-			delete *i;
-			i = objects.erase(i);
-
-		}
+		++i;
 
 	}
 
+	//
+	// Delete all dead objects
+	//
+
+	i = objects.begin();
+
+	while (i != objects.end())
+	{
+
+		Object* obj = (*i);
+
+		if (!obj->IsAlive())
+		{
+
+			if (selectedObject == obj)
+				selectedObject = NULL;
+
+			delete obj;
+			i = objects.erase(i);
+
+		}
+		else
+			i ++;
+
+	}
+
+	//
 	// Add all pending objects
+	//
+
 	if (pendingObjects.size() > 0)
 	{
 
@@ -340,7 +385,7 @@ Object* World::GetObjectAtPosition(const Vec2f& position)
 	for (list<Object*>::iterator i = objects.begin(); i != objects.end(); ++ i)
 	{
 
-		if ((*i)->Contains(position.x, position.y))
+		if ((*i)->Contains(position))
 		{
 
 			obj = (*i);
@@ -354,11 +399,11 @@ Object* World::GetObjectAtPosition(const Vec2f& position)
 
 }
 
-void World::SimulateExplosion(float x, float y, float strength, float forceMultiplier)
+void World::SimulateExplosion(const Vec2f& position, float strength, float forceMultiplier)
 {
 
 	// Update the terrain
-	terrain->ClearCircle(x, y, strength, WORLD_EXPLOSION_BORDER);
+	terrain->ClearCircle(position, strength, WORLD_EXPLOSION_BORDER);
 
 	//
 	// Add forces and damage to objects
@@ -376,13 +421,9 @@ void World::SimulateExplosion(float x, float y, float strength, float forceMulti
 		if (!obj->IsAlive())
 			continue;
 
-		// Ignore invulnerable objects
-		if (obj->IsInvulnerable())
-			continue;
-
 		pos = obj->GetPosition();
-		dx = pos.x - x;
-		dy = pos.y - y;
+		dx = pos.x - position.x;
+		dy = pos.y - position.y;
 		d = sqrtf(dx * dx + dy * dy);
 
 		if (d <= strength * forceMultiplier)
@@ -394,8 +435,8 @@ void World::SimulateExplosion(float x, float y, float strength, float forceMulti
 			obj->AdjustHitpoints(-(int)hitPower);
 
 			// Add force
-			obj->SetAtRest(false);
 			obj->SetVelocity(CopySign(dx, hitPower) * forceMultiplier, CopySign(dy, hitPower) * forceMultiplier);
+			obj->SetAtRest(false);
 
 		}
 
@@ -403,18 +444,22 @@ void World::SimulateExplosion(float x, float y, float strength, float forceMulti
 
 }
 
-void World::DeferExplosion(float x, float y, float strength, float forceMultiplier)
+void World::DeferExplosion(const Vec2f& position, float strength, float forceMultiplier)
 {
 
-	deferredExplosions.push_back(DeferredExplosion(x, y, strength, forceMultiplier));
+	deferredExplosions.push_back(DeferredExplosion(position, strength, forceMultiplier));
 
 }
 
 void World::SimulateExplosions()
 {
 
+	//
+	// Process all deferred explosions
+	//
+
 	for (unsigned int i = 0; i < deferredExplosions.size(); ++ i)
-		SimulateExplosion(deferredExplosions[i].x, deferredExplosions[i].y, deferredExplosions[i].strength, deferredExplosions[i].forceMultiplier);
+		SimulateExplosion(deferredExplosions[i].position, deferredExplosions[i].strength, deferredExplosions[i].forceMultiplier);
 
 	deferredExplosions.clear();
 
@@ -573,39 +618,46 @@ Object* World::SelectedObject()
 
 }
 
-World::IntersectionType World::GetRayIntersection(const Vec2f& start, const Vec2f& direction, Vec2f& collisionPos, Object* ignore)
+Intersection World::GetLineIntersection(const Vec2f& start, const Vec2f& end, Object* ignore)
 {
 
-	float maxRange = 1000000.0f;
-	float maxX, maxY;
+	Vec2f direction = end - start;
+	return GetRayIntersection(start, direction.Normalize(), ignore, direction.Length());
+
+}
+
+Intersection World::GetRayIntersection(const Vec2f& start, const Vec2f& direction, Object* ignore, float range)
+{
+
+	//
+	// Clamp the range to the terrain
+	//
+
+	Vec2f toEdge;
 
 	if (direction.x > 0)
-		maxX = terrain->WidthInPixels() - start.x;
+		toEdge.x = terrain->WidthInPixels() - start.x;
 	else
-		maxX = start.x;
+		toEdge.x = start.x;
 
 	if (direction.y > 0)
-		maxY = terrain->HeightInPixels() - start.y;
+		toEdge.y = terrain->HeightInPixels() - start.y;
 	else
-		maxY = start.y;
+		toEdge.y = start.y;
 
-	maxRange = Sqrt(maxX * maxX + maxY * maxY);
-
-	Vec2f intersectionPos;
+	float maxRange = Min(toEdge.Length(), range);
 
 	//
 	// Check the terrain
 	//
+
+	Intersection closestIntersection, intersection;
 	
-	IntersectionType collision = IntersectionType_None;
-	
-	if (terrain->RayIntersection(start, direction, maxRange, intersectionPos))
+	if (terrain->RayIntersection(start, direction, maxRange, closestIntersection.position))
 	{
 
-		collisionPos = intersectionPos;
-		maxRange = (intersectionPos - start).Length();
-
-		collision = IntersectionType_Terrain;
+		closestIntersection.distance = (closestIntersection.position - start).Length();
+		closestIntersection.type = IntersectionType_Terrain;
 
 	}
 
@@ -627,25 +679,19 @@ World::IntersectionType World::GetRayIntersection(const Vec2f& start, const Vec2
 			continue;
 
 		// Test for an intersection
-		if (RayCircleIntersection(start, direction, obj->GetPosition(), Max(obj->GetBounds().extents.x, obj->GetBounds().extents.y), maxRange, intersectionPos))
+		if (RayCircleIntersection(start, direction, obj->GetPosition(), Max(obj->GetBounds().extents.x, obj->GetBounds().extents.y), closestIntersection.distance, intersection.position))
 		{
 
-			maxRange = (intersectionPos - start).Length();
-			collisionPos = intersectionPos;
-			collision = IntersectionType_Object;
+			closestIntersection.distance = (intersection.position - start).Length();
+			closestIntersection.position = intersection.position;
+			closestIntersection.object = obj;
+			closestIntersection.type = IntersectionType_Object;
 
 		}
 
 	}
 
-	return collision;
-
-}
-
-Vec2f World::GetNormal(const Vec2f& position) const
-{
-
-	return terrain->NormalAtPoint((int)position.x, (int)position.y, NULL);
+	return closestIntersection;
 
 }
 
@@ -731,5 +777,93 @@ void World::ClearBlocks()
 {
 
 	areaBlocks.clear();
+
+}
+
+// Gets the nearest object of a given type to an object
+Object* World::GetNearestObject(Object* object, ObjectType type)
+{
+
+	ASSERT(object != NULL);
+
+	Object* closestObject = NULL;
+	float closestDistance = Math::INFINITY;
+	Vec2f objectPosition = object->GetPosition();
+
+	std::list<Object*>::iterator i = objects.begin();
+
+	while (i != objects.end())
+	{
+
+		Object* obj = (*i);
+
+		if ((obj != object) && ((type == ObjectType_Any) || (obj->GetType() == type)))
+		{
+
+			float distance = (obj->GetPosition() - objectPosition).LengthSquared();
+
+			if (distance < closestDistance)
+			{
+
+				closestObject = obj;
+				closestDistance = distance;
+
+			}
+
+		}
+
+		i ++;
+			
+	}
+
+	return closestObject;
+
+}
+
+// Gets all objects within a given radius of an object
+void World::GetObjectsNear(std::vector<Object*>& list, Object* object, float radius, ObjectType type)
+{
+
+	ASSERT(object != NULL);
+	ASSERT(radius > 0.0f);
+
+	Vec2f objectPosition = object->GetPosition();
+	float radiusSquared = Sqr(radius);
+
+	std::list<Object*>::iterator i = objects.begin();
+
+	while (i != objects.end())
+	{
+
+		Object* obj = (*i);
+
+		if ((obj != object) && ((type == ObjectType_Any) || (obj->GetType() == type)))
+		{
+
+			if ((obj->GetPosition() - objectPosition).LengthSquared() <= radiusSquared)
+				list.push_back(obj);
+
+		}
+
+		i ++;
+			
+	}
+
+}
+
+bool World::ObjectCanSee(Object* from, Object* to)
+{
+
+	Vec2f intersectionPos;
+	Intersection intersection = GetLineIntersection(from->GetPosition(), to->GetPosition(), from);
+
+	return (intersection.object == to);
+
+}
+
+bool ObjectCanSeeParabolic(Object* from, Object* to)
+{
+
+	return false;
 
 }

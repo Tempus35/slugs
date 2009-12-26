@@ -16,7 +16,7 @@ Circle::Circle(const Vec2f& _center, float _radius)
 
 }
 
-bool Circle::Contains(const Vec2f& point)
+bool Circle::Contains(const Vec2f& point) const
 {
 
 	Vec2f delta = point - center;

@@ -657,10 +657,10 @@ void Terrain::CreateCavern(int centerX, int centerY, float smoothness, float cha
 		return;
 
 	float averageRadius = Random::RandomFloat(TERRAIN_CAVERN_MIN_RADIUS, TERRAIN_CAVERN_MAX_RADIUS);
-	float averageCircumferance = TWO_PI * averageRadius;
+	float averageCircumferance = Math::TWO_PI * averageRadius;
 	float distanceStep = TERRAIN_CAVERN_SMOOTHNESS_MIN + (1.0f - smoothness) * TERRAIN_CAVERN_SMOOTHNESS_FACTOR;
 	int numPoints = (int)(averageCircumferance / distanceStep);
-	float angleStep = TWO_PI / (float)(numPoints - 1);
+	float angleStep = Math::TWO_PI / (float)(numPoints - 1);
 	float variance = TERRAIN_CAVERN_CHAOSITY_FACTOR * chaosity * averageRadius;
 	float currentRadius = averageRadius;
 	
@@ -711,7 +711,7 @@ void Terrain::CreateCavern(int centerX, int centerY, float smoothness, float cha
 				dx = j - centerX;
 				dy = i - centerY;
 
-				float angle = atan2f((float)dy, (float)dx) + PI;
+				float angle = atan2f((float)dy, (float)dx) + Math::PI;
 				first = (int)(floorf(angle / angleStep));
 				second = first + 1;
 				lerp = (angle - (first * angleStep)) / angleStep;
@@ -856,7 +856,7 @@ void Terrain::CreateCavern(int centerX, int centerY, float smoothness, float cha
 			if (Random::RandomFloat() < continuationChance)
 			{
 
-				float angle = Random::RandomFloat(0, TWO_PI);
+				float angle = Random::RandomFloat(0, Math::TWO_PI);
 				int nextX = (int)(centerX + Cos(angle) * averageRadius * TERRAIN_CAVERN_EXPANSION_FACTOR);
 				int nextY = (int)(centerY + Sin(angle) * averageRadius * TERRAIN_CAVERN_EXPANSION_FACTOR);
 				CreateCavern(nextX, nextY, smoothness, chaosity, subLevel + 1);
@@ -982,111 +982,16 @@ void Terrain::SetArt(TextureBuffer* ground, TextureBuffer* over, TextureBuffer* 
 
 }
 
-//
-// Modification
-//
-
-void Terrain::ClearSquare(int x0, int y0, int x1, int y1)
-{
-
-	int x[2], y[2];
-
-	// Clamp the area to the buffer
-	if (textureBuffer->Intersection(x0, y0, x1, y1, x, y))
-	{
-
-		// Get pointer to data
-		Color* ptr = (Color*)textureBuffer->Data(x[0], y[0]);
-
-		if (ptr)
-		{
-
-			// Clear the section
-			int yAdvance = textureBuffer->Width() - (x[1] - x[0]);
-
-			for (int i = y[0]; i < y[1]; ++ i)
-			{
-
-				for (int j = x[0]; j < x[1]; ++ j)
-				{
-
-					ptr->a = TERRAINALPHA_EMPTY;
-					ptr ++;
-
-				}
-
-				ptr += yAdvance;
-
-			}
-
-		}
-
-	}
-
-}
-
-void Terrain::ClearCircle(float centerX, float centerY, float radius)
-{
-
-	int sx = RoundDownToInt(centerX - radius);
-	int sy = RoundDownToInt(centerY - radius);
-	int ex = RoundDownToInt(centerX + radius);
-	int ey = RoundDownToInt(centerY + radius);
-
-	int x[2], y[2];
-
-	// Clamp the enclosing square to the buffer
-	if (textureBuffer->Intersection(sx, sy, ex, ey, x, y))
-	{
-
-		// Get pointer to data
-		Color* ptr = (Color*)textureBuffer->Data(x[0], y[0]);
-
-		if (ptr)
-		{
-
-			// Clear the section
-			int yAdvance = textureBuffer->Width() - (x[1] - x[0]);
-			float radiusSquared = radius * radius;
-			float dx, dy;
-
-			for (int i = y[0]; i < y[1]; ++ i)
-			{
-
-				for (int j = x[0]; j < x[1]; ++ j)
-				{
-
-					dx = j - centerX;
-					dy = i - centerY;
-
-					// Restrict to within radius of circle
-					if (dx * dx + dy * dy < radiusSquared)
-						ptr->a = TERRAINALPHA_EMPTY;
-
-					ptr ++;
-
-				}
-
-				ptr += yAdvance;
-
-			}
-
-		}
-
-	}
-
-}
-
-void Terrain::ClearCircle(float centerX, float centerY, float radius, float border)
+void Terrain::ClearCircle(const Vec2f& position, float radius, float border)
 {
 
 	int x[2], y[2];
 	float maxRadius = radius + border;
 
-	int sx = RoundDownToInt(centerX - maxRadius);
-	int sy = RoundDownToInt(centerY - maxRadius);
-	int ex = RoundDownToInt(centerX + maxRadius);
-	int ey = RoundDownToInt(centerY + maxRadius);
+	int sx = RoundDownToInt(position.x - maxRadius);
+	int sy = RoundDownToInt(position.y - maxRadius);
+	int ex = RoundDownToInt(position.x + maxRadius);
+	int ey = RoundDownToInt(position.y + maxRadius);
 
 	// Clamp the enclosing square to the buffer
 	if (textureBuffer->Intersection(sx, sy, ex, ey, x, y))
@@ -1115,8 +1020,8 @@ void Terrain::ClearCircle(float centerX, float centerY, float radius, float bord
 				for (int j = x[0]; j < x[1]; ++ j)
 				{
 
-					dx = (float)j - centerX;
-					dy = (float)i - centerY;
+					dx = (float)j - position.x;
+					dy = (float)i - position.y;
 					dsq = dx * dx + dy * dy;
 
 					// Restrict to within radius of circle
@@ -1519,6 +1424,28 @@ float Terrain::GetHeightForBox(const Box& box)
 
 }
 
+float Terrain::GetHeightAt(const Vec2f& position)
+{
+
+	int x = RoundDownToInt(position.x);
+	int y = RoundDownToInt(position.y);
+
+	while (y >= 0)
+	{
+
+		Color* ptr = (Color*)textureBuffer->Data(x, y);
+
+		if (ptr->a != TERRAINALPHA_EMPTY)
+			return (float)y;
+
+		y --;
+
+	}
+
+	return 0.0f;
+
+}
+
 bool Terrain::CircleCollision(int centerX, int centerY, int radius)
 {
 
@@ -1574,211 +1501,6 @@ bool Terrain::CircleCollision(int centerX, int centerY, int radius)
 
 }
 
-float Terrain::AngleAtPoint(int x, int y)
-{
-
-	Color* data = (Color*)textureBuffer->Data(x, y);
-
-	// Make sure pixel at x, y isn't empty
-	if (data)
-	{
-
-		int pixels = 0;
-
-		// Test upper pixel
-		data = (Color*)textureBuffer->Data(x, y + 1);
-
-		if (data->a != TERRAINALPHA_EMPTY)
-			return PI_OVER_2;
-
-		// Test upper right
-		data = (Color*)textureBuffer->Data(x + 1, y + 1);
-
-		if (data->a != TERRAINALPHA_EMPTY)
-			pixels |= 1;
-
-		// Test upper left
-		data = (Color*)textureBuffer->Data(x - 1, y + 1);
-
-		if (data->a != TERRAINALPHA_EMPTY)
-			pixels |= 2;
-
-		// Upper left and upper right gives average flat terrain
-		if ((pixels & 2) && (pixels & 1))
-			return 0.0f;
-
-		// Test right
-		data = (Color*)textureBuffer->Data(x + 1, y);
-
-		if (data->a != TERRAINALPHA_EMPTY)
-			pixels |= 4;
-
-		// Test left
-		data = (Color*)textureBuffer->Data(x - 1, y);
-
-		if (data->a != TERRAINALPHA_EMPTY)
-			pixels |= 8;
-
-		if (pixels & 1)
-		{
-
-			// Upper right with left gives 30 degree slope
-			if (pixels & 8)
-				return 30.0f * PI_OVER_180;
-			
-			// Upper right without left gives 45 degree slope
-			return 45.0f * PI_OVER_180;
-
-		}
-		else if (pixels & 2)
-		{
-
-			// Upper left with right gives -30 degree slope
-			if (pixels & 4)
-				return -30.0f * PI_OVER_180;
-
-			// Upper left without right gives -45 degree slope
-			return -45.0f * PI_OVER_180;
-
-		}
-		
-		// Left or right without any upper pixel gives flat terrain
-		if ((pixels & 8) || (pixels & 4))
-			return 0.0f;
-
-		// Test lower right
-		data = (Color*)textureBuffer->Data(x + 1, y - 1);
-
-		if (data->a != TERRAINALPHA_EMPTY)
-			pixels |= 16;
-
-		// Test lower left
-		data = (Color*)textureBuffer->Data(x - 1, y - 1);
-
-		if (data->a != TERRAINALPHA_EMPTY)
-			pixels |= 32;
-
-		// Lower right gives -45 degree slope
-		if (pixels & 16)
-			return -45.0f * PI_OVER_180;
-
-		// Lower left give 45 degree slope
-		if (pixels & 32)
-			return 45.0f * PI_OVER_180;
-
-		// Any other combination is flat
-		return 0.0f;
-
-	}
-
-	return TWO_PI; // Point not on ground
-
-}
-
-Vec2f Terrain::NormalAtPoint(int x, int y, float* angle)
-{
-
-	Color* data = (Color*)textureBuffer->Data(x, y);
-
-	Vec2f n(0, 0);
-	if (data->a != TERRAINALPHA_EMPTY)
-	{
-
-		// Test surrounding pixels
-		if (y > 0)
-		{
-
-			// Bottom
-			data = (Color*)textureBuffer->Data(x, y - 1);
-
-			if (data->a != TERRAINALPHA_EMPTY)
-				n.y -= 1.0f;
-
-			// Bottom Left
-			data = (Color*)textureBuffer->Data(x - 1, y - 1);
-
-			if (data->a != TERRAINALPHA_EMPTY)
-			{
-				n.x -= 1.0f;
-				n.y -= 1.0f;
-			}
-
-			// Bottom Right
-			data = (Color*)textureBuffer->Data(x + 1, y - 1);
-
-			if (data->a != TERRAINALPHA_EMPTY)
-			{
-				n.x += 1.0f;
-				n.y -= 1.0f;
-			}
-
-
-		}
-		
-		if (y < height - 1)
-		{
-
-			// Top
-			data = (Color*)textureBuffer->Data(x, y + 1);
-
-			if (data->a != TERRAINALPHA_EMPTY)
-				n.y += 1.0f;
-
-			// Top left
-			data = (Color*)textureBuffer->Data(x - 1, y + 1);
-
-			if (data->a != TERRAINALPHA_EMPTY)
-			{
-				n.x -= 1.0f;
-				n.y += 1.0f;
-			}
-
-			// Top right
-			data = (Color*)textureBuffer->Data(x + 1, y + 1);
-
-			if (data->a != TERRAINALPHA_EMPTY)
-			{
-				n.x += 1.0f;
-				n.y += 1.0f;
-			}
-
-		}
-
-		if (x > 0)
-		{
-
-			// Left
-			data = (Color*)textureBuffer->Data(x - 1, y);
-
-			if (data->a != TERRAINALPHA_EMPTY)
-				n.y -= 1.0f;
-
-		}
-
-		if (x < width - 1)
-		{
-
-			// Right
-			data = (Color*)textureBuffer->Data(x + 1, y);
-
-			if (data->a != TERRAINALPHA_EMPTY)
-				n.y += 1.0f;
-
-		}
-
-		// Normalize vector
-		n = n.Normalize();
-
-	}
-
-	// Calculate angle if needed
-	if (angle)
-		*angle = atan2f(n.y, n.x) + PI;
-	
-	return n;
-
-}
-
 bool Terrain::Contains(float x, float y)
 {
 
@@ -1831,8 +1553,8 @@ bool Terrain::Generate(float landmass, float smoothness, float chaosity, float p
 	points.insert(points.end(), p);
 
 	// Set angles and separation
-	float angle = Random::RandomFloat(-45.0f, 45.0f) * PI_OVER_180;
-	float angleDelta = (TERRAIN_CHAOSITY_BASE_ANGLE + (TERRAIN_CHAOSITY_ADDITIONAL_ANGLE * chaosity)) * PI_OVER_180;
+	float angle = Random::RandomFloat(-45.0f, 45.0f) * Math::PI_OVER_180;
+	float angleDelta = (TERRAIN_CHAOSITY_BASE_ANGLE + (TERRAIN_CHAOSITY_ADDITIONAL_ANGLE * chaosity)) * Math::PI_OVER_180;
 	int minSeparation = RoundToInt(TERRAIN_PLATFORMARITY_BASE + platformarity * TERRAIN_PLATFORMARITY_FACTOR);
 	int angleSteps = 0;
 	int lowSteps = 0;
@@ -1997,8 +1719,8 @@ bool Terrain::Generate(float landmass, float smoothness, float chaosity, float p
 			}
 
 			// Hard limit on angles
-			const float angleLimitMax = 170.0f * PI_OVER_180;
-			const float angleLimitMin = -170.0f * PI_OVER_180;
+			const float angleLimitMax = 170.0f * Math::PI_OVER_180;
+			const float angleLimitMin = -170.0f * Math::PI_OVER_180;
 			if (angle > angleLimitMax)
 				angle = angleLimitMax;
 			else if (angle < angleLimitMin)
@@ -2129,21 +1851,29 @@ Vec2f Terrain::GetSpawnPoint()
 
 		int x = Random::RandomInt(diameter, WidthInPixels() - diameter - 1);
 		int y = Random::RandomInt(diameter, HeightInPixels() - diameter - 1);
+		bool get = false;
 
-		while (y > 0)
+		while (y < HeightInPixels())
 		{
 
 			Color* ptr = (Color*)textureBuffer->Data(x, y);
 
-			if (ptr->a == TERRAINALPHA_EMPTY)
+			if (get)
 			{
 
-				if (!BoxCollision((float)x, (float)y, (float)diameter, (float)diameter, throwAway))
-					return Vec2f((float)x, (float)y);
+				if (ptr->a == TERRAINALPHA_EMPTY)
+				{
+
+					if (!BoxCollision((float)x, (float)y, (float)diameter, (float)diameter, throwAway))
+						return Vec2f((float)x, (float)y);
+
+				}
 
 			}
+			else if (ptr->a != TERRAINALPHA_EMPTY)
+				get = true;
 
-			y -= radius;
+			y += radius;
 
 		}
 

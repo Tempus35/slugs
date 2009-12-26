@@ -1,11 +1,22 @@
+//---------------------------------------------------------------
+//
+// Slugs
+// slug.cpp
+//
+//---------------------------------------------------------------
+
 #include "slug.h"
 
 #include "game.h"
 #include "team.h"
 #include "resourcemanager.h"
+#include "world.h"
+#include "terrain.h"
 
 Slug::Slug(Team* _team) : Object(ObjectType_Slug)
 {
+
+	const float SLUG_DEATH_TIMER = 2.0f;			// Numbers of seconds before a slug explodes after reaching 0 hps
 
 	team = _team;
 
@@ -23,7 +34,7 @@ Slug::Slug(Team* _team) : Object(ObjectType_Slug)
 
 	ImageResource* r = (ImageResource*)ResourceManager::Get()->GetResource("image_slug_right");
 	SetImage(r);
-	SetBounds(9.5f, 12.0f);
+	SetBounds(8.0f, 8.0f);
 	SetWeapons(new WeaponStore(true), true);
 	ArmSelf();
 
@@ -40,11 +51,17 @@ Slug::~Slug()
 bool Slug::Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind)
 {
 
-	bool moved = false;
+	const float SLUG_MAX_UP_STEP = 5.0f;			// Maximum number of pixels a slug can move up per pixel moved left/right
+	const float SLUG_MAX_DOWN_STEP = 10.0f;			// Maximum number of pixels a slug can move down without falling
+	const float SLUG_MOVEMENT_SPEED = 50.0f;		// Slug movement speed in pixels/second
+	const float SLUG_AIM_SPEED = Radians(45.0f);	// Rate at which the slug can aim in radians/second
+	const float SHOT_POWER_CHARGE_RATE = 1.0f;		// Rate of weapon charge in units/second	
 
 	//
 	// Find out if we are alive
 	//
+
+	bool moved = false;
 
 	if (hps > 0)
 	{
@@ -68,61 +85,61 @@ bool Slug::Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind)
 		// Movement - only works when in the resting state
 		//
 
-		if ((atRest) && ((movementDirection & MOVEMENTDIRECTION_RIGHT) || (movementDirection & MOVEMENTDIRECTION_LEFT)))
+		if (atRest)
 		{
 
-			float direction;
+			float direction = 0.0f;
+
 			if (movementDirection & MOVEMENTDIRECTION_RIGHT)
 			{
-
-				SetImage((ImageResource*)ResourceManager::Get()->GetResource("image_slug_right"));
 				direction = 1.0f;
-			
+				SetImage((ImageResource*)ResourceManager::Get()->GetResource("image_slug_right"));
 			}
-			else
+			else if (movementDirection & MOVEMENTDIRECTION_LEFT)
 			{
-			
-				SetImage((ImageResource*)ResourceManager::Get()->GetResource("image_slug_left"));
 				direction = -1.0f;
-			
+				SetImage((ImageResource*)ResourceManager::Get()->GetResource("image_slug_left"));
 			}
 
-			Terrain* terrain = Game::Get()->GetWorld()->GetTerrain();
-
-			float high = terrain->GetHeightForBox(baseBox);
-
-			if (high >= 0.0f)
+			if (direction != 0.0f)
 			{
 
-				float dy = high - baseBox.center.y;
+				float height = Game::Get()->GetWorld()->GetTerrain()->GetHeightAt(Vec2f(bounds.center.x + direction, bounds.center.y));
+		
+				float dy = height - (bounds.center.y - bounds.extents.y);
 
-				if (dy <= SLUG_MAX_UP_STEP)
+				if ((dy >= 0.0f) && (dy <= SLUG_MAX_UP_STEP))
+				{
+				
+					moved = true;
+					bounds.center.x += direction * elapsedTime * SLUG_MOVEMENT_SPEED;
+					bounds.center.y = height + bounds.extents.y + 1.0f;
+				
+				}
+				else if (dy < 0.0f)
 				{
 
-					bounds.center.x += direction * elapsedTime * SLUG_MOVEMENT_SPEED;
-					bounds.center.y += dy;
+					if (Abs(dy) <= SLUG_MAX_DOWN_STEP)
+					{
 
-					baseBox.center.x = bounds.center.x;
-					baseBox.center.y = bounds.center.y - bounds.extents.y;
-					baseBox.extents.x = 2.5f;
-					baseBox.extents.y = 5 + 1.0f;
+						moved = true;
+						bounds.center.x += direction * elapsedTime * SLUG_MOVEMENT_SPEED;
+						bounds.center.y = height + bounds.extents.y + 1.0f;
 
-					moved = true;
+					}
+					else
+					{
+
+						moved = true;
+						bounds.center.x += Max(elapsedTime * SLUG_MOVEMENT_SPEED, 1.0f) * direction;
+						SetAtRest(false);
+
+						// Throw the slug off the edge
+						SetVelocity(Vec2f(direction * 25.0f, 5.0f));
+
+					}
 
 				}
-
-			}
-			else
-			{
-
-				bounds.center.x += direction * elapsedTime * SLUG_MOVEMENT_SPEED;
-
-				baseBox.center.x = bounds.center.x;
-				baseBox.center.y = bounds.center.y - bounds.extents.y;
-				baseBox.extents.x = 2.5f;
-				baseBox.extents.y = 5 + 1.0f;
-
-				moved = true;
 
 			}
 
@@ -137,8 +154,8 @@ bool Slug::Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind)
 
 			aimAngle += elapsedTime * SLUG_AIM_SPEED;
 
-			if (aimAngle > PI_OVER_2)
-				aimAngle = PI_OVER_2;
+			if (aimAngle > Math::PI_OVER_2)
+				aimAngle = Math::PI_OVER_2;
 
 		}
 
@@ -147,8 +164,8 @@ bool Slug::Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind)
 
 			aimAngle -= elapsedTime * SLUG_AIM_SPEED;
 
-			if (aimAngle < -PI_OVER_2)
-				aimAngle = -PI_OVER_2;
+			if (aimAngle < -Math::PI_OVER_2)
+				aimAngle = -Math::PI_OVER_2;
 
 		}
 
@@ -320,6 +337,9 @@ void Slug::AdjustAim(float amount)
 
 	aimAngle += amount;
 
+	if (aimAngle >= Math::TWO_PI)
+		aimAngle = Math::TWO_PI;
+
 }
 
 float Slug::GetPower() const
@@ -340,7 +360,9 @@ void Slug::Die(bool instant)
 void Slug::Explode()
 {
 
-	Game::Get()->GetWorld()->SimulateExplosion(bounds.center.x, bounds.center.y, SLUG_EXPLOSION_STRENGTH);
+	const float SLUG_EXPLOSION_STRENGTH = 30.0f;	// Strength of the death explosion
+
+	Game::Get()->GetWorld()->SimulateExplosion(bounds.center, SLUG_EXPLOSION_STRENGTH);
 
 }
 

@@ -41,6 +41,9 @@ Weapon* Weapon::CreateFromType(WeaponType t)
 	case WeaponType_Machinegun:
 		return new Weapon_Machinegun();
 
+	case WeaponType_Mine:
+		return new Weapon_Mine();
+
 	}
 
 	ASSERTMSG(0, "Weapon::CreateFromType - Invalid WeaponType!");
@@ -227,11 +230,10 @@ bool Weapon_Shotgun::Fire(Slug* owner)
 			if (owner->GetFacingDirection() != FACINGDIRECTION_RIGHT)
 			direction.x = -direction.x;
 
-			Vec2f collisionPos;
-			World::IntersectionType intersection = Game::Get()->GetWorld()->GetRayIntersection(owner->GetPosition(), direction, collisionPos, owner);	
+			Intersection intersection = Game::Get()->GetWorld()->GetRayIntersection(owner->GetPosition(), direction, owner);	
 
-			if (intersection != World::IntersectionType_None)
-				Game::Get()->GetWorld()->DeferExplosion(collisionPos.x, collisionPos.y, strength);
+			if (intersection.type != IntersectionType_None)
+				Game::Get()->GetWorld()->DeferExplosion(intersection.position, strength);
 
 		}
 
@@ -312,11 +314,10 @@ void Weapon_Machinegun::Update(float elapsedTime)
 		if (slug->GetFacingDirection() != FACINGDIRECTION_RIGHT)
 			direction.x = -direction.x;
 
-		Vec2f collisionPos;
-		World::IntersectionType collision = Game::Get()->GetWorld()->GetRayIntersection(slug->GetPosition(), direction, collisionPos, slug);	
+		Intersection intersection = Game::Get()->GetWorld()->GetRayIntersection(slug->GetPosition(), direction, slug);	
 
-		if (collision != World::IntersectionType_None)
-			Game::Get()->GetWorld()->SimulateExplosion(collisionPos.x, collisionPos.y, strength, 5.0f);
+		if (intersection.type != IntersectionType_None)
+			Game::Get()->GetWorld()->SimulateExplosion(intersection.position, strength, 5.0f);
 
 		// Force slug to aim up a little
 		slug->AdjustAim(upSwing);
@@ -329,5 +330,44 @@ void Weapon_Machinegun::Update(float elapsedTime)
 			fireTimer = timeBetweenShots;
 
 	}
+
+}
+
+/*
+	class Weapon_Mine
+*/
+
+Weapon_Mine::Weapon_Mine(int initialAmmo) : Weapon(WeaponType_Mine, initialAmmo, false)
+{
+
+}
+
+bool Weapon_Mine::Fire(Slug* owner)
+{
+
+	ASSERT(owner);
+
+	if (TakeAmmo() == true)
+	{
+
+		const float armTime = 3.0f;
+		const float dudChance = 0.05f;
+
+		Projectile_Mine* projectile = new Projectile_Mine(owner, armTime, dudChance);
+		projectile->SetPosition(owner->GetWeaponPoint());
+		projectile->SetStrength(75.0f);
+		projectile->SetTimer(-1.0f);
+		projectile->SetBounds(5.0f, 5.0f);
+		projectile->SetImage(((ImageResource*)ResourceManager::Get()->GetResource("image_mine")));
+		projectile->SetVelocity(Vec2f(0.0f, -200.0f));
+
+		// Add the projectile to the world
+		Game::Get()->GetWorld()->AddCreatedObject(projectile);
+
+		return true;
+
+	}
+
+	return false;
 
 }
