@@ -42,7 +42,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="/D &quot;SFML_DYNAMIC&quot;"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\DevIL\include"
+				AdditionalIncludeDirectories="&quot;..\SFML-1.5\include&quot;;..\DevIL\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -62,9 +62,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="devil.lib sfml-audio-d.lib sfml-graphics-d.lib sfml-main-d.lib sfml-system-d.lib sfml-window-d.lib sfml-network-d.lib tinyxmld.lib"
+				AdditionalDependencies="devil.lib sfml-audio-d.lib sfml-graphics-d.lib sfml-main-d.lib sfml-system-d.lib sfml-window-d.lib sfml-network-d.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\DevIL\lib"
+				AdditionalLibraryDirectories="&quot;..\SFML-1.5\lib\vc2008&quot;;..\DevIL\lib"
 				IgnoreDefaultLibraryNames="libcmtd.lib"
 				GenerateDebugInformation="true"
 				SubSystem="2"
