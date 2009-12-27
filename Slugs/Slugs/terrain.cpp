@@ -84,10 +84,10 @@ void TerrainBlock::Update(TextureBuffer* buffer, DirtyRect& r)
 {
 
 	int x[2], y[2];
-	x[0] = max((int)position.x, r.left);
-	y[0] = max((int)position.y, r.top);
-	x[1] = min((int)position.x + TERRAIN_BLOCK_SIZE, r.right);
-	y[1] = min((int)position.y + TERRAIN_BLOCK_SIZE, r.bottom);
+	x[0] = Max((int)position.x, r.left);
+	y[0] = Max((int)position.y, r.top);
+	x[1] = Min((int)position.x + TERRAIN_BLOCK_SIZE, r.right);
+	y[1] = Min((int)position.y + TERRAIN_BLOCK_SIZE, r.bottom);
 
 	if ((x[0] != x[1]) || (y[0] != y[1]))
 		Update(buffer, x[0] - (int)position.x, y[0] - (int)position.y, x[1] - (int)position.x, y[1] - (int)position.y);
@@ -463,7 +463,7 @@ void Terrain::ProcessPoints()
 void Terrain::FillColumn(int column, int row)
 {
 
-	int index = textureBuffer->PositionToIndex(column, min(row, textureBuffer->Height() - 1));
+	int index = textureBuffer->PositionToIndex(column, Min(row, textureBuffer->Height() - 1));
 	Color* data = (Color*)textureBuffer->Data();
 
 	if (index)
@@ -555,7 +555,7 @@ void Terrain::FillColumn(int column, int row)
 void Terrain::ClearColumn(int column, int row)
 {
 
-	int index = textureBuffer->PositionToIndex(column, min(row, textureBuffer->Height() - 1));
+	int index = textureBuffer->PositionToIndex(column, Min(row, textureBuffer->Height() - 1));
 	Color* data = (Color*)textureBuffer->Data();
 
 	if (data)
@@ -583,7 +583,7 @@ void Terrain::ClearColumn(int column, int row)
 void Terrain::ClearColumnDrawUnder(int column, int row)
 {
 
-	int index = textureBuffer->PositionToIndex(column, min(row, textureBuffer->Height() - 1));
+	int index = textureBuffer->PositionToIndex(column, Min(row, textureBuffer->Height() - 1));
 	Color* data = (Color*)textureBuffer->Data();
 
 	if (data)
@@ -1380,7 +1380,7 @@ Vec2f Terrain::GetNormalForBox(float centerX, float centerY, float width, float 
 
 }
 
-float Terrain::GetHeightForBox(const Box& box)
+float Terrain::GetHeightForBox(const Boxf& box)
 {
 
 	int sx = RoundDownToInt(box.center.x - box.extents.x);

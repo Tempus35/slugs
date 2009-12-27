@@ -21,6 +21,7 @@ enum GameFlag
 
 	GameFlag_CanChooseSlug,						// Allow players to choose which slug they want to use each turn
 	GameFlag_AlwaysShowNames,					// Always show slug names?
+	GameFlag_AlwaysShowHps,						// Always show slug hitpoints?
 	GameFlag_LAST,								// Must be last on the list
 
 };

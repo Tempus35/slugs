@@ -11,6 +11,26 @@
 #include "fxmanager.h"
 
 /*
+	struct ExplosionData
+	Holds explosion data used by the world to simulate explosions
+*/
+
+struct ExplosionData
+{
+
+	float			explosionRadius;		// Radius of the explosion in pixels
+	float			forceRadius;			// Radius inside which objects get pushed away
+	float			forceStrength;			// Maximum force to apply inside the for radius
+	float			damageRadius;			// Radius inside whcih objects are damage
+	float			damageStrength;			// Maximum damage inside the explosion radius
+
+	ExplosionData() {};
+	ExplosionData(float _explosionRadius, float _forceRadius, float _forceStrength, float _damageRadius, float _damageStrength)
+		: explosionRadius(_explosionRadius), forceRadius(_forceRadius), forceStrength(_forceStrength), damageRadius(_damageRadius), damageStrength(_damageStrength) {}
+
+};
+
+/*
 	class Projectile
 	Base class for all projectiles - the base implementation is a standard rocket like projectile
 */
@@ -20,8 +40,8 @@ class Projectile : public Object
 
 protected:
 
-	float			timer;					// Time in seconds remaining until the projectile detonates
-	float			strength;				// Strength of the projectile, used to calculate damage
+	float				timer;					// Time in seconds remaining until the projectile detonates
+	ExplosionData		explosionData;			// Explosion info
 
 protected:
 
@@ -51,14 +71,14 @@ public:
 	// Gets the amount of timer remaining until the projectile detonates
 	virtual float GetTimer() const;
 
-	// Gets the strength of the projectile
-	virtual float GetStrength() const;
-
 	// Sets the detonation timer
 	virtual void SetTimer(float newTime);
 
-	// Sets the strength of the projectile
-	virtual void SetStrength(float newStrength);
+	// Gets the current explosion data for the projectile
+	const ExplosionData& GetExplosionData() const;
+
+	// Sets the explosion data for the projectile
+	void SetExplosionData(const ExplosionData& data);
 
 };
 

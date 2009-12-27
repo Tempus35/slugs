@@ -151,13 +151,13 @@ private:
 	int width, height;
 	int numBlocks;
 
-	vector<Vec2f> points;
+	std::vector<Vec2f> points;
 
 	TextureBuffer* textureBuffer;
 
 	TextureBuffer* art[3];
 
-	vector<DirtyRect> dirtyRects;
+	std::vector<DirtyRect> dirtyRects;
 
 	//
 	// Internals
@@ -250,7 +250,7 @@ public:
 	Vec2f GetNormalForBox(float centerX, float centerY, float width, float height);
 
 	// Calculates the highest height over a box
-	float GetHeightForBox(const Box& box);
+	float GetHeightForBox(const Boxf& box);
 
 	// Gets the terrain height below a point
 	float GetHeightAt(const Vec2f& position);

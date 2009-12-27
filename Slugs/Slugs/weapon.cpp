@@ -128,10 +128,12 @@ bool Weapon_Bazooka::Fire(Slug* owner)
 
 		Projectile_Bazooka* projectile = new Projectile_Bazooka(owner);
 		projectile->SetPosition(owner->GetWeaponPoint());
-		projectile->SetStrength(75);
 		projectile->SetTimer(-1);
 		projectile->SetBounds(5.0f, 5.0f);
 		projectile->SetImage(((ImageResource*)ResourceManager::Get()->GetResource("image_rocket")));
+
+		const ExplosionData explosionData(75.0f, 85.0f, 120.0f, 75.0f, 50.0f);
+		projectile->SetExplosionData(explosionData);
 
 		projectile->SetVelocity(aimVelocity);
 
@@ -178,10 +180,12 @@ bool Weapon_Grenade::Fire(Slug* owner)
 
 		Projectile_Grenade* projectile = new Projectile_Grenade(owner);
 		projectile->SetPosition(owner->GetWeaponPoint());
-		projectile->SetStrength(75);
 		projectile->SetTimer(3);
 		projectile->SetBounds(5.0f, 5.0f);
 		projectile->SetImage(((ImageResource*)ResourceManager::Get()->GetResource("image_grenade")));
+
+		const ExplosionData explosionData(75.0f, 85.0f, 120.0f, 75.0f, 50.0f);
+		projectile->SetExplosionData(explosionData);
 
 		projectile->SetVelocity(aimVelocity);
 
@@ -217,8 +221,9 @@ bool Weapon_Shotgun::Fire(Slug* owner)
 		// Fire 5 bullets in a spread pattern
 		//
 
+		const ExplosionData explosionData(10.0f, 15.0f, 25.0f, 10.0f, 20.0f);
+
 		const float spread = Radians(10.0f);
-		const float strength = 10.0f;
 		float baseAngle = owner->GetAimAngle();
 
 		for (int i = 0; i < 5; ++ i)
@@ -233,7 +238,7 @@ bool Weapon_Shotgun::Fire(Slug* owner)
 			Intersection intersection = Game::Get()->GetWorld()->GetRayIntersection(owner->GetPosition(), direction, owner);	
 
 			if (intersection.type != IntersectionType_None)
-				Game::Get()->GetWorld()->DeferExplosion(intersection.position, strength);
+				Game::Get()->GetWorld()->DeferExplosion(intersection.position, explosionData);
 
 		}
 
@@ -306,9 +311,10 @@ void Weapon_Machinegun::Update(float elapsedTime)
 		// Make boom
 		//
 
-		const float strength = 10.0f;
-		float angle = slug->GetAimAngle();
+		const ExplosionData explosionData(10.0f, 15.0f, 25.0f, 10.0f, 20.0f);
 
+		float angle = slug->GetAimAngle();
+		
 		Vec2f direction = Vec2f(Cos(angle), Sin(angle));
 
 		if (slug->GetFacingDirection() != FACINGDIRECTION_RIGHT)
@@ -317,7 +323,7 @@ void Weapon_Machinegun::Update(float elapsedTime)
 		Intersection intersection = Game::Get()->GetWorld()->GetRayIntersection(slug->GetPosition(), direction, slug);	
 
 		if (intersection.type != IntersectionType_None)
-			Game::Get()->GetWorld()->SimulateExplosion(intersection.position, strength, 5.0f);
+			Game::Get()->GetWorld()->SimulateExplosion(intersection.position, explosionData);
 
 		// Force slug to aim up a little
 		slug->AdjustAim(upSwing);
@@ -355,11 +361,13 @@ bool Weapon_Mine::Fire(Slug* owner)
 
 		Projectile_Mine* projectile = new Projectile_Mine(NULL, armTime, dudChance);
 		projectile->SetPosition(owner->GetWeaponPoint());
-		projectile->SetStrength(75.0f);
 		projectile->SetTimer(-1.0f);
 		projectile->SetBounds(5.0f, 5.0f);
 		projectile->SetImage(((ImageResource*)ResourceManager::Get()->GetResource("image_mine")));
 		projectile->SetVelocity(Vec2f(0.0f, -200.0f));
+
+		const ExplosionData explosionData(50.0f, 60.0f, 80.0f, 50.0f, 40.0f);
+		projectile->SetExplosionData(explosionData);
 
 		// Add the projectile to the world
 		Game::Get()->GetWorld()->AddCreatedObject(projectile);

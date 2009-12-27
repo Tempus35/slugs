@@ -85,11 +85,6 @@ void Object::SetPosition(Vec2f v)
 	
 	PhysicsObject::SetPosition(v);
 
-	baseBox.center.x = bounds.center.x;
-	baseBox.center.y = bounds.center.y - bounds.extents.y;
-	baseBox.extents.x = 2.5f;
-	baseBox.extents.y = 5 + 1.0f;
-
 	Moved();
 
 }
@@ -98,11 +93,6 @@ void Object::SetPosition(float x, float y)
 {
 	
 	PhysicsObject::SetPosition(x, y);
-
-	baseBox.center.x = bounds.center.x;
-	baseBox.center.y = bounds.center.y - bounds.extents.y;
-	baseBox.extents.x = 2.5f;
-	baseBox.extents.y = 5 + 1.0f;
 
 	Moved();
 
@@ -197,18 +187,6 @@ void Object::SetBounds(float halfWidth, float halfHeight)
 
 	bounds.extents.x = halfWidth;
 	bounds.extents.y = halfHeight;
-
-	baseBox.center.x = bounds.center.x;
-	baseBox.center.y = bounds.center.y - bounds.extents.y;
-	baseBox.extents.x = 2.5f;
-	baseBox.extents.y = 5 + 1.0f;
-
-}
-
-const Box& Object::GetBaseBox() const
-{
-
-	return baseBox;
 
 }
 

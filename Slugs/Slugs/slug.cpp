@@ -365,9 +365,9 @@ void Slug::Die(bool instant)
 void Slug::Explode()
 {
 
-	const float SLUG_EXPLOSION_STRENGTH = 30.0f;	// Strength of the death explosion
+	const ExplosionData explosionData(30.0f, 35.0f, 35.0f, 30.0f, 30.0f);
 
-	Game::Get()->GetWorld()->SimulateExplosion(bounds.center, SLUG_EXPLOSION_STRENGTH);
+	Game::Get()->GetWorld()->SimulateExplosion(bounds.center, explosionData);
 
 }
 

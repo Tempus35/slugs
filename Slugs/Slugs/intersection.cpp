@@ -54,7 +54,7 @@ bool RayCircleIntersection(const Vec2f& rayStart, const Vec2f& rayDirection, con
 	
 }
 
-bool BoxBoxIntersection(const Box& a, const Box& b)
+bool BoxBoxIntersection(const Boxf& a, const Boxf& b)
 {
 
 	Vec2f minA = a.GetMin();

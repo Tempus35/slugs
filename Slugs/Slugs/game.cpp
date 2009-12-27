@@ -290,8 +290,6 @@ bool Game::MouseDown(const Vec2i& position, sf::Mouse::Button button)
 
 			if (pickedObject)
 				world->SelectObject(pickedObject);
-			//else
-			//	world->SimulateExplosion(pickPosition.x, pickPosition.y, Random::RandomFloat(30.0f, 100.0f));
 
 		}
 
@@ -411,9 +409,9 @@ void Game::LoadResourcesForState(GameState gameState)
 		resourceManager->AddResource("image_crosshair", new ImageResource("gfx\\levels\\test\\crosshair.tga"));
 		resourceManager->AddResource("image_arrow", new ImageResource("gfx\\arrow-sprite.png"));
 		resourceManager->AddResource("image_cloud", new ImageResource("gfx\\clouds\\standard\\smallcloud0.png"));
-		resourceManager->AddResource("tb_ground", new TextureBuffer("gfx\\levels\\test\\ground.raw", 256, 256, 4));
-		resourceManager->AddResource("tb_over", new TextureBuffer("gfx\\levels\\test\\over.raw", 256, 12, 4));
-		resourceManager->AddResource("tb_under", new TextureBuffer("gfx\\levels\\test\\under.raw", 256, 4, 4));
+		resourceManager->AddResource("tb_ground", new TextureBuffer("gfx\\levels\\test\\ground_ice.tga"));
+		resourceManager->AddResource("tb_over", new TextureBuffer("gfx\\levels\\test\\over_ice.tga"));
+		resourceManager->AddResource("tb_under", new TextureBuffer("gfx\\levels\\test\\under_ice.tga"));
 		resourceManager->AddResource("image_jumping_right", new ImageResource("gfx\\jumping_right.png"));
 		resourceManager->AddResource("image_explosion", new ImageResource("gfx\\SkybusterExplosion.jpg"));
 		resourceManager->AddResource("image_options_notselected", new ImageResource("gfx\\menu\\menu_options_not_selected.png"));
@@ -437,14 +435,6 @@ void Game::LoadResourcesForState(GameState gameState)
 		resourceManager->AddResource("font_copacetix", new FontResource("gfx\\fonts\\copacetix.ttf", 64));
 
 		resourceManager->AddResource("menu_click", new SoundResource("sfx\\menu_click.WAV"));
-
-		TextureBuffer* rawTex[3];
-		rawTex[0] = new TextureBuffer("gfx\\levels\\test\\ground.raw", 256, 256, 4);
-		resourceManager->AddResource("test_ground", rawTex[0]);
-		rawTex[1] = new TextureBuffer("gfx\\levels\\test\\over.raw", 256, 12, 4);
-		resourceManager->AddResource("test_over", rawTex[1]);
-		rawTex[2] = new TextureBuffer("gfx\\levels\\test\\under.raw", 256, 4, 4);
-		resourceManager->AddResource("test_under", rawTex[2]);
 
 	}
 

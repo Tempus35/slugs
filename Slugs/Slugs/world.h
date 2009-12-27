@@ -35,11 +35,10 @@ private:
 	struct DeferredExplosion
 	{
 
-		Vec2f position;
-		float strength;
-		float forceMultiplier;
+		Vec2f				position;
+		ExplosionData		data;
 
-		DeferredExplosion(const Vec2f& _position, float _strength, float _forceMultiplier) : position(_position), strength(_strength), forceMultiplier(_forceMultiplier) {}
+		DeferredExplosion(const Vec2f& _position, const ExplosionData& _data) : position(_position), data(_data) {}
 
 	};
 
@@ -116,10 +115,10 @@ public:
 	Object* SelectedObject();	
 
 	// Method used to simulate an explosion, destroys terrain and damages objects
-	void SimulateExplosion(const Vec2f& position, float strength, float forceMultiplier = 1.25f);
+	void SimulateExplosion(const Vec2f& position, const ExplosionData& data);
 
 	// Defers and explosion for processing later, used by the shotgun and other weapons
-	void DeferExplosion(const Vec2f& position, float strength, float forceMultiplier = 1.25f);
+	void DeferExplosion(const Vec2f& position, const ExplosionData& data);
 
 	// Processes all deferred explosions
 	void SimulateExplosions();

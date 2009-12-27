@@ -56,8 +56,6 @@ protected:
 
 	bool					selected;			// Is this object currently selected
 
-	Box						baseBox;			// Bounding box used for collisions with the terrain
-
 	float					bounceCoefficient;	// Bounciness factor of the object
 
 protected:
@@ -123,9 +121,6 @@ public:
 
 	// Sets the collision bounding box of the object
 	virtual void SetBounds(float halfWidth, float halfHeight);
-
-	// Gets the base box
-	virtual const Box& GetBaseBox() const;
 
 	// Is the object invulnerable?
 	virtual bool IsInvulnerable() const;

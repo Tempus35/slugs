@@ -81,7 +81,7 @@ void Projectile::Explode()
 	Game::Get()->GetFXManager()->RegisterEffect(explosion);
 
 	// Simulate the explosion on the world
-	Game::Get()->GetWorld()->SimulateExplosion(bounds.center, strength);
+	Game::Get()->GetWorld()->SimulateExplosion(bounds.center, explosionData);
 
 }
 
@@ -92,13 +92,6 @@ float Projectile::GetTimer() const
 
 }
 
-float Projectile::GetStrength() const
-{
-
-	return strength;
-
-}
-
 void Projectile::SetTimer(float newTime)
 {
 
@@ -106,10 +99,17 @@ void Projectile::SetTimer(float newTime)
 
 }
 
-void Projectile::SetStrength(float newStrength)
+const ExplosionData& Projectile::GetExplosionData() const
 {
 
-	strength = newStrength;
+	return explosionData;
+
+}
+
+void Projectile::SetExplosionData(const ExplosionData& data)
+{
+
+	explosionData = data;
 
 }
 

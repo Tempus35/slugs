@@ -2,15 +2,16 @@
 
 #include <fstream>
 #include <iostream>
+#include <string>
+
+#include "il.h"
 
 #include "global.h"
 #include "resource.h"
 
-using namespace std;
-
 /*
 	class TextureBuffer
-	Memory storage for rgb(a)/single channel texture data which does not require rendering
+	Memory storage for RGBA texture data which does not require rendering
 */
 
 class TextureBuffer : public Resource
@@ -29,7 +30,7 @@ public:
 	//
 	// Initialization
 	//
-	TextureBuffer(char* path, int textureWidth, int textureHeight, int numChannels);
+	TextureBuffer(const std::string& path);
 	TextureBuffer(int textureWidth, int textureHeight, int numChannels);
 	~TextureBuffer();
 	bool IsValid();
@@ -44,7 +45,7 @@ public:
 	// Output
 	//
 
-	bool SaveAsRAW(char* path);
+	bool SaveAsRAW(const std::string& path);
 
 	//
 	// Helpers

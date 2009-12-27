@@ -4,43 +4,27 @@
 	class TextureBuffer
 */
 
-//
-// Initialization
-//
-
-TextureBuffer::TextureBuffer(char* path, int textureWidth, int textureHeight, int numChannels)
+TextureBuffer::TextureBuffer(const std::string& path)
 {
 
-	data = NULL;
+	ilInit();
 
-	if ((path) && (textureWidth > 0) && (textureHeight > 0) && ((numChannels == 1) || (numChannels == 3) || (numChannels == 4)))
-	{
+	unsigned int image;
+	ilGenImages(1, &image);
+	ilBindImage(image);
 
-		// Open file
-		ifstream fs(path, ios::in|ios::binary);
+	ilLoadImage(path.c_str());
 
-		if (fs.is_open())
-		{
+	width = ilGetInteger(IL_IMAGE_WIDTH);
+	height = ilGetInteger(IL_IMAGE_HEIGHT); 
+	channels = 4;
 
-			// Store parameters
-			width = textureWidth;
-			height = textureHeight;
-			channels = numChannels;
+	int dataSize = width * height * channels;
+	data = new byte[dataSize];
+	
+	ilCopyPixels(0, 0, 0, width, height, 1, IL_RGBA, IL_UNSIGNED_BYTE, data);
 
-			// Allocate memory
-			dataSize = width * height * channels;
-			data = new byte[dataSize];
-
-			// Get data
-			if (data)
-				fs.read((char*)data, dataSize);
-
-			// Close file
-			fs.close();
-
-		}
-
-	}
+	ilDeleteImages(1, &image);
 
 }
 
@@ -84,10 +68,6 @@ bool TextureBuffer::IsValid()
 
 }
 
-//
-// Modification
-//
-
 void TextureBuffer::Fill(byte b)
 {
 
@@ -96,18 +76,14 @@ void TextureBuffer::Fill(byte b)
 
 }
 
-//
-// Output
-//
-
-bool TextureBuffer::SaveAsRAW(char* path)
+bool TextureBuffer::SaveAsRAW(const std::string& path)
 {
 
-	if ((path) && (data))
+	if ((!path.empty()) && (data))
 	{
 
 		// Open file
-		ofstream fs(path, ios::out|ios::trunc|ios::binary);
+		std::ofstream fs(path.c_str(), std::ios::out|std::ios::trunc|std::ios::binary);
 
 		if (fs.is_open())
 		{
@@ -128,18 +104,14 @@ bool TextureBuffer::SaveAsRAW(char* path)
 
 }
 
-//
-// Helpers
-//
-
 bool TextureBuffer::Intersection(int x0, int y0, int x1, int y1, int* x, int* y)
 {
 
 	// Clamp to buffer size
-	x[0] = max(0, x0);
-	y[0] = max(0, y0);
-	x[1] = min(x1, width - 1);
-	y[1] = min(y1, height - 1);
+	x[0] = Max(0, x0);
+	y[0] = Max(0, y0);
+	x[1] = Min(x1, width - 1);
+	y[1] = Min(y1, height - 1);
 
 	if ((x[1] != x[0]) || (y[1] != y[0]))
 		return true;
@@ -147,10 +119,6 @@ bool TextureBuffer::Intersection(int x0, int y0, int x1, int y1, int* x, int* y)
 	return false;
 
 }
-
-//
-// Accessors
-//
 
 int TextureBuffer::Width()
 {

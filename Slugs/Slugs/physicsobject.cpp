@@ -115,7 +115,7 @@ void PhysicsObject::SetExtents(const Vec2f& extents)
 
 }
 
-const Box& PhysicsObject::GetBounds() const
+const Boxf& PhysicsObject::GetBounds() const
 {
 
 	return bounds;

@@ -14,31 +14,38 @@
 	A 2d bounding box
 */
 
+template <class T>
 class Box
 {
 
 public:
 
-	Vec2f center;											// Center location of the box
-	Vec2f extents;											// Half size of the box
+	Vec2<T> center;											// Center location of the box
+	Vec2<T> extents;										// Half size of the box
 
 public:
 
 	// Constructors
 	Box();
-	Box(Vec2f _center, Vec2f _extents);
+	Box(Vec2<T> _center, Vec2<T> _extents);
 
 	// Gets the minimum of the box
-	Vec2f GetMin() const;
+	Vec2<T> GetMin() const;
 
 	// Gets the maximum of the box
-	Vec2f GetMax() const;
+	Vec2<T> GetMax() const;
 	
 	// Returns true if the box contains the given point
-	bool Contains(const Vec2f& point) const;
-	bool Contains(float x, float y) const;
+	bool Contains(const Vec2<T>& point) const;
+	bool Contains(T x, T y) const;
 
 	// Gets an expanded bounding box
-	Box Expand(float x, float y) const;
+	Box Expand(T x, T y) const;
 
 };
+
+// Predefined types
+typedef Box<float>	Boxf;
+typedef Box<int>	Boxi;
+
+#include "box.inl"

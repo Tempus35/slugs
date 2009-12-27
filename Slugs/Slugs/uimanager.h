@@ -2,13 +2,10 @@
 
 #include <list>
 
-#include "singleton.h"
 #include "uiwidget.h"
 
-class UIManager : public Singleton<UIManager>
+class UIManager
 {
-
-friend class Singleton<UIManager>;
 
 private:
 

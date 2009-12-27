@@ -169,8 +169,7 @@ void World::Update(float elapsedTime)
 				// Object is at rest, check to see if we still have terrain holding it up
 				//
 
-				if (terrain->GetHeightForBox(obj->GetBaseBox()) == -1.0f)			
-					obj->SetAtRest(false);
+				// TODO
 
 			}
 
@@ -404,18 +403,17 @@ Object* World::GetObjectAtPosition(const Vec2f& position)
 
 }
 
-void World::SimulateExplosion(const Vec2f& position, float strength, float forceMultiplier)
+void World::SimulateExplosion(const Vec2f& position, const ExplosionData& data)
 {
 
-	// Update the terrain
-	terrain->ClearCircle(position, strength, WORLD_EXPLOSION_BORDER);
+	// Remove terrain in the explosion radius
+	terrain->ClearCircle(position, data.explosionRadius, WORLD_EXPLOSION_BORDER);
 
 	//
 	// Add forces and damage to objects
 	//
 
 	float dx, dy, d;
-	float hitStrength, hitPower;
 	Vec2f pos;
 	for (list<Object*>::iterator i = objects.begin(); i != objects.end(); ++ i)
 	{
@@ -426,22 +424,30 @@ void World::SimulateExplosion(const Vec2f& position, float strength, float force
 		if (!obj->IsAlive())
 			continue;
 
+		// Calculate distance to explosion
 		pos = obj->GetPosition();
 		dx = pos.x - position.x;
 		dy = pos.y - position.y;
 		d = sqrtf(dx * dx + dy * dy);
 
-		if (d <= strength * forceMultiplier)
+		if (d <= data.forceRadius)
 		{
-	
-			// Determine hit strength and adjust object hitpoints
-			hitStrength = 1.0f - (d / (float)strength);
-			hitPower = hitStrength * strength;
-			obj->AdjustHitpoints(-(int)hitPower);
+
+			float forcePower = 1.0f - (d / data.forceRadius);
 
 			// Add force
-			obj->SetVelocity(CopySign(dx, hitPower) * forceMultiplier, CopySign(dy, hitPower) * forceMultiplier);
+			obj->SetVelocity(CopySign(dx, forcePower) * data.forceStrength, CopySign(dy, forcePower) * data.forceStrength);
 			obj->SetAtRest(false);
+
+		}
+
+		if (d <= data.damageRadius)
+		{
+
+			float hitPower = 1.0f - (d / data.damageRadius);
+
+			// Damage object
+			obj->AdjustHitpoints(-RoundDownToInt(hitPower * data.damageStrength));
 
 		}
 
@@ -449,10 +455,10 @@ void World::SimulateExplosion(const Vec2f& position, float strength, float force
 
 }
 
-void World::DeferExplosion(const Vec2f& position, float strength, float forceMultiplier)
+void World::DeferExplosion(const Vec2f& position, const ExplosionData& data)
 {
 
-	deferredExplosions.push_back(DeferredExplosion(position, strength, forceMultiplier));
+	deferredExplosions.push_back(DeferredExplosion(position, data));
 
 }
 
@@ -464,7 +470,7 @@ void World::SimulateExplosions()
 	//
 
 	for (unsigned int i = 0; i < deferredExplosions.size(); ++ i)
-		SimulateExplosion(deferredExplosions[i].position, deferredExplosions[i].strength, deferredExplosions[i].forceMultiplier);
+		SimulateExplosion(deferredExplosions[i].position, deferredExplosions[i].data);
 
 	deferredExplosions.clear();
 
@@ -537,7 +543,16 @@ void World::Render()
 				}
 
 				if (Game::Get()->IsFlagSet(GameFlag_AlwaysShowNames))
-					Renderer::Get()->RenderTextShadowed(objPos.x, -objPos.y - 30.0f, (FontResource*)ResourceManager::Get()->GetResource("font_copacetix"), slugObj->GetName(), 16.0f, slugObj->GetTeam()->GetColor(), Color(0, 0, 0), FontFlag_Bold|FontFlag_Centered);
+					Renderer::Get()->RenderTextShadowed(objPos.x, -objPos.y - 34.0f, (FontResource*)ResourceManager::Get()->GetResource("font_copacetix"), slugObj->GetName(), 16.0f, slugObj->GetTeam()->GetColor(), Color(0, 0, 0), FontFlag_Bold|FontFlag_Centered);
+
+				if (Game::Get()->IsFlagSet(GameFlag_AlwaysShowHps))
+				{
+
+					char hps[16];
+					sprintf_s(hps, 16, "%i", Max(0, slugObj->GetHitPoints()));
+					Renderer::Get()->RenderTextShadowed(objPos.x, -objPos.y - 20.0f, (FontResource*)ResourceManager::Get()->GetResource("font_copacetix"), hps, 8.0f, slugObj->GetTeam()->GetColor(), Color(0, 0, 0), FontFlag_Bold|FontFlag_Centered);
+
+				}
 
 			}
 

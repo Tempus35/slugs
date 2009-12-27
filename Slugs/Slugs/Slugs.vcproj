@@ -347,7 +347,7 @@
 				Name="Utility"
 				>
 				<File
-					RelativePath=".\box.cpp"
+					RelativePath=".\box.inl"
 					>
 				</File>
 				<File
@@ -392,6 +392,10 @@
 				</File>
 				<File
 					RelativePath=".\uiwidget.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\uiwindbar.cpp"
 					>
 				</File>
 			</Filter>
@@ -638,6 +642,10 @@
 				</File>
 				<File
 					RelativePath=".\uiwidget.h"
+					>
+				</File>
+				<File
+					RelativePath=".\uiwindbar.h"
 					>
 				</File>
 			</Filter>

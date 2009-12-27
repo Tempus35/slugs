@@ -39,20 +39,22 @@ App::App()
 	mouseButtonStates[2] = false;
 
 	//
-	// Set application icon
-	//
-
-	sf::Image icon;
-	std::string iconPath = workingDirectory + "\\Slug.png";
-	icon.LoadFromFile(iconPath);
-	Renderer::Get()->SetIcon(icon); 
-
-	//
 	// Initialize renderer and game
 	//
 
 	Renderer::Get()->Initialize(resolution.x, resolution.y, "Slugs", !fullscreen);
 	Game::Get()->GetCamera()->SetViewSize(resolution.x, resolution.y);
+
+	//
+	// Set application icon
+	//
+
+	sf::Image icon;
+	std::string iconPath = workingDirectory + "\\slug.png";
+	icon.LoadFromFile(iconPath);
+
+	if (icon.GetPixelsPtr() != NULL)
+		Renderer::Get()->SetIcon(icon); 
 
 }
 

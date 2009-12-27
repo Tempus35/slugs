@@ -45,4 +45,4 @@ struct Intersection
 */
 
 bool RayCircleIntersection(const Vec2f& rayStart, const Vec2f& rayDirection, const Vec2f& circleCenter, float circleRadius, float maxRange, Vec2f& intersection);
-bool BoxBoxIntersection(const Box& a, const Box& b);
+bool BoxBoxIntersection(const Boxf& a, const Boxf& b);

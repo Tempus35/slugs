@@ -21,7 +21,7 @@ class PhysicsObject
 
 protected:
 
-	Box			bounds;										// Collision bounding box of the object
+	Boxf		bounds;										// Collision bounding box of the object
 	Vec2f		velocity;									// Velocity of the object (pixels/second)
 	Vec2f		acceleration;								// Acceleration of the object (pixels/second squared)
 
@@ -56,7 +56,7 @@ public:
 	virtual void SetExtents(const Vec2f& extents);
 
 	// Gets the bounding box of the object
-	const Box& GetBounds() const;
+	const Boxf& GetBounds() const;
 
 	// Gets the velocity of the object
 	const Vec2f& GetVelocity() const;
