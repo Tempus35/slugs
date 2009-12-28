@@ -1,0 +1,1 @@
+The fonts folder, for the fonts for the game.

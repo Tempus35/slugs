@@ -1,0 +1,1 @@
+This is the folder where clouds go, make a subfolder with the name of the theme the clouds go in, look in levels, and put the clouds in there.

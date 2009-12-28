@@ -1,0 +1,1 @@
+This is the folder for graves, make a subfolder with graves name on it with the images for the grave inside. 

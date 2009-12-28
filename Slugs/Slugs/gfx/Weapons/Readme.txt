@@ -1,0 +1,1 @@
+The weapons folder, just make sure the weapon has a unique name.

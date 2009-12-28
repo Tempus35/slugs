@@ -1,0 +1,1 @@
+Folder for placeholders, graphics that will be replaced later.

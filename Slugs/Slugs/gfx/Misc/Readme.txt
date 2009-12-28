@@ -1,0 +1,1 @@
+Folder for graphics that don't have another folder.

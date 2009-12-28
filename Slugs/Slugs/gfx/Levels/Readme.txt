@@ -1,0 +1,2 @@
+This is the folder for level/theme graphics. Make a folder per level/theme, naming it based on the theme. Inside that folder are needed a couple of things: ground textures, up to 4; under texture, the texture that is under the ground texture, like a shadow; the over texture, the one that is on type of the ground, like grass etc. the background layer 1, this is the back background and the background layer 2 which is the foreground background, where you put the objects/land etc for the background; the water texture, self explanitory. 
+
