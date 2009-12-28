@@ -41,6 +41,7 @@ Slug::Slug(Team* _team, AIController* aiController) : Object(NULL, ObjectType_Sl
 	ArmSelf();
 
 	goal = NULL;
+	stunTimer = 0.0f;
 
 }
 
@@ -73,77 +74,89 @@ bool Slug::Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind)
 	if (hps > 0)
 	{
 
-		// Update our ai controller if we have one. This must be the active slug on the active player.
-		if ((controller) && (team->GetPlayer() == Game::Get()->GetCurrentPlayer()) && (team->GetPlayer()->GetCurrentSlug() == this) && (!team->GetPlayer()->IsTurnEnding()))
-			controller->Update(this, elapsedTime);
-
-		//
-		// Update shot power if slug is charging a weapon
-		//
-
-		if (charging)
+		// If we are stunned we can't perform any actions
+		if (stunTimer > 0.0f)
 		{
 
-			power += elapsedTime * SHOT_POWER_CHARGE_RATE;
+			stunTimer -= elapsedTime;
 
-			// Fire when we reach max power
-			if (power >= 1.0f)
-			{
-				power = 1.0f;
-				Fire();
-			}
-				
 		}
-		
-		//
-		// Movement - only works when in the resting state
-		//
-
-		if (atRest)
+		else
 		{
 
-			float direction = 0.0f;
+			// Update our ai controller if we have one. This must be the active slug on the active player.
+			if ((controller) && (team->GetPlayer() == Game::Get()->GetCurrentPlayer()) && (team->GetPlayer()->GetCurrentSlug() == this) && (!team->GetPlayer()->IsTurnEnding()))
+				controller->Update(this, elapsedTime);
 
-			if (movementDirection & MOVEMENTDIRECTION_RIGHT)
-				direction = 1.0f;
-			else if (movementDirection & MOVEMENTDIRECTION_LEFT)
-				direction = -1.0f;
+			//
+			// Update shot power if slug is charging a weapon
+			//
 
-			if (direction != 0.0f)
+			if (charging)
 			{
 
-				float height = Game::Get()->GetWorld()->GetTerrain()->GetHeightAt(Vec2f(bounds.center.x + direction, bounds.center.y));
-		
-				float dy = height - (bounds.center.y - bounds.extents.y);
+				power += elapsedTime * SHOT_POWER_CHARGE_RATE;
 
-				if ((dy >= 0.0f) && (dy <= SLUG_MAX_UP_STEP))
+				// Fire when we reach max power
+				if (power >= 1.0f)
 				{
-				
-					moved = true;
-					bounds.center.x += direction * elapsedTime * SLUG_MOVEMENT_SPEED;
-					bounds.center.y = height + RoundUpToInt(bounds.extents.y) + 2.0f;
-				
+					power = 1.0f;
+					Fire();
 				}
-				else if (dy < 0.0f)
+					
+			}
+			
+			//
+			// Movement - only works when in the resting state
+			//
+
+			if (atRest)
+			{
+
+				float direction = 0.0f;
+
+				if (movementDirection & MOVEMENTDIRECTION_RIGHT)
+					direction = 1.0f;
+				else if (movementDirection & MOVEMENTDIRECTION_LEFT)
+					direction = -1.0f;
+
+				if (direction != 0.0f)
 				{
 
-					if (Abs(dy) <= SLUG_MAX_DOWN_STEP)
-					{
+					float height = Game::Get()->GetWorld()->GetTerrain()->GetHeightAt(Vec2f(bounds.center.x + direction, bounds.center.y));
+			
+					float dy = height - (bounds.center.y - bounds.extents.y);
 
+					if ((dy >= 0.0f) && (dy <= SLUG_MAX_UP_STEP))
+					{
+					
 						moved = true;
 						bounds.center.x += direction * elapsedTime * SLUG_MOVEMENT_SPEED;
-						bounds.center.y = height + bounds.extents.y + 2.0f;
-
+						bounds.center.y = height + RoundUpToInt(bounds.extents.y) + 2.0f;
+					
 					}
-					else
+					else if (dy < 0.0f)
 					{
 
-						moved = true;
-						bounds.center.x += Max(elapsedTime * SLUG_MOVEMENT_SPEED, 1.0f) * direction;
-						SetAtRest(false);
+						if (Abs(dy) <= SLUG_MAX_DOWN_STEP)
+						{
 
-						// Throw the slug off the edge
-						SetVelocity(Vec2f(direction * 25.0f, 5.0f));
+							moved = true;
+							bounds.center.x += direction * elapsedTime * SLUG_MOVEMENT_SPEED;
+							bounds.center.y = height + bounds.extents.y + 2.0f;
+
+						}
+						else
+						{
+
+							moved = true;
+							bounds.center.x += Max(elapsedTime * SLUG_MOVEMENT_SPEED, 1.0f) * direction;
+							SetAtRest(false);
+
+							// Throw the slug off the edge
+							SetVelocity(Vec2f(direction * 25.0f, 5.0f));
+
+						}
 
 					}
 
@@ -151,38 +164,38 @@ bool Slug::Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind)
 
 			}
 
-		}
+			//
+			// Update aim
+			//
 
-		//
-		// Update aim
-		//
+			if (movementDirection & MOVEMENTDIRECTION_UP)
+			{
 
-		if (movementDirection & MOVEMENTDIRECTION_UP)
-		{
+				aimAngle += elapsedTime * SLUG_AIM_SPEED;
 
-			aimAngle += elapsedTime * SLUG_AIM_SPEED;
+				if (aimAngle > Math::PI_OVER_2)
+					aimAngle = Math::PI_OVER_2;
 
-			if (aimAngle > Math::PI_OVER_2)
-				aimAngle = Math::PI_OVER_2;
+			}
 
-		}
+			if (movementDirection & MOVEMENTDIRECTION_DOWN)
+			{
 
-		if (movementDirection & MOVEMENTDIRECTION_DOWN)
-		{
+				aimAngle -= elapsedTime * SLUG_AIM_SPEED;
 
-			aimAngle -= elapsedTime * SLUG_AIM_SPEED;
+				if (aimAngle < -Math::PI_OVER_2)
+					aimAngle = -Math::PI_OVER_2;
 
-			if (aimAngle < -Math::PI_OVER_2)
-				aimAngle = -Math::PI_OVER_2;
+			}
 
-		}
+			if (moved)
+			{
 
-		if (moved)
-		{
+				// Update our sprite since we moved
+				Moved();
+				
+			}
 
-			// Update our sprite since we moved
-			Moved();
-			
 		}
 
 	}
@@ -215,19 +228,74 @@ bool Slug::Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind)
 
 }
 
+bool Slug::OnCollideWithTerrain()
+{
+
+	//
+	// Apply falling damage
+	//
+
+	if (Game::Get()->GetGameBool(GameBool_FallDamage))
+	{
+
+		const float SAFE_FALL_HEIGHT = 125.0f;
+
+		float fallHeight = initialHeight - bounds.center.y;
+
+		if (fallHeight > SAFE_FALL_HEIGHT)
+		{
+
+			AdjustHitpoints(-RoundDownToInt(fallHeight / 10.0f));
+
+		}
+
+	}
+
+	// Set current height as the new initial height
+	initialHeight = bounds.center.y;
+
+	return Object::OnCollideWithTerrain();
+
+}
+
+void Slug::OnHitpointsChanged(int oldValue)
+{
+
+	if ((Game::Get()->GetGameBool(GameBool_DamageEndsTurn)) && (oldValue > hps))
+	{
+
+		// Stun the slug so it can't use its end turn time to move
+		StunSelf(Game::Get()->GetGameFloat(GameFloat_TurnEndTime));
+
+		team->GetPlayer()->EndTurn();
+
+	}
+
+}
+
 void Slug::StartMovingLeft()
 {
 
-	movementDirection |= MOVEMENTDIRECTION_LEFT;
-	FaceLeft();
+	if (stunTimer <= 0.0f)
+	{
+
+		movementDirection |= MOVEMENTDIRECTION_LEFT;
+		FaceLeft();
+
+	}
 
 }	
 
 void Slug::StartMovingRight()
 {
 
-	movementDirection |= MOVEMENTDIRECTION_RIGHT;
-	FaceRight();
+	if (stunTimer <= 0.0f)
+	{
+
+		movementDirection |= MOVEMENTDIRECTION_RIGHT;
+		FaceRight();
+
+	}
 
 }
 
@@ -241,21 +309,34 @@ void Slug::StopMoving()
 void Slug::StartAimingUp()
 {
 
-	movementDirection |= MOVEMENTDIRECTION_UP;
-	movementDirection &= ~MOVEMENTDIRECTION_DOWN;
+	if (stunTimer <= 0.0f)
+	{
+
+		movementDirection |= MOVEMENTDIRECTION_UP;
+		movementDirection &= ~MOVEMENTDIRECTION_DOWN;
+
+	}
 
 }
 
 void Slug::StartAimingDown()
 {
 
-	movementDirection |= MOVEMENTDIRECTION_DOWN;
-	movementDirection &= ~MOVEMENTDIRECTION_UP;
+	if (stunTimer <= 0.0f)
+	{
+
+		movementDirection |= MOVEMENTDIRECTION_DOWN;
+		movementDirection &= ~MOVEMENTDIRECTION_UP;
+
+	}
 
 }
 
 bool Slug::StartAimingTowards(const Vec2f& direction)
 {
+
+	if (stunTimer > 0.0f)
+		return false;
 
 	Vec2f aimDirection = GetAimDirection();
 
@@ -611,5 +692,12 @@ void Slug::DebugRender()
 	}
 
 	Object::DebugRender();
+
+}
+
+void Slug::StunSelf(float duration)
+{
+
+	stunTimer = duration;
 
 }

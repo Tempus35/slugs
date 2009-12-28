@@ -697,6 +697,12 @@ bool Game::GetGameDefaultBool(GameBool flag) const
 	case GameBool_Pause:
 		return false;
 
+	case GameBool_FallDamage:
+		return true;
+
+	case GameBool_DamageEndsTurn:
+		return true;
+
 	}
 
 	ASSERTMSG(0, "No default value for GameBool!");
@@ -714,7 +720,7 @@ float Game::GetGameDefaultFloat(GameFloat flag) const
 		return 30.0f;
 
 	case GameFloat_TurnEndTime:
-		return 4.0f;
+		return 3.0f;
 
 	}
 

@@ -114,6 +114,9 @@ public:
 	// Fired when the object collides with another object
 	virtual void OnCollideWithObject(Object* object);
 
+	// Fired when the slugs hitpoints change
+	virtual void OnHitpointsChanged(int oldValue);
+
 	// Sets the collision bounding box of the object
 	virtual void SetBounds(float halfWidth, float halfHeight);
 

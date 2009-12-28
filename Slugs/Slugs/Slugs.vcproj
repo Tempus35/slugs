@@ -207,6 +207,10 @@
 				Name="Game"
 				>
 				<File
+					RelativePath=".\aiaction.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\aicontroller.cpp"
 					>
 				</File>
@@ -508,6 +512,10 @@
 			<Filter
 				Name="Game"
 				>
+				<File
+					RelativePath=".\aiaction.h"
+					>
+				</File>
 				<File
 					RelativePath=".\aicontroller.h"
 					>

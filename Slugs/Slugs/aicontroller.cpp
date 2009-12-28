@@ -3,42 +3,6 @@
 #include "game.h"
 
 /*
-	class AIAction
-*/
-
-AIAction::AIAction(AIActionType _type)
-{
-
-	type = _type;
-
-}
-
-/*
-	class AICommandAction
-*/
-
-AICommandAction::AICommandAction(AIActionCommandType _command) : AIAction(AIActionType_Command)
-{
-
-	command = _command;
-
-}
-
-/*
-	class AIAttackAction
-*/
-
-AIAttackAction::AIAttackAction(WeaponType _weapon, Object* _target, const Vec2f& _direction, float _speed) : AIAction(AIActionType_Attack)
-{
-
-	weapon = _weapon;
-	target = _target;
-	direction = _direction;
-	speed = speed;
-
-}
-
-/*
 	class AIController
 */
 
@@ -121,6 +85,16 @@ void AIController::Update(Slug* slug, float elapsedTime)
 			actionFinished = true;
 
 		}
+
+	}
+	else if (currentAction->type == AIActionType_Pause)
+	{
+
+		AIPauseAction* pauseAction = (AIPauseAction*)currentAction;
+		pauseAction->timer -= elapsedTime;
+
+		if (pauseAction->timer <= 0.0f)
+			actionFinished = true;
 
 	}
 
@@ -233,7 +207,12 @@ void AIController::DecideWhatToDo(Slug* slug)
 
 	}
 
-	closestEnemy = NULL;
+	// Insert a pause to give the camera a chance to move to the slug
+	actionQueue.push(new AIPauseAction(2.0f));
+
+	//
+	// Attack an enemy
+	//
 
 	if (closestEnemy == NULL)
 	{

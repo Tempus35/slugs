@@ -23,10 +23,13 @@ enum GameBool
 	GameBool_CanUseMultipleSlugsPerTurn,		// Allow switching slugs during the turn?
 	GameBool_AlwaysShowNames,					// Always show slug names?
 	GameBool_AlwaysShowHps,						// Always show slug hitpoints?
-	GameBool_Debug,								// Show debugging info
-	GameBool_LockCameraToLevel,					// Lock the camera so that it stays inside the level bounds
-	GameBool_Pause,								// Is the game paused?
+	GameBool_FallDamage,						// Do slugs take falling damage?
+	GameBool_DamageEndsTurn,					// Does damage to a slug end the players turn?
 
+	GameBool_Pause,								// Is the game paused?
+	GameBool_LockCameraToLevel,					// Lock the camera so that it stays inside the level bounds
+	GameBool_Debug,								// Show debugging info
+	
 	GameBool_LAST,								// MUST BE LAST ON THE LIST
 
 };

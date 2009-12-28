@@ -175,6 +175,11 @@ void Object::OnCollideWithObject(Object* object)
 
 }
 
+void Object::OnHitpointsChanged(int oldValue)
+{
+
+}
+
 void Object::SetBounds(float halfWidth, float halfHeight)
 {
 
@@ -210,7 +215,10 @@ void Object::AdjustHitpoints(int change)
 	if (!invulnerable)
 	{
 
+		int oldHps = hps;
 		hps += change;
+
+		OnHitpointsChanged(oldHps);
 
 		if (hps <= 0)
 			Die();
