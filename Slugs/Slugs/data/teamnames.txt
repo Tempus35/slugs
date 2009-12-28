@@ -1,0 +1,9 @@
+Red Team
+Green Team
+Blue Team
+Yellow Team
+Pink Team
+Purple Team
+White Team
+Black Team
+Orange Team

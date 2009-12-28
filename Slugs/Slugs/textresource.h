@@ -2,6 +2,8 @@
 
 #include <vector>
 #include <string>
+#include <fstream>
+#include <iostream>
 
 #include "debug.h"
 #include "resource.h"
@@ -22,6 +24,8 @@ private:
 
 		bool used;
 		std::string text;
+
+		Line() { used = false; }
 
 	};
 

@@ -3,6 +3,25 @@
 TextResource::TextResource(const std::string& path)
 {
 
+	std::ifstream fs(path.c_str(), std::ios_base::in);
+	char buffer[1024];
+	Line line;
+	
+	if (fs.is_open())
+	{
+
+		while (fs.getline(buffer, 1024))
+		{
+
+			line.text = buffer;
+			lines.push_back(line);
+
+		}
+
+		fs.close();
+
+	}
+
 	numUsed = 0;
 
 }

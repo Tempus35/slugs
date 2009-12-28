@@ -1,8 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<config>
-  <fullscreen>false</fullscreen>
-  <logging>false</logging>
-  <music>true</music>
-  <screen_width>1024</screen_width>
-  <screen_height>768</screen_height>
-</config>

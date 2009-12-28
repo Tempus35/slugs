@@ -512,21 +512,8 @@ void Game::LoadResourcesForState(GameState gameState)
 		resourceManager->AddResource("ui_teambar_full", new ImageResource("gfx\\ui\\teambar_full.tga"));
 
 		// Team and name texts
-		std::vector<std::string> names;
-
-		names.push_back("Read Team"); names.push_back("Green Team"); names.push_back("Blue Team"); names.push_back("Yellow Team");
-		names.push_back("Pink Team"); names.push_back("Purple Team"); names.push_back("White Team"); names.push_back("Black Team");
-		names.push_back("Orange Team");
-		resourceManager->AddResource("text_teamnames", new TextResource(names));
-		names.clear();
-
-		names.push_back("Paul"); names.push_back("Tim"); names.push_back("Andreas"); names.push_back("Bob"); names.push_back("George");
-		names.push_back("Texas"); names.push_back("Pete"); names.push_back("Adam"); names.push_back("Angela"); names.push_back("Richard");
-		names.push_back("Bill"); names.push_back("Tony"); names.push_back("Travis"); names.push_back("Theodore"); names.push_back("Amy");
-		names.push_back("Josie"); names.push_back("Clint"); names.push_back("Chris"); names.push_back("Jesus"); names.push_back("Jose");
-		names.push_back("Katie"); names.push_back("Steve"); names.push_back("Sarah");
-		resourceManager->AddResource("text_slugnames", new TextResource(names));
-		names.clear();
+		resourceManager->AddResource("text_teamnames", new TextResource("data\\teamnames.txt"));
+		resourceManager->AddResource("text_slugnames", new TextResource("data\\slugnames.txt"));
 
 		// Images
 		resourceManager->AddResource("image_gravestone", new ImageResource("gfx\\graves\\gravestone16x16.png"));
