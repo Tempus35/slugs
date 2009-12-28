@@ -1,19 +1,121 @@
 #include "player.h"
 #include "game.h"
 
-Player::Player()
+Player::Player(const std::string& playerName, PlayerType playerType)
 {
+
+	type = playerType;
+
+	name = playerName;
 
 	activeSlug = NULL;
 	activeTeam = NULL;
+
+	timeRemaining = 0.0f;
+
+}
+
+const std::string& Player::GetName() const
+{
+
+	return name;
+
+}
+
+PlayerType Player::GetType() const
+{
+
+	return type;
+
+}
+
+Slug* Player::GetCurrentSlug() const
+{
+
+	return activeSlug;
+
+}
+
+void Player::Update(float elapsedTime)
+{
+
+	if (!turnEnding)
+	{
+
+		if (timeRemaining != Math::INFINITY)
+		{
+
+			timeRemaining -= elapsedTime;
+
+			// End our turn if we ran out of time
+			if (timeRemaining <= 0.0f)
+				turnEnding = true;
+
+		}
+
+		// End the turn if we killed our slug
+		if (!activeSlug->IsAlive())
+			turnEnding = true;
+
+	}
+	else
+	{
+
+		// The turn end timer doesn't run out until nothing is happening in the world
+		if (Game::Get()->EnsureNoAction())
+			turnEndTimer -= elapsedTime;
+
+		if (turnEndTimer <= 0.0f)
+			Game::Get()->EndTurn();
+
+	}
+
+	// Render debugging info
+	if (Game::Get()->GetGameBool(GameBool_Debug))
+		DebugRender();
 
 }
 
 void Player::TurnBegins()
 {
 
-	if (!Game::Get()->IsFlagSet(GameFlag_CanChooseSlug))
+	// Reset the turn state
+	ResetForTurn();
+
+	// Select the next slug in the chain if we aren't allowed to choose our own
+	if ((!Game::Get()->GetGameBool(GameBool_CanChooseSlug)) || (activeSlug == NULL))
 		SelectNextSlug();
+
+}
+
+void Player::ResetForTurn()
+{
+
+	timeRemaining = Game::Get()->GetGameFloat(GameFloat_TurnTime);
+	shotsRemaining = Game::Get()->GetGameInt(GameInt_ShotsPerTurn);
+	acted = false;
+
+	turnEnding = false;
+	turnEndTimer = Game::Get()->GetGameFloat(GameFloat_TurnEndTime);
+
+}
+
+void Player::TurnEnds()
+{
+
+	// Stop whatever the active slug is doing
+	activeSlug->StopEverything();
+
+}
+
+void Player::SlugFired()
+{
+
+	shotsRemaining --;
+
+	// End the turn if we are out of shots
+	if (shotsRemaining <= 0)
+		turnEnding = true;
 
 }
 
@@ -118,6 +220,49 @@ void Player::SelectNextSlug()
 void Player::MoveCameraToActiveSlug()
 {
 
-	Game::Get()->GetCamera()->MoveTo(activeSlug);
+	Game::Get()->GetCamera()->MoveTo(activeSlug, false);
+
+}
+
+float Player::GetTurnTimeRemaining() const
+{
+
+	return timeRemaining;
+
+}
+
+bool Player::HasActed() const
+{
+
+	return acted;
+
+}
+
+bool Player::IsTurnEnding() const
+{
+
+	return turnEnding;
+
+}
+
+void Player::EndTurn()
+{
+
+	turnEnding = true;
+
+}
+
+void Player::DebugRender()
+{
+
+	if (activeSlug)
+	{
+		
+		if ((timeRemaining >= 0.0f) && (!turnEnding))
+			Renderer::Get()->DrawDebugCircle(activeSlug->GetPosition(), 25.0f, Color(0, 255, 0));
+		else if (turnEndTimer >= 0.0f)
+			Renderer::Get()->DrawDebugCircle(activeSlug->GetPosition(), 25.0f, Color(255, 255, 0));
+
+	}
 
 }

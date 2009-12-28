@@ -235,11 +235,19 @@
 					>
 				</File>
 				<File
+					RelativePath=".\networkplayer.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\object.cpp"
 					>
 				</File>
 				<File
 					RelativePath=".\physicsobject.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\pickup.cpp"
 					>
 				</File>
 				<File
@@ -286,6 +294,10 @@
 			<Filter
 				Name="Network"
 				>
+				<File
+					RelativePath=".\networkmanager.cpp"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="Particles"
@@ -339,7 +351,7 @@
 				Name="Sound"
 				>
 				<File
-					RelativePath=".\cSFX.cpp"
+					RelativePath=".\soundmanager.cpp"
 					>
 				</File>
 			</Filter>
@@ -391,6 +403,14 @@
 					>
 				</File>
 				<File
+					RelativePath=".\uiteambar.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\uitimer.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\uiwidget.cpp"
 					>
 				</File>
@@ -422,6 +442,10 @@
 				</File>
 				<File
 					RelativePath=".\circle.h"
+					>
+				</File>
+				<File
+					RelativePath=".\converters.h"
 					>
 				</File>
 				<File
@@ -513,11 +537,19 @@
 					>
 				</File>
 				<File
+					RelativePath=".\networkplayer.h"
+					>
+				</File>
+				<File
 					RelativePath=".\object.h"
 					>
 				</File>
 				<File
 					RelativePath=".\physicsobject.h"
+					>
+				</File>
+				<File
+					RelativePath=".\pickup.h"
 					>
 				</File>
 				<File
@@ -564,12 +596,16 @@
 			<Filter
 				Name="Network"
 				>
+				<File
+					RelativePath=".\networkmanager.h"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="Sound"
 				>
 				<File
-					RelativePath=".\cSFX.h"
+					RelativePath=".\soundmanager.h"
 					>
 				</File>
 			</Filter>
@@ -638,6 +674,14 @@
 				</File>
 				<File
 					RelativePath=".\uimanager.h"
+					>
+				</File>
+				<File
+					RelativePath=".\uiteambar.h"
+					>
+				</File>
+				<File
+					RelativePath=".\uitimer.h"
 					>
 				</File>
 				<File

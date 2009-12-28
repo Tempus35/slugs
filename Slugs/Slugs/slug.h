@@ -79,6 +79,8 @@ private:
 
 	AIController*	controller;										// Pointer to our AI controller if we have one
 
+	Object*			goal;											// Pointer to last goal object
+
 public:
 
 	// Constructor
@@ -99,14 +101,20 @@ public:
 	// Stops any current movement
 	void StopMoving();
 
-	// Starts aiming upwards
+	// Starts adjusting aim upwards
 	void StartAimingUp();
 
-	// Starts aiming downwards
+	// Starts adjusting aim downwards
 	void StartAimingDown();
+
+	// Starts adjusting aim towards a direction
+	bool StartAimingTowards(const Vec2f& direction);
 
 	// Stops any aiming movement
 	void StopAiming();
+
+	// Stops all actions in progress
+	void StopEverything();
 
 	// Begins charging the current weapon
 	void StartCharging();
@@ -132,6 +140,9 @@ public:
 	// Gets the current aim angle
 	float GetAimAngle() const;
 
+	// Gets the current aim direction
+	Vec2f GetAimDirection() const;
+
 	// Adjust the aim angle by an amount, used by weapons like the machinegun
 	void AdjustAim(float amount);
 
@@ -152,5 +163,17 @@ public:
 
 	// Gets the team to which the slug is assigned
 	Team* GetTeam() const;
+
+	// Faces the slug to the right
+	void FaceRight();
+
+	// Faces the slug to the left
+	void FaceLeft();
+
+	// Sets the current goal object
+	void SetGoal(Object* object);
+
+	// Renders debugging information
+	void DebugRender();
 
 };

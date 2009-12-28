@@ -155,6 +155,13 @@ struct Vec2
 
 	}
 
+	Vec2 Perpendicular()
+	{
+
+		return Vec2(-y, x);
+
+	}
+
 	sf::Vector2<T> ToSF()
 	{
 

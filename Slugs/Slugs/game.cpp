@@ -9,29 +9,32 @@ Game::Game()
 	updateManager = new UpdateManager();
 	fxManager = new FXManager();
 
-	for (int i = 0; i < GameFlag_LAST; ++ i)
-		flags.push_back(true);
+	for (int i = 0; i < GameBool_LAST; ++ i)
+		gameBools.push_back(GetGameDefaultBool((GameBool)i));
 
-	lockCameraToLevel = true;
+	for (int i = 0; i < GameFloat_LAST; ++ i)
+		gameFloats.push_back(GetGameDefaultFloat((GameFloat)i));
+
+	for (int i = 0; i < GameInt_LAST; ++ i)
+		gameInts.push_back(GetGameDefaultInt((GameInt)i));
 
 	state = GameState_None;
 
 	camera = new Camera();
+
+	noAction = true;
+
+	// Load initial resources
+	LoadResourcesForState(GameState_None);
 
 }
 
 Game::~Game()
 {
 
-	std::list<Player*>::iterator i = players.begin();
-
-	while (i != players.end())
-	{
-
-		SafeDelete(*i);
-		++i;
-
-	}
+	for (unsigned int i = 0; i < players.size(); ++ i)
+		SafeDelete(players[i]);
+	
 
 	SafeDelete(camera);
 	SafeDelete(world);
@@ -43,36 +46,98 @@ Game::~Game()
 void Game::Update(float elapsedTime)
 {
 
-	// Update the camera
-	if (camera->Update(elapsedTime))
-		world->CameraMoved(camera->GetPosition());
+	if (!GetGameBool(GameBool_Pause))
+	{
 
-	// Update the update manager
-	if (updateManager)
-		updateManager->Update(elapsedTime);
+		// Update the active player object
+		if (activePlayer != -1)
+			players[activePlayer]->Update(elapsedTime);
 
-	// Update world
-	if (world)
-		world->Update(elapsedTime);
+		// Update the camera
+		if (camera->Update(elapsedTime))
+			world->CameraMoved(camera->GetPosition());
 
-	if (fxManager)
-		fxManager->Update(elapsedTime);
+		// Update the update manager
+		if (updateManager)
+			updateManager->Update(elapsedTime);
+
+		// Update world
+		if (world)
+			noAction = !world->Update(elapsedTime);
+
+		if (fxManager)
+			fxManager->Update(elapsedTime);
+
+	}
 
 }
 
 void Game::Render()
 {
 
+	// Set out camera
 	Renderer::Get()->SetCamera(camera);
 
+	// Render the world
 	if (world)
-	{
-
 		world->Render();
 
-	}
+	#ifdef _DEBUG
 
+		if (GetGameBool(GameBool_Debug))
+		{
+
+			//
+			// Show debugging info about the object under the cursor
+			//
+
+			Object* object = world->SelectedObject();
+			
+			if (!object)
+			{
+
+				Vec2f worldPos = camera->GetWorldPosition(cursorPosition.x, cursorPosition.y);
+				object = world->GetObjectAtPosition(worldPos);
+
+			}
+
+			if (object)
+			{
+
+				ObjectType objectType = object->GetType();
+				const Vec2f& objectPos = object->GetPosition();
+				const Vec2f& objectVel = object->GetVelocity();
+
+				char debugString[1024];
+				sprintf_s(debugString, 1024, "[%s]\n\nPosition: %.1f, %.1f\nVelocity: %.1f, %.1f (%.1f)\n\nAtRest = %s", ObjectTypeToString(objectType).c_str(), objectPos.x, objectPos.y, objectVel.x, objectVel.y, object->GetSpeed(), BoolToString(object->IsAtRest()).c_str());
+				
+				if (objectType == ObjectType_Projectile)
+					sprintf_s(&debugString[strlen(debugString)], 1024 - strlen(debugString), "\n\nTimer: %.1f", ((Projectile*)object)->GetTimer());
+				
+				Renderer::Get()->DrawDebugHint(objectPos + Vec2f(20.0f, -20.0f), debugString, Color(255, 255, 255));
+
+			}
+
+		}
+
+	#endif
+
+	// Render world space debugging overlay
 	Renderer::Get()->DebugDraw();
+
+	// Don't use the camera since this data is overlayed
+	Renderer::Get()->SetCamera(NULL);
+
+	Player* currentPlayer = GetCurrentPlayer();
+
+	if ((currentPlayer) && (currentPlayer->GetCurrentSlug()))
+	{
+
+		char debugInfo[1024];
+		sprintf_s(debugInfo, 1024, "%s - %s (%.1f)", currentPlayer->GetName().c_str(), currentPlayer->GetCurrentSlug()->GetName().c_str(), currentPlayer->GetTurnTimeRemaining());
+		Renderer::Get()->RenderText(10, 40, NULL, debugInfo, 16.0f, Color(255, 255, 255));
+
+	}
 
 }
 
@@ -97,20 +162,20 @@ FXManager* Game::GetFXManager() const
 
 }
 
-bool Game::IsFlagSet(GameFlag flag) const
-{
-
-	return flags[flag];
-
-}
-
 bool Game::KeyDown(sf::Key::Code key, bool shift, bool control, bool alt)
 {
 
 	if (state == GameState_Game)
 	{
 
-		Object* selectedObject = world->SelectedObject();
+		Slug* selectedSlug;
+		bool turnEnding = GetCurrentPlayer()->IsTurnEnding();
+
+		// Only allow the user to control their slug on their own turn
+		if ((Game::Get()->GetCurrentPlayer()) && (GetCurrentPlayer()->GetType() == PlayerType_Local))
+			selectedSlug = Game::Get()->GetCurrentPlayer()->GetCurrentSlug();
+		else
+			selectedSlug = NULL;
 
 		switch (key)
 		{
@@ -119,29 +184,60 @@ bool Game::KeyDown(sf::Key::Code key, bool shift, bool control, bool alt)
 		// Debugging
 		//
 
-		case sf::Key::G:
-			world->Regenerate();
-			break;
+		#ifdef _DEBUG
 
 		case sf::Key::L:
-			lockCameraToLevel = !lockCameraToLevel;
+
+			// Toggle locking camera to the level
+			ToggleGameBool(GameBool_LockCameraToLevel);
+
 			break;
 
 		case sf::Key::K:
 
-			if (selectedObject)
-				selectedObject->SetHitpoints(-1);
+			// Kill the current slug
+			if (selectedSlug)
+				selectedSlug->SetHitpoints(-1);
 			
 			break;
 
+		case sf::Key::D:
+
+			// Toggle debug overlay
+			ToggleGameBool(GameBool_Debug);
+
+			break;
+
+		#endif
+
+		//
+		// Game Controls
+		//
+
+		case sf::Key::P:
+
+			ToggleGameBool(GameBool_Pause);
+
+			break;
+			
 		//
 		// Team Controls
 		//
 
 		case sf::Key::Tab:
 
-			if (IsFlagSet(GameFlag_CanChooseSlug))
-				(*(players.begin()))->SelectNextSlug();
+			// Cycles through available slugs if the feature is enabled
+			if ((GetGameBool(GameBool_CanChooseSlug)) && (selectedSlug))
+			{
+
+				if ((GetGameBool(GameBool_CanUseMultipleSlugsPerTurn)) || (!GetCurrentPlayer()->HasActed()))
+						GetCurrentPlayer()->SelectNextSlug();
+				else
+					GetCurrentPlayer()->MoveCameraToActiveSlug();
+
+			}
+			else
+					GetCurrentPlayer()->MoveCameraToActiveSlug();
 
 			break;
 	
@@ -151,78 +247,78 @@ bool Game::KeyDown(sf::Key::Code key, bool shift, bool control, bool alt)
 
 		case sf::Key::Left:
 
-			if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
-				((Slug*)selectedObject)->StartMovingLeft();
+			if (selectedSlug)
+				selectedSlug->StartMovingLeft();
 
 			break;
 
 		case sf::Key::Right:
 
-			if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
-				((Slug*)selectedObject)->StartMovingRight();
+			if (selectedSlug)
+				selectedSlug->StartMovingRight();
 
 			break;
 
 		case sf::Key::Up:
 
-			if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
-				((Slug*)selectedObject)->StartAimingUp();
+			if (selectedSlug)
+				selectedSlug->StartAimingUp();
 
 			break;
 
 		case sf::Key::Down:
 			
-			if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
-				((Slug*)selectedObject)->StartAimingDown();
+			if (selectedSlug)
+				selectedSlug->StartAimingDown();
 
 			break;
 
 		case sf::Key::Return:
 
-			if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
-				((Slug*)selectedObject)->Jump();
+			if (selectedSlug)
+				selectedSlug->Jump();
 
 			break;
 
 		case sf::Key::Space:
 
-			if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
-				((Slug*)selectedObject)->StartCharging();
+			if ((selectedSlug) && (!turnEnding))
+				selectedSlug->StartCharging();
 
 			break;
 
 		case sf::Key::Num1:
 
-			if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
-				((Slug*)selectedObject)->ArmSelf(WeaponType_Bazooka);
+			if (selectedSlug)
+				selectedSlug->ArmSelf(WeaponType_Bazooka);
 
 			break;
 
 		case sf::Key::Num2:
 
-			if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
-				((Slug*)selectedObject)->ArmSelf(WeaponType_Grenade);
+			if (selectedSlug)
+				selectedSlug->ArmSelf(WeaponType_Grenade);
 
 			break;
 
 		case sf::Key::Num3:
 
-			if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
-				((Slug*)selectedObject)->ArmSelf(WeaponType_Shotgun);
+			if (selectedSlug)
+				selectedSlug->ArmSelf(WeaponType_Shotgun);
 
 			break;
 
 		case sf::Key::Num4:
 
-			if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
-				((Slug*)selectedObject)->ArmSelf(WeaponType_Machinegun);
+			if (selectedSlug)
+				selectedSlug->ArmSelf(WeaponType_Machinegun);
 
 			break;
 
 		case sf::Key::Num5:
 
-			if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
-				((Slug*)selectedObject)->ArmSelf(WeaponType_Mine);
+			if (selectedSlug)
+				selectedSlug->ArmSelf(WeaponType_Mine);
 
 			break;
 
@@ -240,31 +336,37 @@ bool Game::KeyUp(sf::Key::Code key, bool shift, bool control, bool alt)
 	if (state == GameState_Game)
 	{
 		
-		Object* selectedObject = Game::Get()->GetWorld()->SelectedObject();
+		Slug* selectedSlug;
 		
+		// Only allow the user to control their slug on their own turn
+		if ((Game::Get()->GetCurrentPlayer()) && (GetCurrentPlayer()->GetType() == PlayerType_Local))
+			selectedSlug = Game::Get()->GetCurrentPlayer()->GetCurrentSlug();
+		else
+			selectedSlug = NULL;
+
 		switch (key)
 		{
 
 			case sf::Key::Left:
 			case sf::Key::Right:
 
-				if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
-					((Slug*)selectedObject)->StopMoving();
+				if (selectedSlug)
+					selectedSlug->StopMoving();
 			
 				break;
 
 			case sf::Key::Up:
 			case sf::Key::Down:
 
-				if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
-					((Slug*)selectedObject)->StopAiming();
+				if (selectedSlug)
+					selectedSlug->StopAiming();
 
 				break;
 
 			case sf::Key::Space:
 
-				if ((selectedObject) && (selectedObject->GetType() == ObjectType_Slug))
-					((Slug*)selectedObject)->Fire();
+				if (selectedSlug)
+					selectedSlug->Fire();
 
 				break;
 
@@ -282,16 +384,51 @@ bool Game::MouseDown(const Vec2i& position, sf::Mouse::Button button)
 	if (state == GameState_Game)
 	{
 
-		if (button == sf::Mouse::Left)
-		{
-						
-			Vec2f pickPosition = camera->GetWorldPosition(position.x, position.y);
-			Object* pickedObject = Game::Get()->GetWorld()->GetObjectAtPosition(pickPosition);
+		#ifdef _DEBUG
 
-			if (pickedObject)
-				world->SelectObject(pickedObject);
+		if (GetGameBool(GameBool_Debug))
+		{
+
+			if (button == sf::Mouse::Left)
+			{
+
+				Vec2f pickPosition = camera->GetWorldPosition(position.x, position.y);
+				Object* pickedObject = Game::Get()->GetWorld()->GetObjectAtPosition(pickPosition);
+
+				if (pickedObject)
+					world->SelectObject(pickedObject);
+				else
+					world->SelectObject(NULL);
+
+			}
+			else if (button == sf::Mouse::Middle)
+			{
+
+				Object* selectedObject = world->SelectedObject();
+
+				if (selectedObject)
+				{
+
+					Vec2f pickPosition = camera->GetWorldPosition(position.x, position.y);
+					world->SelectedObject()->SetPosition(pickPosition);
+
+					if (selectedObject->GetType() == ObjectType_Projectile)
+					{
+
+						Projectile* projectile = (Projectile*)selectedObject;
+
+						if (projectile->GetTimer() >= 0.0f)
+							projectile->SetTimer(5.0f);
+
+					}
+
+				}
+
+			}
 
 		}
+
+		#endif
 
 	}
 
@@ -309,60 +446,26 @@ bool Game::MouseUp(const Vec2i& position, sf::Mouse::Button button)
 bool Game::MouseMoved(bool left, bool right, bool middle, const Vec2i& from, const Vec2i& to)
 {
 
-	if ((state == GameState_Game) && (right == true))
+	// Store the new cursor position
+	cursorPosition = to;
+
+	if (state == GameState_Game)
 	{
 
-		//
-		// RMB moves the camera
-		//
-
-		Vec2i delta = from - to;
-
-		sf::Rect<float> viewRect = camera->GetView().GetRect();
-
-		if (lockCameraToLevel)
+		if (right)
 		{
 
-			if (delta.x < 0)
-			{
+			//
+			// RMB moves the camera
+			//
 
-				if (-delta.x > (int)viewRect.Left)
-					delta.x = -(int)viewRect.Left; 
+			Vec2i delta = from - to;
+			camera->Move(delta.x, -delta.y);
 
-			}
-			else
-			{
-
-				int d = Game::Get()->GetWorld()->WidthInPixels() - (int)viewRect.Right;
-				
-				if (d < delta.x)
-					delta.x = d;
-
-			}
-
-			if (delta.y < 0)
-			{
-
-				int d = -Game::Get()->GetWorld()->HeightInPixels() - (int)viewRect.Top;
-
-				if (d > delta.y)
-					delta.y = d;
-
-			}
-			else
-			{
-
-				if (delta.y > -(int)viewRect.Bottom)
-					delta.y = -(int)viewRect.Bottom;
-
-			}
+			// Lets the world know the camera moved
+			world->CameraMoved(camera->GetPosition());
 
 		}
-
-		camera->Move(delta.x, -delta.y);
-
-		// Lets the world know the camera moved
-		world->CameraMoved(camera->GetPosition());
 
 	}
 
@@ -375,13 +478,39 @@ void Game::LoadResourcesForState(GameState gameState)
 
 	ResourceManager* resourceManager = ResourceManager::Get();
 
-	if (gameState == GameState_Game)
+	if (gameState == GameState_None)
 	{
 
 		//
-		// Build debugging text resources
+		// These resources are loaded at app start
 		//
 
+		// Fonts
+		resourceManager->AddResource("font_arial", new FontResource("gfx\\fonts\\arial.ttf"));
+		resourceManager->AddResource("font_copacetix", new FontResource("gfx\\fonts\\copacetix.ttf", 64));
+		
+		// UI Sounds
+		resourceManager->AddResource("menu_click", new SoundResource("sfx\\menu_click.wav"));
+
+		// Set default rendering font
+		Renderer::Get()->SetDefaultFont(resourceManager->GetFont("font_arial"));
+
+	}
+	else if (gameState == GameState_Game)
+	{
+
+		//
+		// These resources are loaded when a battle starts
+		//
+
+		// UI Images
+		resourceManager->AddResource("ui_timer", new ImageResource("gfx\\ui\\timer.tga"));
+		resourceManager->AddResource("ui_windbar_empty", new ImageResource("gfx\\ui\\windbar_empty.tga"));
+		resourceManager->AddResource("ui_windbar_full", new ImageResource("gfx\\ui\\windbar_full.tga"));
+		resourceManager->AddResource("ui_teambar_empty", new ImageResource("gfx\\ui\\teambar_empty.tga"));
+		resourceManager->AddResource("ui_teambar_full", new ImageResource("gfx\\ui\\teambar_full.tga"));
+
+		// Team and name texts
 		std::vector<std::string> names;
 
 		names.push_back("Read Team"); names.push_back("Green Team"); names.push_back("Blue Team"); names.push_back("Yellow Team");
@@ -398,10 +527,7 @@ void Game::LoadResourcesForState(GameState gameState)
 		resourceManager->AddResource("text_slugnames", new TextResource(names));
 		names.clear();
 
-		//
-		// Load other resources
-		//
-
+		// Images
 		resourceManager->AddResource("image_gravestone", new ImageResource("gfx\\graves\\gravestone16x16.png"));
 		resourceManager->AddResource("image_water0", new ImageResource("gfx\\levels\\test\\water.tga"));
 		resourceManager->AddResource("image_backgroundfar", new ImageResource("gfx\\levels\\test\\back2.png"));
@@ -431,10 +557,6 @@ void Game::LoadResourcesForState(GameState gameState)
 		resourceManager->AddResource("image_mine", new ImageResource("gfx\\mine_ph.tga"));
 		resourceManager->AddResource("particle_explosion", new ImageResource("gfx\\explosion0.tga"));
 		resourceManager->AddResource("image_snowflake", new ImageResource("gfx\\snowflake.tga"));
-		resourceManager->AddResource("font_arial", new FontResource("gfx\\fonts\\arial.ttf"));
-		resourceManager->AddResource("font_copacetix", new FontResource("gfx\\fonts\\copacetix.ttf", 64));
-
-		resourceManager->AddResource("menu_click", new SoundResource("sfx\\menu_click.WAV"));
 
 	}
 
@@ -473,20 +595,19 @@ void Game::CreateWorld()
 
 	// Center the camera in the world
 	camera->SetPosition(Vec2f((float)world->WidthInPixels() / 2.0f, (float)world->HeightInPixels() / 2.0f));
-	lockCameraToLevel = true;
 
 	// Notify the world that the camera moved (updates parallax)
 	world->CameraMoved(camera->GetPosition());
 
 	// Create 2 players
-	Player* player = new Player();
-	AIPlayer* computer = new AIPlayer();
+	Player* player = new Player("Player");
+	AIPlayer* computer = new AIPlayer("Computer");
 
 	// Create 2 teams
-	Team* teamA = new Team();
+	Team* teamA = new Team(player);
 	teamA->Randomize();
 
-	Team* teamB = new Team();
+	Team* teamB = new Team(computer);
 	teamB->Randomize();
 
 	// Assign teams to players
@@ -500,11 +621,171 @@ void Game::CreateWorld()
 	players.push_back(player);
 	players.push_back(computer);
 
+	// Set active player and start the game
+	activePlayer = Random::RandomInt(0, players.size() - 1);
+	players[activePlayer]->TurnBegins();
+
 }
 
 Camera* Game::GetCamera() const
 {
 
 	return camera;
+
+}
+
+bool Game::GetGameBool(GameBool flag) const
+{
+
+	return gameBools[flag];
+
+}
+
+float Game::GetGameFloat(GameFloat flag) const
+{
+
+	return gameFloats[flag];
+
+}
+
+int Game::GetGameInt(GameInt flag) const
+{
+
+	return gameInts[flag];
+
+}
+
+void Game::SetGameBool(GameBool flag, bool value)
+{
+
+	gameBools[flag] = value;
+
+}
+
+void Game::ToggleGameBool(GameBool flag)
+{
+
+	gameBools[flag] = !gameBools[flag];
+
+}
+
+void Game::SetGameFloat(GameFloat flag, float value)
+{
+
+	gameFloats[flag] = value;
+
+}
+
+void Game::SetGameInt(GameInt flag, int value)
+{
+
+	gameInts[flag] = value;
+
+}
+
+bool Game::GetGameDefaultBool(GameBool flag) const
+{
+
+	switch (flag)
+	{
+
+	case GameBool_CanChooseSlug:
+		return false;
+
+	case GameBool_CanUseMultipleSlugsPerTurn:
+		return false;
+
+	case GameBool_AlwaysShowNames:
+		return true;
+
+	case GameBool_AlwaysShowHps:
+		return true;
+
+	case GameBool_Debug:
+		return false;
+
+	case GameBool_LockCameraToLevel:
+		return true;
+
+	case GameBool_Pause:
+		return false;
+
+	}
+
+	ASSERTMSG(0, "No default value for GameBool!");
+	return false;
+
+}
+
+float Game::GetGameDefaultFloat(GameFloat flag) const
+{
+
+	switch (flag)
+	{
+
+	case GameFloat_TurnTime:
+		return 30.0f;
+
+	case GameFloat_TurnEndTime:
+		return 4.0f;
+
+	}
+
+	ASSERTMSG(0, "No default value for GameFloat!");
+	return 0.0f;
+
+}
+
+int Game::GetGameDefaultInt(GameInt flag) const
+{
+
+	switch (flag)
+	{
+
+	case GameInt_SlugsPerTeam:
+		return 5;
+
+	case GameInt_ShotsPerTurn:
+		return 1;
+
+	}
+
+	ASSERTMSG(0, "No default value for GameInt!");
+	return 0;
+
+}
+
+void Game::EndTurn()
+{
+
+	ASSERT(activePlayer != -1);
+
+	// End current players turn
+	players[activePlayer]->TurnEnds();
+
+	// Start next players turn
+	activePlayer ++;
+
+	if (activePlayer == players.size())
+		activePlayer = 0;
+
+	players[activePlayer]->TurnBegins();
+
+}
+
+Player* Game::GetCurrentPlayer() const
+{
+
+	if ((activePlayer < 0) || (activePlayer >= players.size()))
+		return NULL;
+
+	return players[activePlayer];
+
+}
+
+bool Game::EnsureNoAction() const
+{
+
+	return noAction;
 
 }

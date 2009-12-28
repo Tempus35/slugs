@@ -1,7 +1,10 @@
 #pragma once
 
+#include <sfml/graphics.hpp>
+
 #include "box.h"
 #include "imageresource.h"
+#include "fontresource.h"
 
 class UIWidget
 {

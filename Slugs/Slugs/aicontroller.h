@@ -3,6 +3,7 @@
 #include <queue>
 
 #include "debug.h"
+#include "weapon.h"
 
 /*
 	Enumeration of AI skill levels
@@ -26,6 +27,15 @@ enum AIActionType
 
 	AIActionType_None,
 	AIActionType_Pause,
+	AIActionType_Command,
+	AIActionType_Attack,
+
+};
+
+enum AIActionCommandType
+{
+
+	AIActionCommandType_EndTurn,
 
 };
 
@@ -36,7 +46,7 @@ enum AIActionType
 class Slug;
 
 /*
-	struct AIAction
+	class AIAction
 	Base class for AIActions. These are events that are stored in a queue and processed by the AI update.
 */
 
@@ -50,6 +60,45 @@ public:
 public:
 
 	AIAction(AIActionType _type);
+
+};
+
+/*
+	class AICommandAction
+	Simple command
+*/
+
+class AICommandAction : public AIAction
+{
+
+public:
+
+	AIActionCommandType command;
+
+public:
+
+	AICommandAction(AIActionCommandType _command);
+
+};
+
+/*
+	class AIAttackAction
+	Attacks an object with a weapon
+*/
+
+class AIAttackAction : public AIAction
+{
+
+public:
+
+	WeaponType	weapon;
+	Object*		target;
+	Vec2f		direction;
+	float		speed;
+
+public:
+
+	AIAttackAction(WeaponType _weapon, Object* _target, const Vec2f& _direction, float _speed);
 
 };
 
@@ -74,7 +123,10 @@ protected:
 public:
 
 	// Constructor
-	AIController(AISkillLevel skillLevel);
+	AIController(AISkillLevel skillLevel = AISkillLevel_Expert);
+
+	// Destructor
+	~AIController();
 
 	// Main update function for the controller
 	virtual void Update(Slug* slug, float elapsedTime);

@@ -82,8 +82,41 @@ void World::Regenerate()
 // Simulation
 //
 
-void World::Update(float elapsedTime)
+bool World::Update(float elapsedTime)
 {
+
+	//
+	// Delete all dead objects
+	// This is done first so that anything tracking an object will have had chance to stop doing so on the last frame, before the object is deleted
+	//
+
+	list<Object*>::iterator i = objects.begin();
+
+	while (i != objects.end())
+	{
+
+		Object* obj = (*i);
+
+		if (!obj->IsAlive())
+		{
+
+			if (selectedObject == obj)
+				selectedObject = NULL;
+
+			// Don't delete slugs, they are owned by their teams
+			if (obj->GetType() != ObjectType_Slug)
+				SafeDelete(obj);
+
+			i = objects.erase(i);
+
+		}
+		else
+			i ++;
+
+	}
+
+	// Flag used to determine if anything happened this update
+	bool somethingMoved = false;
 
 	// Deselect our selected slug if it is dying
 	if ((selectedObject) && (selectedObject->GetHitPoints() <= 0))
@@ -105,7 +138,7 @@ void World::Update(float elapsedTime)
 	// Update objects
 	//
 
-	list<Object*>::iterator i = objects.begin();
+	i = objects.begin();
 	list<Object*>::iterator j = objects.begin(), k;
 
 	while (i != objects.end())
@@ -122,6 +155,7 @@ void World::Update(float elapsedTime)
 
 			// Update object
 			bool moved = obj->Update(elapsedTime, gravity, wind);
+			somethingMoved |= moved;
 
 			if ((moved) && (!obj->IsAtRest()))
 			{
@@ -129,7 +163,7 @@ void World::Update(float elapsedTime)
 				// Get new position
 				Vec2f pos = obj->GetPosition();
 
-				if (!terrain->Contains(pos.x, pos.y))
+				if (!terrain->ContainsOpenTop(pos.x, pos.y))
 				{
 
 					// Kill object instantly, it left the terrain area
@@ -162,14 +196,18 @@ void World::Update(float elapsedTime)
 				}
 
 			}
-			else
+			else if (obj->IsAtRest())
 			{
 
 				//
 				// Object is at rest, check to see if we still have terrain holding it up
 				//
 
-				// TODO
+				float height = Game::Get()->GetWorld()->GetTerrain()->GetHeightAt(Vec2f(lastPos.x, lastPos.y));
+				float dy = height - (obj->GetBounds().center.y - obj->GetBounds().extents.y);
+
+				if (dy < -10)
+					obj->SetAtRest(false);
 
 			}
 
@@ -211,32 +249,6 @@ void World::Update(float elapsedTime)
 	}
 
 	//
-	// Delete all dead objects
-	//
-
-	i = objects.begin();
-
-	while (i != objects.end())
-	{
-
-		Object* obj = (*i);
-
-		if (!obj->IsAlive())
-		{
-
-			if (selectedObject == obj)
-				selectedObject = NULL;
-
-			delete obj;
-			i = objects.erase(i);
-
-		}
-		else
-			i ++;
-
-	}
-
-	//
 	// Add all pending objects
 	//
 
@@ -252,6 +264,8 @@ void World::Update(float elapsedTime)
 
 	// Update terrain
 	terrain->BufferDirty();
+
+	return somethingMoved;
 
 }
 
@@ -506,6 +520,13 @@ void World::Render()
 
 		Object* obj = *i;
 
+		#ifdef _DEBUG
+
+		if (Game::Get()->GetGameBool(GameBool_Debug))
+			obj->DebugRender();
+
+		#endif
+
 		if (obj->IsAlive())
 		{
 
@@ -522,7 +543,7 @@ void World::Render()
 				Slug* slugObj = (Slug*)obj;
 				Vec2f objPos = slugObj->GetPosition();
 
-				if (slugObj == selectedObject)
+				if (slugObj == Game::Get()->GetCurrentPlayer()->GetCurrentSlug())
 				{
 
 					Vec2f size;
@@ -542,10 +563,10 @@ void World::Render()
 
 				}
 
-				if (Game::Get()->IsFlagSet(GameFlag_AlwaysShowNames))
+				if (Game::Get()->GetGameBool(GameBool_AlwaysShowNames))
 					Renderer::Get()->RenderTextShadowed(objPos.x, -objPos.y - 34.0f, (FontResource*)ResourceManager::Get()->GetResource("font_copacetix"), slugObj->GetName(), 16.0f, slugObj->GetTeam()->GetColor(), Color(0, 0, 0), FontFlag_Bold|FontFlag_Centered);
 
-				if (Game::Get()->IsFlagSet(GameFlag_AlwaysShowHps))
+				if (Game::Get()->GetGameBool(GameBool_AlwaysShowHps))
 				{
 
 					char hps[16];
@@ -872,9 +893,49 @@ bool World::ObjectCanSee(Object* from, Object* to)
 
 }
 
-bool ObjectCanSeeParabolic(Object* from, Object* to)
+bool World::ObjectCanSeeParabolic(Object* from, Object* to, Vec2f& optimalDirection, float& optimalSpeed)
 {
 
-	return false;
+	const float maxSpeed		= 1500.0f;
+	const float g				= 1000.0f;
+
+	Vec2f toPos = to->GetPosition();
+	Vec2f fromPos = from->GetPosition();
+
+	float u = maxSpeed;
+
+	float x = toPos.x - fromPos.x;
+	float y = toPos.y - fromPos.y;
+
+	float d = Sqr(u) - 2.0f * g * (y + 0.5f * g * (Sqr(x) / Sqr(u)));
+
+	if (d < 0.0f)
+	{
+
+		// Out of range
+		return false;
+
+	}
+
+	float sqrtD = Sqrt(d);
+	float gxOverU = g * x / u;
+
+	float angle0 = Atan((u + sqrtD) / gxOverU);
+	float angle1 = Atan((u - sqrtD) / gxOverU);
+
+	if (fromPos.x > toPos.x)
+	{
+
+		angle0 = Math::PI + angle0;
+		angle1 = Math::PI + angle1;
+
+	}
+
+	float optimalAngle = Max(angle0, angle1);
+	optimalDirection = Vec2f(Cos(optimalAngle), Sin(optimalAngle));
+
+	optimalSpeed = maxSpeed;
+
+	return true;
 
 }

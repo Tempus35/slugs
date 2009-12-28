@@ -10,7 +10,12 @@
 #include <sfml/graphics.hpp>
 
 #include "vec2.h"
-#include "object.h"
+
+/*
+	Forward declarations
+*/
+
+class Object;
 
 /*
 	Enumeration of camera actions
@@ -21,6 +26,7 @@ enum CameraAction
 
 	CameraAction_None,
 	CameraAction_Move,
+	CameraAction_Track,
 
 };
 
@@ -38,6 +44,8 @@ private:
 	CameraAction		action;
 
 	sf::View			view;
+
+	Object*				targetObject;				// Current object which the camera is tracking
 
 public:
 
@@ -66,9 +74,15 @@ public:
 	void Move(int deltaX, int deltaY, bool internalMove = false);
 
 	// Moves the camera to an object
-	void MoveTo(Object* object, bool instant = false);
+	void MoveTo(Object* object, bool track = false, bool instant = false);
 
 	// Updates the camera
 	bool Update(float elapsedTime);
+
+	// Starts tracking an object
+	void StartTracking(Object* object);
+
+	// Stop tracking the target object
+	void StopTracking();
 
 };

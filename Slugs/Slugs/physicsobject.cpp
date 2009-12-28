@@ -26,24 +26,18 @@ PhysicsObject::PhysicsObject()
 bool PhysicsObject::Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind)
 {
 
-	const float PHYSICS_LIMIT_SPEED = 2000.0f;	// Absolute maximum speed in pixels/second
-
 	if (!atRest)
 	{
 
 		// Update acceleration
 		if (affectedByGravity)
-			acceleration += gravity * elapsedTime;
+			acceleration.y = gravity.y;
 
 		if (affectedByWind)
-			acceleration += wind * elapsedTime;
+			acceleration.x = wind.x;
 
 		// Update velocity
 		velocity += acceleration * elapsedTime;
-
-		// Limit velocity
-		if (velocity.Length() > PHYSICS_LIMIT_SPEED)
-			velocity = velocity.Normalize() * PHYSICS_LIMIT_SPEED;
 
 		// Update position
 		int lastX = RoundDownToInt(bounds.center.x), lastY = RoundDownToInt(bounds.center.y);
@@ -58,14 +52,6 @@ bool PhysicsObject::Update(float elapsedTime, const Vec2f& gravity, const Vec2f&
 
 			// Returning true indicates that the object moved
 			return true;
-
-		}
-		else
-		{
-
-			// Set back to the last integer position
-			bounds.center.x = (float)lastX;
-			bounds.center.y = (float)lastY;
 
 		}
 
@@ -126,6 +112,13 @@ const Vec2f& PhysicsObject::GetVelocity() const
 {
 
 	return velocity;
+
+}
+
+float PhysicsObject::GetSpeed()
+{
+
+	return velocity.Length();
 
 }
 

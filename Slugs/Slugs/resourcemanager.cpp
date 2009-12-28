@@ -4,10 +4,6 @@
 	class ResourceManager
 */
 
-//
-// Initialization
-//
-
 ResourceManager::ResourceManager()
 {
 
@@ -20,14 +16,38 @@ ResourceManager::~ResourceManager()
 
 }
 
-//
-// Management
-//
-
 Resource* ResourceManager::GetResource(const std::string& name)
 {
 
 	return resources[name];
+
+}
+
+ImageResource* ResourceManager::GetImage(const std::string& name)
+{
+
+	return (ImageResource*)resources[name];
+
+}
+
+SoundResource* ResourceManager::GetSound(const std::string& name)
+{
+
+	return (SoundResource*)resources[name];
+
+}
+
+FontResource* ResourceManager::GetFont(const std::string& name)
+{
+
+	return (FontResource*)resources[name];
+
+}
+
+TextResource* ResourceManager::GetText(const std::string& name)
+{
+
+	return (TextResource*)resources[name];
 
 }
 
@@ -60,11 +80,7 @@ void ResourceManager::FreeAllResources()
 
 }
 
-//
-// Accessors
-//
-
-int ResourceManager::NumResources()
+int ResourceManager::NumResources() const
 {
 
 	return resources.size();

@@ -203,6 +203,7 @@ public:
 
 	bool CircleCollision(int centerX, int centerY, int radius);
 	bool Contains(float x, float y);
+	bool ContainsOpenTop(float x, float y);
 
 	//
 	// Rendering

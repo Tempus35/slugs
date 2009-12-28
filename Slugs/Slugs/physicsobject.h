@@ -61,6 +61,9 @@ public:
 	// Gets the velocity of the object
 	const Vec2f& GetVelocity() const;
 
+	// Gets the speed of the object
+	float GetSpeed();
+
 	// Sets the velocity of the object
 	virtual void SetVelocity(Vec2f newVelocity);
 	virtual void SetVelocity(float x, float y);			// Deprecated, do not use

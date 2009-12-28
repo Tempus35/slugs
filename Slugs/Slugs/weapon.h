@@ -72,8 +72,8 @@ public:
 	// Reduces remaining ammo, returns true if weapon can fire
 	virtual bool TakeAmmo();
 
-	// Fires the weapon, returns true if the weapon fired
-	virtual bool Fire(Slug* owner) = 0;
+	// Fires the weapon, returns true if the weapon fired. projectileCreated should be set to the launched projectile (if any) for camera tracking
+	virtual bool Fire(Slug* owner, Projectile*& projectileCreated) = 0;
 
 };
 
@@ -91,7 +91,7 @@ public:
 
 	Weapon_Bazooka(int initialAmmo = -1);
 	
-	virtual bool Fire(Slug* owner);
+	virtual bool Fire(Slug* owner, Projectile*& projectileCreated);
 
 };
 
@@ -109,7 +109,7 @@ public:
 
 	Weapon_Grenade(int initialAmmo = -1);
 
-	virtual bool Fire(Slug* owner);
+	virtual bool Fire(Slug* owner, Projectile*& projectileCreated);
 
 };
 
@@ -127,7 +127,7 @@ public:
 
 	Weapon_Shotgun(int initialAmmo = -1);
 
-	virtual bool Fire(Slug* owner);
+	virtual bool Fire(Slug* owner, Projectile*& projectileCreated);
 
 };
 
@@ -150,7 +150,7 @@ public:
 
 	Weapon_Machinegun(int initialAmmo = -1);
 
-	virtual bool Fire(Slug* owner);
+	virtual bool Fire(Slug* owner, Projectile*& projectileCreated);
 
 	// Hooked so that we can fire the machinegun over time
 	virtual void Update(float elapsedTime);
@@ -172,6 +172,6 @@ public:
 
 	Weapon_Mine(int initialAmmo = -1);
 
-	virtual bool Fire(Slug* owner);
+	virtual bool Fire(Slug* owner, Projectile*& projectileCreated);
 
 };

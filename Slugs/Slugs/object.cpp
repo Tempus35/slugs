@@ -24,7 +24,7 @@ Object::Object(Object* creator, ObjectType t)
 	invulnerable = false;
 
 	// Objects don't bounce much by default
-	bounceCoefficient = 0.2f;
+	bounceCoefficient = 0.1f;
 
 }
 
@@ -156,24 +156,22 @@ bool Object::OnCollideWithTerrain()
 	// Bounce
 	//
 
-	const float minSpeed = 100.0f;
+	Vec2f incident = velocity.Normalize();
+	float dp = DotProduct(incident, normal);
 
-	float speed = velocity.Length() * bounceCoefficient;
-
-	if (speed > minSpeed)
+	if (dp < 0.0f)
 	{
 
-		Vec2f direction = velocity.Normalize();
-
-		direction -= normal * (DotProduct(normal, direction)) * 2.0f;
-
-		velocity = direction * speed;
-
-		return false;
+		float dampedSpeed = velocity.Length() * bounceCoefficient;
+		Vec2f direction = incident - (normal * 2.0f * dp);
+		velocity = direction * dampedSpeed;
 
 	}
-	else
+
+	if (Abs(velocity.y) < 10.0f)	
 		return true;
+
+	return false;
 
 }
 
@@ -237,5 +235,53 @@ ObjectType Object::GetType() const
 {
 
 	return type;
+
+}
+
+void Object::DebugRender()
+{
+
+	Vec2f throwAway;
+
+	if (Game::Get()->GetWorld()->GetTerrain()->BoxCollision(bounds.center.x, bounds.center.y, 1.0f, 2.0f * bounds.extents.y, throwAway))
+		Renderer::Get()->DrawDebugBox(bounds, Color(255, 0, 0, 64));
+	else
+		Renderer::Get()->DrawDebugBox(bounds, Color(0, 255, 0, 64));
+
+	float height = Game::Get()->GetWorld()->GetTerrain()->GetHeightAt(bounds.center);
+
+	Vec2f ground = Vec2f(bounds.center.x, height);
+
+	Vec2f perpendicular = Game::Get()->GetWorld()->GetTerrain()->GetNormalForBox(ground.x, ground.y, Max(bounds.extents.x, 5.0f) * 2.0f, Max(bounds.extents.x, 5.0f) * 2.0f).Perpendicular();
+
+	Renderer::Get()->DrawDebugLine(ground - perpendicular * 10.0f, ground + perpendicular * 10.0f, Color(0, 255, 0));
+
+}
+
+/*
+	Helpers
+*/
+
+std::string ObjectTypeToString(ObjectType type)
+{
+
+	switch (type)
+	{
+
+	case ObjectType_Slug:
+		return "Slug";
+
+	case ObjectType_Flavor:
+		return "Flavor";
+
+	case ObjectType_Pickup:
+		return "Pickup";
+
+	case ObjectType_Projectile:
+		return "Projectile";
+
+	}
+
+	return "ObjectType_UNKNOWN";
 
 }

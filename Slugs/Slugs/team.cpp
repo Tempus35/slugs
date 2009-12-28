@@ -1,8 +1,13 @@
 #include "team.h"
 #include "game.h"
+#include "aicontroller.h"
 
-Team::Team()
+Team::Team(Player* player)
 {
+
+	ASSERT(player != NULL);
+
+	owner = player;
 
 	name = "";
 	color = Color(128, 0, 0);
@@ -54,6 +59,13 @@ void Team::SetColor(const Color& newColor)
 {
 
 	color = newColor;
+
+}
+
+Player* Team::GetPlayer() const
+{
+
+	return owner;
 
 }
 
@@ -162,7 +174,14 @@ void Team::Randomize(int numSlugs)
 	for (int i = 0; i < numSlugs; ++ i)
 	{
 
-		Slug* slug = new Slug(this);
+		AIController* controller;
+	
+		if (owner->GetType() == PlayerType_Computer)
+			controller = new AIController();
+		else
+			controller = NULL;
+
+		Slug* slug = new Slug(this, controller);
 
 		std::string n;
 		slugNames->GetRandomLine(n, true);

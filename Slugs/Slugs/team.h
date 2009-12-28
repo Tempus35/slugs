@@ -8,7 +8,11 @@
 #include "slug.h"
 #include "weaponstore.h"
 
-using namespace std;
+/*
+	Forward declarations
+*/
+
+class Player;
 
 /*
 	class Team
@@ -23,7 +27,9 @@ private:
 	std::string				name;				// Team Name
 	Color					color;				// Team color;
 
-	vector<Slug*>			slugs;				// Slugs on the team
+	Player*					owner;				// The player to which this team belongs
+
+	std::vector<Slug*>		slugs;				// Slugs on the team
 
 	int						numAlive;			// Number of alive slugs remaining
 	int						activeIndex;		// Index of currently active slug
@@ -35,7 +41,7 @@ private:
 public:
 
 	// Initialization
-	Team();
+	Team(Player* player);
 	~Team();
 
 	// Gets the name of the team
@@ -49,6 +55,9 @@ public:
 
 	// Sets the color of the team
 	void SetColor(const Color& newColor);
+
+	// Gets the owning player
+	Player* GetPlayer() const;
 
 	// Does this team contain the slug?
 	bool Contains(Slug* slug) const;

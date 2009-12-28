@@ -1435,7 +1435,7 @@ float Terrain::GetHeightAt(const Vec2f& position)
 
 		Color* ptr = (Color*)textureBuffer->Data(x, y);
 
-		if (ptr->a != TERRAINALPHA_EMPTY)
+		if ((ptr) && (ptr->a != TERRAINALPHA_EMPTY))
 			return (float)y;
 
 		y --;
@@ -1505,6 +1505,16 @@ bool Terrain::Contains(float x, float y)
 {
 
 	if ((x < 0) || (x >= textureBuffer->Width()) || (y < 0) || (y >= textureBuffer->Height()))
+		return false;
+
+	return true;
+
+}
+
+bool Terrain::ContainsOpenTop(float x, float y)
+{
+
+	if ((x < 0) || (x >= textureBuffer->Width()) || (y < 0))
 		return false;
 
 	return true;

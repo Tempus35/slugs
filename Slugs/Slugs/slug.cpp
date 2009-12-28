@@ -40,10 +40,15 @@ Slug::Slug(Team* _team, AIController* aiController) : Object(NULL, ObjectType_Sl
 	SetWeapons(new WeaponStore(true), true);
 	ArmSelf();
 
+	goal = NULL;
+
 }
 
 Slug::~Slug()
 {
+
+	if (controller)
+		SafeDelete(controller);
 
 	if (ownsWeaponStore)
 		SafeDelete(weaponStore);
@@ -68,8 +73,8 @@ bool Slug::Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind)
 	if (hps > 0)
 	{
 
-		// Update our ai controller if we have one
-		if (controller)
+		// Update our ai controller if we have one. This must be the active slug on the active player.
+		if ((controller) && (team->GetPlayer() == Game::Get()->GetCurrentPlayer()) && (team->GetPlayer()->GetCurrentSlug() == this) && (!team->GetPlayer()->IsTurnEnding()))
 			controller->Update(this, elapsedTime);
 
 		//
@@ -83,7 +88,10 @@ bool Slug::Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind)
 
 			// Fire when we reach max power
 			if (power >= 1.0f)
+			{
+				power = 1.0f;
 				Fire();
+			}
 				
 		}
 		
@@ -97,15 +105,9 @@ bool Slug::Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind)
 			float direction = 0.0f;
 
 			if (movementDirection & MOVEMENTDIRECTION_RIGHT)
-			{
 				direction = 1.0f;
-				SetImage((ImageResource*)ResourceManager::Get()->GetResource("image_slug_right"));
-			}
 			else if (movementDirection & MOVEMENTDIRECTION_LEFT)
-			{
 				direction = -1.0f;
-				SetImage((ImageResource*)ResourceManager::Get()->GetResource("image_slug_left"));
-			}
 
 			if (direction != 0.0f)
 			{
@@ -119,7 +121,7 @@ bool Slug::Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind)
 				
 					moved = true;
 					bounds.center.x += direction * elapsedTime * SLUG_MOVEMENT_SPEED;
-					bounds.center.y = height + bounds.extents.y + 1.0f;
+					bounds.center.y = height + RoundUpToInt(bounds.extents.y) + 2.0f;
 				
 				}
 				else if (dy < 0.0f)
@@ -130,7 +132,7 @@ bool Slug::Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind)
 
 						moved = true;
 						bounds.center.x += direction * elapsedTime * SLUG_MOVEMENT_SPEED;
-						bounds.center.y = height + bounds.extents.y + 1.0f;
+						bounds.center.y = height + bounds.extents.y + 2.0f;
 
 					}
 					else
@@ -217,7 +219,7 @@ void Slug::StartMovingLeft()
 {
 
 	movementDirection |= MOVEMENTDIRECTION_LEFT;
-	facingDirection = FACINGDIRECTION_LEFT;
+	FaceLeft();
 
 }	
 
@@ -225,7 +227,7 @@ void Slug::StartMovingRight()
 {
 
 	movementDirection |= MOVEMENTDIRECTION_RIGHT;
-	facingDirection = FACINGDIRECTION_RIGHT;
+	FaceRight();
 
 }
 
@@ -240,6 +242,7 @@ void Slug::StartAimingUp()
 {
 
 	movementDirection |= MOVEMENTDIRECTION_UP;
+	movementDirection &= ~MOVEMENTDIRECTION_DOWN;
 
 }
 
@@ -247,6 +250,60 @@ void Slug::StartAimingDown()
 {
 
 	movementDirection |= MOVEMENTDIRECTION_DOWN;
+	movementDirection &= ~MOVEMENTDIRECTION_UP;
+
+}
+
+bool Slug::StartAimingTowards(const Vec2f& direction)
+{
+
+	Vec2f aimDirection = GetAimDirection();
+
+	float dp = DotProduct(direction, aimDirection);
+
+	// Adjust facing if needed
+	if (SignCompare(direction.x, aimDirection.x) == false)
+	{
+
+		if (facingDirection == FACINGDIRECTION_RIGHT)
+			FaceLeft();
+		else
+			FaceRight();
+
+	}
+	else
+	{
+
+		float angle = Acos(dp);
+
+		if (angle > Math::PI_OVER_180 * 2.0f)
+		{
+
+			if (aimDirection.y > direction.y)
+				StartAimingDown();
+			else
+				StartAimingUp();
+
+		}
+		else
+		{
+
+			//
+			// We are close enough, just adjust the aim angle directly
+			//
+
+			if (aimDirection.y > direction.y)
+				aimAngle -= angle;
+			else
+				aimAngle += angle;
+
+			return true;
+
+		}
+
+	}
+
+	return false;
 
 }
 
@@ -257,14 +314,36 @@ void Slug::StopAiming()
 
 }
 
+void Slug::StopEverything()
+{
+
+	StopMoving();
+	StopAiming();
+
+	goal = NULL;
+
+}
+
 void Slug::StartCharging()
 {
 
 	if (!charging)
 	{
 
-		power = 0.0f;
-		charging = true;
+		if (currentWeapon != NULL)
+		{
+
+			if (currentWeapon->NeedsCharge() == true)
+			{
+
+				power = 0.0f;
+				charging = true;
+
+			}
+			else
+				Fire();
+
+		}
 
 	}
 
@@ -284,11 +363,11 @@ void Slug::Jump()
 		SetAtRest(false);
 
 		if (facingDirection == FACINGDIRECTION_LEFT)
-			velocity.x = -100.0f;
+			velocity.x = -125.0f;
 		else
-			velocity.x = 100.0f;
+			velocity.x = 125.0f;
 
-		velocity.y = 200.0f;
+		velocity.y = 300.0f;
 
 	}
 
@@ -307,17 +386,32 @@ void Slug::Fire()
 		bool fired = false;
 
 		if (currentWeapon)
-			fired = currentWeapon->Fire(this);
-
-		if (!fired)
 		{
 
-			// TODO: Play click sound
+			Projectile* projectile = NULL;
+			fired = currentWeapon->Fire(this, projectile);
+
+			if (projectile)
+				Game::Get()->GetCamera()->StartTracking(projectile);
 
 		}
 
 		// We are no longer charging the weapon
 		charging = false;
+
+		if (fired)
+		{
+
+			// Let our owning player know we fired
+			GetTeam()->GetPlayer()->SlugFired();
+
+		}
+		else
+		{
+
+			// TODO: Play click sound
+
+		}
 
 	}
 
@@ -334,6 +428,16 @@ float Slug::GetAimAngle() const
 {
 
 	return aimAngle;
+
+}
+
+Vec2f Slug::GetAimDirection() const
+{
+
+	if (facingDirection == FACINGDIRECTION_RIGHT)
+		return Vec2f(Cos(aimAngle), Sin(aimAngle)).Normalize();
+	else
+		return Vec2f(-Cos(aimAngle), Sin(aimAngle)).Normalize();
 
 }
 
@@ -358,7 +462,10 @@ void Slug::Die(bool instant)
 {
 
 	if (instant)
+	{
+		hps = -1;
 		alive = false;
+	}
 
 }
 
@@ -394,15 +501,26 @@ void Slug::SpawnGravestone() const
 void Slug::ArmSelf()
 {
 
-	if ((!currentWeapon) && (weaponStore))
-		currentWeapon = weaponStore->Get();
+	if (!charging)
+	{
+
+		if ((!currentWeapon) && (weaponStore))
+			currentWeapon = weaponStore->Get();
+
+	}
 
 }
 
 void Slug::ArmSelf(WeaponType type)
 {
 
-	currentWeapon = weaponStore->Get(type);
+	if (!charging)
+	{
+
+		if (currentWeapon->GetType() != type)
+			currentWeapon = weaponStore->Get(type);
+
+	}
 
 }
 
@@ -425,6 +543,10 @@ void Slug::SetWeapons(WeaponStore* store, bool slugOwns)
 Vec2f Slug::GetWeaponPoint() const
 {
 
+	return GetPosition();
+
+	// TODO
+
 	Vec2f aimDirection = Vec2f(Cos(aimAngle), Sin(aimAngle));
 
 	if (facingDirection != FACINGDIRECTION_RIGHT)
@@ -438,5 +560,56 @@ Team* Slug::GetTeam() const
 {
 
 	return team;
+
+}
+
+void Slug::FaceRight()
+{
+
+	if (facingDirection != FACINGDIRECTION_RIGHT)
+	{
+
+		facingDirection = FACINGDIRECTION_RIGHT;
+		SetImage((ImageResource*)ResourceManager::Get()->GetResource("image_slug_right"));
+
+	}
+
+}
+
+void Slug::FaceLeft()
+{
+
+	if (facingDirection != FACINGDIRECTION_LEFT)
+	{
+
+		facingDirection = FACINGDIRECTION_LEFT;
+		SetImage((ImageResource*)ResourceManager::Get()->GetResource("image_slug_left"));
+
+	}
+
+}
+
+void Slug::SetGoal(Object* object)
+{
+
+	goal = object;
+
+}
+
+void Slug::DebugRender()
+{
+
+	if (goal != NULL)
+	{
+
+		// Goal arrow
+		Renderer::Get()->DrawDebugArrow(GetPosition(), goal->GetPosition(), Color(255, 0, 0));
+
+		// Aiming trajectory
+		Renderer::Get()->DrawDebugTrajectory(GetPosition(), GetAimDirection(), 1500.0f, Color(0, 0, 255));
+
+	}
+
+	Object::DebugRender();
 
 }

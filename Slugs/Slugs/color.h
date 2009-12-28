@@ -21,6 +21,16 @@ struct Color
 
 	}
 
+	Color(const Color& rgb, byte alpha)
+	{
+
+		r = rgb.r;
+		g = rgb.g;
+		b = rgb.b;
+		a = alpha;
+
+	}
+
 	sf::Color ToSF() const
 	{
 

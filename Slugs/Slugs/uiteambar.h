@@ -2,15 +2,15 @@
 
 #include "uiwidget.h"
 
-enum UIWindBarImage
+enum UITeamBarImage
 {
 
-	UIWindBarImage_Unfilled = 0,
-	UiWindBarImage_Filled = 1,
+	UITeamBarImage_Empty = 0,
+	UITeamBarImage_Full = 1,
 
 };
 
-class UIWindBar : public UIWidget
+class UITeamBar : public UIWidget
 {
 
 protected:

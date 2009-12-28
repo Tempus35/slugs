@@ -126,13 +126,13 @@ public:
 	virtual bool IsInvulnerable() const;
 
 	// Returns true if the object is currently alive. Dead objects are removed from the world.
-	bool IsAlive() const;
+	virtual bool IsAlive() const;
 
 	// Gets the current number of hit points
-	int GetHitPoints() const;
+	virtual int GetHitPoints() const;
 
 	// Adjust the current hitpoints of the object
-	void AdjustHitpoints(int change);
+	virtual void AdjustHitpoints(int change);
 
 	// Gets the current sprite used by the object
 	const Sprite& GetSprite() const;
@@ -140,4 +140,9 @@ public:
 	// Gets the base type of the object
 	ObjectType GetType() const;
 
+	// Renders debugging info for the object
+	virtual void DebugRender();
+
 };
+
+std::string ObjectTypeToString(ObjectType type);

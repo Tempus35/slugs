@@ -48,6 +48,15 @@ inline int RoundDownToInt(float x)
 
 }
 
+// Rounds a floating point value up to an int
+inline int RoundUpToInt(float x)
+{
+
+	return (int)ceilf(x);
+
+}
+
+
 // Rounds a floating point value down
 inline float Floor(float x)
 {
@@ -88,12 +97,51 @@ inline float Cos(float x)
 	
 }
 
+// Calculates the arccosine of x
+inline float Acos(float x)
+{
+
+	return acosf(x);
+
+}
+
+// Calculates the arcsine of x
+inline float Asin(float x)
+{
+
+	return asinf(x);
+
+}
+
+// Calculates the arctan of x
+inline float Atan(float x)
+{
+
+	return atanf(x);
+
+}
+
 // Copys the sign from one value to another
 template <class T>
 inline T CopySign(T from, T to)
 {
 
 	return from < 0 ? to < 0 ? to : -to : to >= 0 ? to : -to;  
+
+}
+
+// Compares signs, returns true if equal
+template <class T>
+inline bool SignCompare(T a, T b)
+{
+
+	if ((a < 0) && (b < 0))
+		return true;
+
+	if ((a >= 0) && (b >= 0))
+		return true;
+
+	return false;
 
 }
 

@@ -7,6 +7,7 @@
 #include "color.h"
 #include "sprite.h"
 #include "fontresource.h"
+#include "box.h"
 
 /*
 	Enumeration of font rendering styles (can be ORed together)
@@ -28,6 +29,36 @@ enum FontFlag
 class Camera;
 
 /*
+	struct DebugDrawable
+	Container for an object to be draw in the debug layer
+*/
+
+struct DebugDrawable
+{
+
+	virtual const sf::Drawable& GetDrawable() = 0;
+
+};
+
+struct DebugShape : public DebugDrawable
+{
+
+	sf::Shape shape;
+
+	const sf::Drawable& GetDrawable() { return shape; }
+
+};
+
+struct DebugString : public DebugDrawable
+{
+
+	sf::String string;
+
+	const sf::Drawable& GetDrawable() { return string; }
+
+};
+
+/*
 	class Renderer
 */
 
@@ -43,7 +74,9 @@ private:
 	bool							fullscreen;
 	std::string						windowTitle;
 
-	std::vector<sf::Shape>			debugShapes;
+	std::vector<DebugDrawable*>		debugLayer;
+
+	FontResource*					defaultFont;
 
 private:
 
@@ -65,11 +98,31 @@ public:
 	void SetCamera(Camera* camera);
 
 	// Draws a debug circle
-	void DrawCircle(const Vec2f& center, float radius, const Color& color);
-	void DrawRay(const Vec2f& start, const Vec2f& direction, float length, const Color& color);
+	void DrawDebugCircle(const Vec2f& center, float radius, const Color& color);
+
+	// Draws a debug ray
+	void DrawDebugRay(const Vec2f& start, const Vec2f& direction, float length, const Color& color);
+
+	// Draws a debug line
+	void DrawDebugLine(const Vec2f& start, const Vec2f& end, const Color& color);
+
+	// Draws a debug arrow
+	void DrawDebugArrow(const Vec2f& start, const Vec2f& end, const Color& color);
+
+	// Draws a debug trajectory
+	void DrawDebugTrajectory(const Vec2f& start, const Vec2f& direction, float initialSpeed, const Color& color);
+
+	// Draws a debug hint box
+	void DrawDebugHint(const Vec2f& position, const std::string& text, const Color& color);
+
+	// Draws a debug box
+	void DrawDebugBox(const Boxf& box, const Color& color);
 
 	// Draws all queued debug shapes
 	void DebugDraw();
+
+	// Sets the default font
+	void SetDefaultFont(FontResource* font);
 
 	// Render text to the screen
 	void RenderText(float x, float y, FontResource* fontResource, const std::string& text, float size = 30.0f, const Color& color = Color(255, 255, 255), unsigned int flags = FontFlag_None);

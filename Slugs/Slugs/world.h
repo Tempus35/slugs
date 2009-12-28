@@ -15,7 +15,7 @@
 #include "intersection.h"
 #include "circle.h"
 
-#define WORLD_DEFAULT_GRAVITY		-5000
+#define WORLD_DEFAULT_GRAVITY		-1000.0f
 #define WORLD_WATER_LINES			5
 #define WORLD_WATER_MIN_SPEED		50.0f
 #define WORLD_WATER_MAX_SPEED		100.0f
@@ -82,7 +82,7 @@ public:
 	// Simulation
 	//
 
-	void Update(float elapsedTime);
+	bool Update(float elapsedTime);
 	void AddObject(Object* object);
 	void AddCreatedObject(Object* object);
 	void RemoveAllObjects();
@@ -151,12 +151,12 @@ public:
 	Object* GetNearestObject(Object* object, ObjectType type);
 
 	// Gets all objects within a given radius of an object
-	void GetObjectsNear(std::vector<Object*>& list, Object* object, float radius, ObjectType type);
+	void GetObjectsNear(std::vector<Object*>& list, Object* object, float radius, ObjectType type = ObjectType_Any);
 
 	// Returns true if a direct line of sight exists between two objects
 	bool ObjectCanSee(Object* from, Object* to);
 
 	// Returns true if an object can hit another with a parabolic weapon
-	bool ObjectCanSeeParabolic(Object* from, Object* to);
+	bool ObjectCanSeeParabolic(Object* from, Object* to, Vec2f& optimalDirection, float& optimalSpeed);
 
 };

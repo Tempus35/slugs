@@ -7,11 +7,13 @@
 
 #include "camera.h"
 #include "game.h"
+#include "object.h"
 
 Camera::Camera()
 {
 
 	action = CameraAction_None;
+	targetObject = NULL;
 
 }
 
@@ -68,6 +70,25 @@ void Camera::Move(int deltaX, int deltaY, bool internalMove)
 	float x = (float)deltaX;
 	float y = (float)deltaY;
 
+	if (Game::Get()->GetGameBool(GameBool_LockCameraToLevel))
+	{
+
+		const sf::FloatRect& rect = view.GetRect();
+
+		if (rect.Left + x < 0.0f)
+			x = 0.0f;
+
+		if (-rect.Bottom + y < 0.0f)
+			y = 0.0f;
+
+		if (rect.Right + x > Game::Get()->GetWorld()->WidthInPixels())
+			x = 0.0f;
+
+		if (-rect.Top + y > Game::Get()->GetWorld()->HeightInPixels())
+			y = 0.0f;
+
+	}
+
 	position += Vec2f(x, y);
 	view.Move(x, -y);
 
@@ -76,7 +97,7 @@ void Camera::Move(int deltaX, int deltaY, bool internalMove)
 
 }
 
-void Camera::MoveTo(Object* object, bool instant)
+void Camera::MoveTo(Object* object, bool track, bool instant)
 {
 
 	if (instant)
@@ -106,17 +127,27 @@ void Camera::MoveTo(Object* object, bool instant)
 
 	}
 
+	// Set the object as the target if we are going to track it
+	if (track)
+		targetObject = object;
+
 }
 
 bool Camera::Update(float elapsedTime)
 {
 
+	// If our target object is dead, stop tracking it
+	if ((targetObject) && (!targetObject->IsAlive()))
+		StopTracking();
+
 	const float CAMERA_MOVE_SPEED = 1000.0f;		// Movement speed of camera in pixels/second
 
-	switch (action)
-	{
+	// Continue tracking if we have a target object
+	if ((targetObject) && (action == CameraAction_None))
+		action = CameraAction_Track;
 
-	case CameraAction_Move:
+	if (action == CameraAction_Move)
+	{
 
 		Vec2f direction = target - position;
 		float distanceToTarget = direction.Length();
@@ -135,10 +166,46 @@ bool Camera::Update(float elapsedTime)
 		else
 			action = CameraAction_None;
 
-		break;
+	}
+	else if (action == CameraAction_Track)
+	{
+
+		Vec2f direction = targetObject->GetPosition() - position;
+		float distanceToTarget = direction.Length();
+
+		if (distanceToTarget >= 1.0f)
+		{
+
+			float distanceToMove = Min(distanceToTarget, elapsedTime * targetObject->GetSpeed());
+
+			direction = direction.Normalize() * distanceToMove;
+			Move(RoundDownToInt(direction.x), RoundDownToInt(direction.y), true);
+
+			return true;
+
+		}
+		else
+			action = CameraAction_None;
 
 	}
 
 	return false;
+
+}
+
+void Camera::StartTracking(Object* object)
+{
+
+	ASSERTMSG(object != NULL, "Can't track NULL object. Did you mean to use StopTracking()?");
+	targetObject = object;
+	action = CameraAction_Track;
+
+}
+
+void Camera::StopTracking()
+{
+
+	targetObject = NULL;
+	action = CameraAction_None;
 
 }

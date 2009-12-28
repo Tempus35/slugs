@@ -105,7 +105,7 @@ Weapon_Bazooka::Weapon_Bazooka(int initialAmmo) : Weapon(WeaponType_Bazooka, ini
 
 }
 
-bool Weapon_Bazooka::Fire(Slug* owner)
+bool Weapon_Bazooka::Fire(Slug* owner, Projectile*& projectileCreated)
 {
 
 	ASSERT(owner);
@@ -123,7 +123,7 @@ bool Weapon_Bazooka::Fire(Slug* owner)
 		if (owner->GetFacingDirection() != FACINGDIRECTION_RIGHT)
 			aimDirection.x = -aimDirection.x;
 
-		float shotVelocity = owner->GetPower() * 1000.0f;
+		float shotVelocity = owner->GetPower() * 1500.0f;
 		Vec2f aimVelocity = aimDirection * shotVelocity;
 
 		Projectile_Bazooka* projectile = new Projectile_Bazooka(owner);
@@ -132,13 +132,15 @@ bool Weapon_Bazooka::Fire(Slug* owner)
 		projectile->SetBounds(5.0f, 5.0f);
 		projectile->SetImage(((ImageResource*)ResourceManager::Get()->GetResource("image_rocket")));
 
-		const ExplosionData explosionData(75.0f, 85.0f, 120.0f, 75.0f, 50.0f);
+		const ExplosionData explosionData(75.0f, 85.0f, 500.0f, 75.0f, 50.0f);
 		projectile->SetExplosionData(explosionData);
 
 		projectile->SetVelocity(aimVelocity);
 
 		// Add the projectile to the world
 		Game::Get()->GetWorld()->AddCreatedObject(projectile);
+
+		projectileCreated = projectile;
 
 		return true;
 
@@ -157,7 +159,7 @@ Weapon_Grenade::Weapon_Grenade(int initialAmmo) : Weapon(WeaponType_Grenade, ini
 
 }
 
-bool Weapon_Grenade::Fire(Slug* owner)
+bool Weapon_Grenade::Fire(Slug* owner, Projectile*& projectileCreated)
 {
 
 	ASSERT(owner);
@@ -175,7 +177,7 @@ bool Weapon_Grenade::Fire(Slug* owner)
 		if (owner->GetFacingDirection() != FACINGDIRECTION_RIGHT)
 			aimDirection.x = -aimDirection.x;
 
-		float shotVelocity = owner->GetPower() * 1000.0f;
+		float shotVelocity = owner->GetPower() * 1500.0f;
 		Vec2f aimVelocity = aimDirection * shotVelocity;
 
 		Projectile_Grenade* projectile = new Projectile_Grenade(owner);
@@ -184,13 +186,15 @@ bool Weapon_Grenade::Fire(Slug* owner)
 		projectile->SetBounds(5.0f, 5.0f);
 		projectile->SetImage(((ImageResource*)ResourceManager::Get()->GetResource("image_grenade")));
 
-		const ExplosionData explosionData(75.0f, 85.0f, 120.0f, 75.0f, 50.0f);
+		const ExplosionData explosionData(75.0f, 85.0f, 500.0f, 75.0f, 50.0f);
 		projectile->SetExplosionData(explosionData);
 
 		projectile->SetVelocity(aimVelocity);
 
 		// Add the projectile to the world
 		Game::Get()->GetWorld()->AddCreatedObject(projectile);
+
+		projectileCreated = projectile;
 
 		return true;
 
@@ -209,7 +213,7 @@ Weapon_Shotgun::Weapon_Shotgun(int initialAmmo) : Weapon(WeaponType_Shotgun, ini
 
 }
 
-bool Weapon_Shotgun::Fire(Slug* owner)
+bool Weapon_Shotgun::Fire(Slug* owner, Projectile*& projectileCreated)
 {
 
 	ASSERT(owner);
@@ -265,7 +269,7 @@ Weapon_Machinegun::Weapon_Machinegun(int initialAmmo) : Weapon(WeaponType_Machin
 
 }
 
-bool Weapon_Machinegun::Fire(Slug* owner)
+bool Weapon_Machinegun::Fire(Slug* owner, Projectile*& projectileCreated)
 {
 
 	ASSERT(owner);
@@ -289,6 +293,8 @@ bool Weapon_Machinegun::Fire(Slug* owner)
 
 		// Register for updates so we can fire over time
 		Game::Get()->GetUpdateManager()->RegisterForUpdates(this);
+
+		return true;
 
 	}
 
@@ -348,7 +354,7 @@ Weapon_Mine::Weapon_Mine(int initialAmmo) : Weapon(WeaponType_Mine, initialAmmo,
 
 }
 
-bool Weapon_Mine::Fire(Slug* owner)
+bool Weapon_Mine::Fire(Slug* owner, Projectile*& projectileCreated)
 {
 
 	ASSERT(owner);
@@ -356,7 +362,7 @@ bool Weapon_Mine::Fire(Slug* owner)
 	if (TakeAmmo() == true)
 	{
 
-		const float armTime = 3.0f;
+		const float armTime = 2.0f;
 		const float dudChance = 0.05f;
 
 		Projectile_Mine* projectile = new Projectile_Mine(NULL, armTime, dudChance);
@@ -366,7 +372,7 @@ bool Weapon_Mine::Fire(Slug* owner)
 		projectile->SetImage(((ImageResource*)ResourceManager::Get()->GetResource("image_mine")));
 		projectile->SetVelocity(Vec2f(0.0f, -200.0f));
 
-		const ExplosionData explosionData(50.0f, 60.0f, 80.0f, 50.0f, 40.0f);
+		const ExplosionData explosionData(50.0f, 60.0f, 400.0f, 50.0f, 40.0f);
 		projectile->SetExplosionData(explosionData);
 
 		// Add the projectile to the world

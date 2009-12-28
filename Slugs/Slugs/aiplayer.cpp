@@ -1,14 +1,22 @@
 #include "aiplayer.h"
 #include "game.h"
 
+AIPlayer::AIPlayer(const std::string& playerName) : Player(playerName, PlayerType_Computer)
+{
+
+}
+
 void AIPlayer::TurnBegins()
 {
+
+	// Reset turn variables
+	ResetForTurn();
 
 	//
 	// Get a list of alive slugs from each team
 	//
 
-	if (Game::Get()->IsFlagSet(GameFlag_CanChooseSlug))
+	if (Game::Get()->GetGameBool(GameBool_CanChooseSlug))
 	{
 
 		//
