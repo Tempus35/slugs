@@ -376,17 +376,20 @@ void Slug::Jump()
 void Slug::Fire()
 {
 
-	if (charging)
+	if (currentWeapon)
 	{
 
-		//
-		// Fire the current weapon
-		//
-
-		bool fired = false;
-
-		if (currentWeapon)
+		if ((charging) || (!currentWeapon->NeedsCharge()))
 		{
+
+			// We are no longer charging the weapon
+			charging = false;
+
+			//
+			// Fire the current weapon
+			//
+
+			bool fired = false;
 
 			Projectile* projectile = NULL;
 			fired = currentWeapon->Fire(this, projectile);
@@ -394,22 +397,19 @@ void Slug::Fire()
 			if (projectile)
 				Game::Get()->GetCamera()->StartTracking(projectile);
 
-		}
+			if (fired)
+			{
 
-		// We are no longer charging the weapon
-		charging = false;
+				// Let our owning player know we fired
+				GetTeam()->GetPlayer()->SlugFired();
 
-		if (fired)
-		{
+			}
+			else
+			{
 
-			// Let our owning player know we fired
-			GetTeam()->GetPlayer()->SlugFired();
+				// TODO: Didn't fire, do whatever we need to do
 
-		}
-		else
-		{
-
-			// TODO: Play click sound
+			}
 
 		}
 

@@ -132,7 +132,7 @@ bool Weapon_Bazooka::Fire(Slug* owner, Projectile*& projectileCreated)
 		projectile->SetBounds(5.0f, 5.0f);
 		projectile->SetImage(((ImageResource*)ResourceManager::Get()->GetResource("image_rocket")));
 
-		const ExplosionData explosionData(75.0f, 85.0f, 500.0f, 75.0f, 50.0f);
+		const ExplosionData explosionData(75.0f, 85.0f, 400.0f, 75.0f, 50.0f);
 		projectile->SetExplosionData(explosionData);
 
 		projectile->SetVelocity(aimVelocity);
@@ -186,7 +186,7 @@ bool Weapon_Grenade::Fire(Slug* owner, Projectile*& projectileCreated)
 		projectile->SetBounds(5.0f, 5.0f);
 		projectile->SetImage(((ImageResource*)ResourceManager::Get()->GetResource("image_grenade")));
 
-		const ExplosionData explosionData(75.0f, 85.0f, 500.0f, 75.0f, 50.0f);
+		const ExplosionData explosionData(75.0f, 85.0f, 400.0f, 75.0f, 50.0f);
 		projectile->SetExplosionData(explosionData);
 
 		projectile->SetVelocity(aimVelocity);
@@ -237,7 +237,7 @@ bool Weapon_Shotgun::Fire(Slug* owner, Projectile*& projectileCreated)
 			Vec2f direction = Vec2f(Cos(angle), Sin(angle));
 
 			if (owner->GetFacingDirection() != FACINGDIRECTION_RIGHT)
-			direction.x = -direction.x;
+				direction.x = -direction.x;
 
 			Intersection intersection = Game::Get()->GetWorld()->GetRayIntersection(owner->GetPosition(), direction, owner);	
 
@@ -372,7 +372,7 @@ bool Weapon_Mine::Fire(Slug* owner, Projectile*& projectileCreated)
 		projectile->SetImage(((ImageResource*)ResourceManager::Get()->GetResource("image_mine")));
 		projectile->SetVelocity(Vec2f(0.0f, -200.0f));
 
-		const ExplosionData explosionData(50.0f, 60.0f, 400.0f, 50.0f, 40.0f);
+		const ExplosionData explosionData(50.0f, 60.0f, 300.0f, 50.0f, 40.0f);
 		projectile->SetExplosionData(explosionData);
 
 		// Add the projectile to the world

@@ -73,10 +73,6 @@ void Object::SetImage(ImageResource* image)
 
 	sprite.SetImage(image);
 	sprite.SetCenter((float)image->Image().GetWidth() / 2, (float)image->Image().GetHeight() / 2);
-	
-	marker.SetImage(image);
-	marker.SetScale(1.0f / 16.0f, 1.0f / 16.0f);
-	marker.SetColor(Color(255, 0, 0));
 
 }
 
@@ -112,7 +108,6 @@ void Object::Moved()
 {
 
 	sprite.SetPosition(bounds.center.x, -bounds.center.y);
-	marker.SetPosition(bounds.center.x, -bounds.center.y);
 
 }
 

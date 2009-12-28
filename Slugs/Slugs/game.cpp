@@ -337,7 +337,8 @@ bool Game::KeyUp(sf::Key::Code key, bool shift, bool control, bool alt)
 	{
 		
 		Slug* selectedSlug;
-		
+		bool turnEnding = GetCurrentPlayer()->IsTurnEnding();
+
 		// Only allow the user to control their slug on their own turn
 		if ((Game::Get()->GetCurrentPlayer()) && (GetCurrentPlayer()->GetType() == PlayerType_Local))
 			selectedSlug = Game::Get()->GetCurrentPlayer()->GetCurrentSlug();
@@ -365,7 +366,7 @@ bool Game::KeyUp(sf::Key::Code key, bool shift, bool control, bool alt)
 
 			case sf::Key::Space:
 
-				if (selectedSlug)
+				if ((selectedSlug) && (!turnEnding))
 					selectedSlug->Fire();
 
 				break;
@@ -533,30 +534,16 @@ void Game::LoadResourcesForState(GameState gameState)
 		resourceManager->AddResource("image_backgroundfar", new ImageResource("gfx\\levels\\test\\back2.png"));
 		resourceManager->AddResource("image_backgroundnear", new ImageResource("gfx\\levels\\test\\back1.png"));
 		resourceManager->AddResource("image_crosshair", new ImageResource("gfx\\levels\\test\\crosshair.tga"));
-		resourceManager->AddResource("image_arrow", new ImageResource("gfx\\arrow-sprite.png"));
 		resourceManager->AddResource("image_cloud", new ImageResource("gfx\\clouds\\standard\\smallcloud0.png"));
 		resourceManager->AddResource("tb_ground", new TextureBuffer("gfx\\levels\\test\\ground_ice.tga"));
 		resourceManager->AddResource("tb_over", new TextureBuffer("gfx\\levels\\test\\over_ice.tga"));
 		resourceManager->AddResource("tb_under", new TextureBuffer("gfx\\levels\\test\\under_ice.tga"));
-		resourceManager->AddResource("image_jumping_right", new ImageResource("gfx\\jumping_right.png"));
-		resourceManager->AddResource("image_explosion", new ImageResource("gfx\\SkybusterExplosion.jpg"));
-		resourceManager->AddResource("image_options_notselected", new ImageResource("gfx\\menu\\menu_options_not_selected.png"));
-		resourceManager->AddResource("image_options_selected", new ImageResource("gfx\\menu\\menu_options_selected.png"));
-		resourceManager->AddResource("image_credits_notselected", new ImageResource("gfx\\menu\\menu_credits_not_selected.png"));
-		resourceManager->AddResource("image_credits_selected", new ImageResource("gfx\\menu\\menu_credits_selected.png"));
-		resourceManager->AddResource("image_SP_not_selected", new ImageResource("gfx\\menu\\menu_SP_not_selected.png"));
-		resourceManager->AddResource("image_SP_selected", new ImageResource("gfx\\menu\\menu_SP_selected.png"));
-		resourceManager->AddResource("image_MP_not_selected", new ImageResource("gfx\\menu\\menu_MP_not_selected.png"));
-		resourceManager->AddResource("image_MP_selected", new ImageResource("gfx\\menu\\menu_MP_selected.png"));
-		resourceManager->AddResource("image_menu_background", new ImageResource("gfx\\menu\\menu_background.png"));
-		resourceManager->AddResource("image_logo", new ImageResource("gfx\\2uoo2ti.png"));
-		resourceManager->AddResource("image_slug_left", new ImageResource("gfx\\slug_ph_left.tga"));
-		resourceManager->AddResource("image_slug_right", new ImageResource("gfx\\slug_ph_right.tga"));
-		resourceManager->AddResource("image_rocket", new ImageResource("gfx\\rocket_ph.tga"));
-		resourceManager->AddResource("image_grenade", new ImageResource("gfx\\grenade_ph.tga"));
-		resourceManager->AddResource("image_mine", new ImageResource("gfx\\mine_ph.tga"));
-		resourceManager->AddResource("particle_explosion", new ImageResource("gfx\\explosion0.tga"));
-		resourceManager->AddResource("image_snowflake", new ImageResource("gfx\\snowflake.tga"));
+		resourceManager->AddResource("image_slug_left", new ImageResource("gfx\\placeholders\\slug_ph_left.tga"));
+		resourceManager->AddResource("image_slug_right", new ImageResource("gfx\\placeholders\\slug_ph_right.tga"));
+		resourceManager->AddResource("image_rocket", new ImageResource("gfx\\placeholders\\rocket_ph.tga"));
+		resourceManager->AddResource("image_grenade", new ImageResource("gfx\\placeholders\\grenade_ph.tga"));
+		resourceManager->AddResource("image_mine", new ImageResource("gfx\\placeholders\\mine_ph.tga"));
+		resourceManager->AddResource("particle_explosion", new ImageResource("gfx\\misc\\explosion0.tga"));
 
 	}
 

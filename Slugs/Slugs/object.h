@@ -65,11 +65,6 @@ protected:
 
 public:
 
-	// Debug marker
-	Sprite marker;
-
-public:
-
 	// Destructor
 	~Object();
 
