@@ -14,6 +14,7 @@
 #include "renderer.h"
 #include "intersection.h"
 #include "circle.h"
+#include "pickup.h"
 
 #define WORLD_DEFAULT_GRAVITY		-1000.0f
 #define WORLD_WATER_LINES			5
@@ -156,6 +157,9 @@ public:
 	// Gets all objects within a given radius of an object
 	void GetObjectsNear(std::vector<Object*>& list, Object* object, float radius, ObjectType type = ObjectType_Any);
 
+	// Gets all objects within a given radius of a point
+	void GetObjectsNear(std::vector<Object*>& list, const Vec2f& point, float radius, ObjectType type = ObjectType_Any, Object* ignore= NULL);
+
 	// Returns true if a direct line of sight exists between two objects
 	bool ObjectCanSee(Object* from, Object* to);
 
@@ -167,5 +171,8 @@ public:
 
 	// Enables or disables rendering the crosshair sprite
 	void SetCrosshairVisible(bool state);
+
+	// Creates and drops a random crate
+	void DropCrate();
 
 };

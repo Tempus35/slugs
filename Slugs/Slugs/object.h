@@ -13,6 +13,7 @@
 #include "physicsobject.h"
 #include "fastmath.h"
 #include "sprite.h"
+#include "attachment.h"
 
 /*
 	Enumeration of all object types
@@ -45,19 +46,21 @@ private:
 
 protected:
 
-	std::string				name;				// Object name
-	Object*					owner;				// Pointer to the object which created the object
+	std::string					name;				// Object name
+	Object*						owner;				// Pointer to the object which created the object
 
-	bool					alive;				// Is this object alive (dead objects are removed by the world)
-	int						hps;				// Hit points
-	bool					invulnerable;		// Is this object immune to harm
-	bool					forceImmune;		// Is this object uneffected by external forces? (excluding gravity/wind)
+	bool						alive;				// Is this object alive (dead objects are removed by the world)
+	int							hps;				// Hit points
+	bool						invulnerable;		// Is this object immune to harm
+	bool						forceImmune;		// Is this object uneffected by external forces? (excluding gravity/wind)
 
-	Sprite					sprite;				// Sprite instance for the object
+	Sprite						sprite;				// Sprite instance for the object
 
-	bool					selected;			// Is this object currently selected
+	bool						selected;			// Is this object currently selected
 
-	float					bounceCoefficient;	// Bounciness factor of the object
+	float						bounceCoefficient;	// Bounciness factor of the object
+
+	std::vector<AttachPoint>	attachPoints;		// List of attachpoints
 
 protected:
 
@@ -150,6 +153,12 @@ public:
 
 	// Sets whether or not the object is force immune
 	virtual void SetForceImmune(bool state);
+
+	// Adds an attachpoint to the object
+	void AddAttachpoint(const Vec2f& position);
+
+	// Adds an attachment to an attach point - takes ownership of the attachment
+	void AddAttachment(unsigned int attachPointIndex, Attachment* attachment);
 
 };
 

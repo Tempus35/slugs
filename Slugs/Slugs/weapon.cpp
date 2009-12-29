@@ -24,35 +24,38 @@ Weapon::Weapon(WeaponType t, int initialAmmo, bool charges, bool aims)
 
 }
 
-Weapon* Weapon::CreateFromType(WeaponType t)
+Weapon* Weapon::CreateFromType(WeaponType t, int ammo)
 {
 
 	switch (t)
 	{
 
 	case WeaponType_Bazooka:
-		return new Weapon_Bazooka();
+		return new Weapon_Bazooka(ammo);
 
 	case WeaponType_Grenade:
-		return new Weapon_Grenade();
+		return new Weapon_Grenade(ammo);
 
 	case WeaponType_Shotgun:
-		return new Weapon_Shotgun();
+		return new Weapon_Shotgun(ammo);
 
 	case WeaponType_Machinegun:
-		return new Weapon_Machinegun();
+		return new Weapon_Machinegun(ammo);
 
 	case WeaponType_Mine:
-		return new Weapon_Mine();
+		return new Weapon_Mine(ammo);
 
 	case WeaponType_HomingMissile:
-		return new Weapon_HomingMissile();
+		return new Weapon_HomingMissile(ammo);
 
 	case WeaponType_Teleporter:
-		return new Weapon_Teleporter();
+		return new Weapon_Teleporter(ammo);
 
 	case WeaponType_Airstrike:
-		return new Weapon_Airstrike();
+		return new Weapon_Airstrike(ammo);
+
+	case WeaponType_Dynamite:
+		return new Weapon_Dynamite(ammo);
 
 	}
 
@@ -103,6 +106,15 @@ bool Weapon::TakeAmmo()
 		return true;
 
 	}
+
+}
+
+void Weapon::AddAmmo(int amount)
+{
+
+	// Only add the ammo for weapons without infinite ammo
+	if (ammo != -1)
+		ammo += amount;
 
 }
 
@@ -448,9 +460,9 @@ bool Weapon_Mine::Fire(Slug* owner, Projectile*& projectileCreated)
 		const float armTime = 2.0f;
 		const float dudChance = 0.05f;
 
-		Projectile_Mine* projectile = new Projectile_Mine(NULL, armTime, dudChance);
+		Projectile_Mine* projectile = new Projectile_Mine(armTime, dudChance);
 		projectile->SetPosition(owner->GetWeaponPoint());
-		projectile->SetTimer(-1.0f);
+
 		projectile->SetBounds(5.0f, 5.0f);
 		projectile->SetImage(((ImageResource*)ResourceManager::Get()->GetResource("image_mine")));
 		projectile->SetVelocity(Vec2f(0.0f, -200.0f));
@@ -681,5 +693,43 @@ void Weapon_Airstrike::DebugRender()
 {
 
 	Renderer::Get()->DrawDebugTrajectory(launchPoint, launchDirection, GetLaunchSpeed(), Game::Get()->GetWorld()->Gravity().Length(), Color::purple);
+
+}
+
+
+/*
+	class Weapon_Dynamite
+*/
+
+Weapon_Dynamite::Weapon_Dynamite(int initialAmmo) : Weapon(WeaponType_Dynamite, initialAmmo, false, false)
+{
+
+}
+
+bool Weapon_Dynamite::Fire(Slug* owner, Projectile*& projectileCreated)
+{
+
+	ASSERT(owner);
+
+	if (TakeAmmo() == true)
+	{
+
+		Projectile_Dynamite* projectile = new Projectile_Dynamite();
+		projectile->SetPosition(owner->GetWeaponPoint());
+		projectile->SetBounds(5.0f, 5.0f);
+		projectile->SetImage(((ImageResource*)ResourceManager::Get()->GetResource("image_dynamite")));
+		projectile->SetVelocity(Vec2f(0.0f, -200.0f));
+
+		const ExplosionData explosionData(120.0f, 150.0f, 600.0f, 150.0f,75.0f);
+		projectile->SetExplosionData(explosionData);
+
+		// Add the projectile to the world
+		Game::Get()->GetWorld()->AddCreatedObject(projectile);
+
+		return true;
+
+	}
+
+	return false;
 
 }

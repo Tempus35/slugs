@@ -34,6 +34,7 @@ enum WeaponType
 	WeaponType_HomingMissile,
 	WeaponType_Teleporter,
 	WeaponType_Airstrike,
+	WeaponType_Dynamite,
 	WeaponType_LAST,					// Should be last on the list, used to determine number of available weapon types
 
 };
@@ -61,7 +62,7 @@ protected:
 public:
 
 	// Creates a weapon from the given type
-	static Weapon* CreateFromType(WeaponType t);
+	static Weapon* CreateFromType(WeaponType t, int ammo = -1);
 
 public:
 
@@ -76,6 +77,9 @@ public:
 
 	// Reduces remaining ammo, returns true if weapon can fire
 	virtual bool TakeAmmo();
+
+	// Increments remaining ammo
+	virtual void AddAmmo(int amount);
 
 	// Fires the weapon, returns true if the weapon fired. projectileCreated should be set to the launched projectile (if any) for camera tracking
 	virtual bool Fire(Slug* owner, Projectile*& projectileCreated) = 0;
@@ -290,5 +294,22 @@ public:
 	virtual float GetLaunchSpeed(float power = 1.0f) const;
 
 	virtual void DebugRender();
+
+};
+
+/*
+	class Weapon_Dynamite
+*/
+
+class Weapon_Dynamite : public Weapon
+{
+
+protected:
+
+public:
+
+	Weapon_Dynamite(int initialAmmo = -1);
+
+	virtual bool Fire(Slug* owner, Projectile*& projectileCreated);
 
 };

@@ -44,6 +44,7 @@ enum GameFloat
 
 	GameFloat_TurnTime,							// Time per turn in seconds
 	GameFloat_TurnEndTime,						// Delay in seconds at the end of a turn before the next one begins
+	GameFloat_CrateDropChance,					// Drop chance of crates per turn
 
 	GameFloat_LAST,								// MUST BE LAST ON THE LIST
 };
@@ -57,6 +58,8 @@ enum GameInt
 
 	GameInt_SlugsPerTeam,						// Numbers of slugs on each team
 	GameInt_ShotsPerTurn,						// Number of shots that can be fired before the turn ends
+	GameInt_SlugHitpoints,						// Starting hitpoints for slugs
+	GameInt_HealthPickupAmount,					// Hitpoint bonus from a health crate
 
 	GameInt_LAST,								// MUST BE LAST ON THE LIST
 

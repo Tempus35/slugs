@@ -49,6 +49,26 @@ void WeaponStore::Add(Weapon* weapon)
 
 }
 
+void WeaponStore::Add(WeaponType weaponType, int ammo)
+{
+
+	// Get a pointer to the weapon if we have it
+	Weapon* weapon = Get(weaponType);
+
+	// If we don't have the weapon then add it with either zero of infinite ammo
+	if (!weapon)
+	{
+
+		weapon = Weapon::CreateFromType(weaponType, (ammo == -1) ? -1 : 0);
+		Add(weapon);
+
+	}
+
+	// Add the ammo to the weapon
+	weapon->AddAmmo(ammo);
+
+}
+
 Weapon* WeaponStore::Get() const
 {
 

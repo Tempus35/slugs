@@ -85,6 +85,8 @@ void Player::TurnBegins()
 	// Select the next slug in the chain if we aren't allowed to choose our own
 	if ((!Game::Get()->GetGameBool(GameBool_CanChooseSlug)) || (activeSlug == NULL))
 		SelectNextSlug();
+	else
+		MoveCameraToActiveSlug();
 
 }
 

@@ -33,7 +33,7 @@ Water::Water(ImageResource* waterImage, Color& waterColor, int x, int y, int tot
 		for (int i = 0; i < numSprites; ++ i)
 		{
 
-			s.SetPosition((float)cx, (float)y);
+			s.SetPosition((float)cx, -(float)y);
 			sprites.insert(sprites.end(), s);
 
 			cx += sectionWidth;
@@ -67,7 +67,7 @@ void Water::Update(float elapsedTime)
 	for (unsigned int i = 0; i < sprites.size(); ++ i)
 	{
 
-		sprites[i].SetPosition((float)cx, (float)position.y);
+		sprites[i].SetPosition((float)cx, -(float)position.y);
 		cx += sectionWidth;
 
 	}

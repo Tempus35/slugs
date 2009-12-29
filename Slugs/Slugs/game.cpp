@@ -113,7 +113,7 @@ void Game::Render()
 				const Vec2f& objectVel = object->GetVelocity();
 
 				char debugString[1024];
-				sprintf_s(debugString, 1024, "[%s]\n\nPosition: %.1f, %.1f\nVelocity: %.1f, %.1f (%.1f)\n\nAtRest = %s", ObjectTypeToString(objectType).c_str(), objectPos.x, objectPos.y, objectVel.x, objectVel.y, object->GetSpeed(), BoolToString(object->IsAtRest()).c_str());
+				sprintf_s(debugString, 1024, "[%s] (%i hps)\n\nPosition: %.1f, %.1f\nVelocity: %.1f, %.1f (%.1f)\n\nAtRest = %s", ObjectTypeToString(objectType).c_str(), object->GetHitPoints(), objectPos.x, objectPos.y, objectVel.x, objectVel.y, object->GetSpeed(), BoolToString(object->IsAtRest()).c_str());
 				
 				if (objectType == ObjectType_Projectile)
 					sprintf_s(&debugString[strlen(debugString)], 1024 - strlen(debugString), "\n\nTimer: %.1f", ((Projectile*)object)->GetTimer());
@@ -259,6 +259,13 @@ bool Game::KeyDown(sf::Key::Code key, bool shift, bool control, bool alt)
 
 			break;
 
+		case sf::Key::C:
+
+			// Drop a crate
+			Game::Get()->GetWorld()->DropCrate();
+
+			break;
+
 		#endif
 
 		//
@@ -377,6 +384,13 @@ bool Game::KeyDown(sf::Key::Code key, bool shift, bool control, bool alt)
 
 			if (selectedSlug)
 				selectedSlug->ArmSelf(WeaponType_HomingMissile);
+
+			break;
+
+		case sf::Key::Num7:
+
+			if (selectedSlug)
+				selectedSlug->ArmSelf(WeaponType_Dynamite);
 
 			break;
 
@@ -604,22 +618,39 @@ void Game::LoadResourcesForState(GameState gameState)
 		resourceManager->AddResource("text_slugnames", new TextResource("data\\slugnames.txt"));\
 		resourceManager->AddResource("text_colors", new TextResource("data\\colors.txt"));
 
-		// Images
-		resourceManager->AddResource("image_gravestone", new ImageResource("gfx\\graves\\gravestone16x16.png"));
+		// Ambient
+		resourceManager->AddResource("image_cloud", new ImageResource("gfx\\clouds\\standard\\smallcloud0.png"));
 		resourceManager->AddResource("image_water0", new ImageResource("gfx\\levels\\test\\water.tga"));
 		resourceManager->AddResource("image_backgroundfar", new ImageResource("gfx\\levels\\test\\back2.png"));
 		resourceManager->AddResource("image_backgroundnear", new ImageResource("gfx\\levels\\test\\back1.png"));
-		resourceManager->AddResource("image_crosshair", new ImageResource("gfx\\levels\\test\\crosshair.tga"));
-		resourceManager->AddResource("image_cloud", new ImageResource("gfx\\clouds\\standard\\smallcloud0.png"));
+
+		// Flavor objects
+		resourceManager->AddResource("image_gravestone", new ImageResource("gfx\\graves\\gravestone16x16.png"));
+		
+		// Ground
 		resourceManager->AddResource("tb_ground", new TextureBuffer("gfx\\levels\\test\\ground_ice.tga"));
 		resourceManager->AddResource("tb_over", new TextureBuffer("gfx\\levels\\test\\over_ice.tga"));
 		resourceManager->AddResource("tb_under", new TextureBuffer("gfx\\levels\\test\\under_ice.tga"));
+
+		// Slug
+		resourceManager->AddResource("image_crosshair", new ImageResource("gfx\\levels\\test\\crosshair.tga"));
 		resourceManager->AddResource("image_slug_left", new ImageResource("gfx\\placeholders\\slug_ph_left.tga"));
 		resourceManager->AddResource("image_slug_right", new ImageResource("gfx\\placeholders\\slug_ph_right.tga"));
+
+		// Projectiles
 		resourceManager->AddResource("image_rocket", new ImageResource("gfx\\placeholders\\rocket_ph.tga"));
 		resourceManager->AddResource("image_grenade", new ImageResource("gfx\\placeholders\\grenade_ph.tga"));
 		resourceManager->AddResource("image_mine", new ImageResource("gfx\\placeholders\\mine_ph.tga"));
+		resourceManager->AddResource("image_dynamite", new ImageResource("gfx\\placeholders\\dynamite_ph.tga"));
+
+		// Pickups
+		resourceManager->AddResource("image_crate", new ImageResource("gfx\\placeholders\\crate_ph.tga"));
+
+		// Particles
 		resourceManager->AddResource("particle_explosion", new ImageResource("gfx\\misc\\explosion0.tga"));
+
+		// Hats
+		resourceManager->AddResource("image_hat0", new ImageResource("gfx\\placeholders\\hat_ph.tga"));
 
 	}
 
@@ -815,6 +846,9 @@ float Game::GetGameDefaultFloat(GameFloat flag) const
 	case GameFloat_TurnEndTime:
 		return 3.0f;
 
+	case GameFloat_CrateDropChance:
+		return 0.1f;
+
 	}
 
 	ASSERTMSG(0, "No default value for GameFloat!");
@@ -833,6 +867,12 @@ int Game::GetGameDefaultInt(GameInt flag) const
 
 	case GameInt_ShotsPerTurn:
 		return 1;
+
+	case GameInt_SlugHitpoints:
+		return 100;
+
+	case GameInt_HealthPickupAmount:
+		return 50;
 
 	}
 
@@ -865,6 +905,13 @@ void Game::EndTurn()
 
 	}
 
+	// Determine random events
+	float crateDrop = Random::RandomFloat(0.0f, 1.0f);
+	
+	if (crateDrop < GetGameFloat(GameFloat_CrateDropChance))
+		world->DropCrate();
+
+	// Start the turn
 	players[activePlayer]->TurnBegins();
 
 }

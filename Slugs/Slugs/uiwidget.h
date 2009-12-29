@@ -5,6 +5,7 @@
 #include "box.h"
 #include "imageresource.h"
 #include "fontresource.h"
+#include "sprite.h"
 
 class UIWidget
 {

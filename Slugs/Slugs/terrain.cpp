@@ -38,7 +38,7 @@ void TerrainBlock::Setup(int x, int y)
 		position = Vec2i(x, y);
 
 		sprite.SetImage(imageResource);
-		sprite.SetPosition((float)x, -(float)y - TERRAIN_BLOCK_SIZE);
+		sprite.SetPosition((float)x, (float)y + TERRAIN_BLOCK_SIZE);
 
 	}
 
@@ -1906,8 +1906,41 @@ Vec2f Terrain::GetSpawnPoint()
 
 	}
 
-	return Vec2f(0, 0);
+	return Vec2f(Math::INFINITY, Math::INFINITY);
 
 }
 
+Vec2f Terrain::GetDropPoint()
+{
+
+	const int radius = 20;
+	const int diameter = 2 * radius;
+	int numAttempts = 100;
+	Vec2f throwAway;
+
+	while (numAttempts > 0)
+	{
+
+		int x = Random::RandomInt(diameter, WidthInPixels() - diameter - 1);
+		int y = HeightInPixels() - 1;
+
+		while (y >= 0)
+		{
+
+			Color* ptr = (Color*)textureBuffer->Data(x, y);
+
+			if (ptr->a == TERRAINALPHA_EMPTY)
+				return Vec2f((float)x, (float)y);
+
+			y -= radius;
+
+		}
+
+		numAttempts --;
+
+	}
+
+	return Vec2f(Math::INFINITY, Math::INFINITY);
+
+}
 

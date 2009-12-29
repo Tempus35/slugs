@@ -17,7 +17,7 @@ protected:
 
 	ImageResource*		imageResource[2];
 
-	sf::Sprite			sprite;
+	Sprite				sprite;
 
 public:
 

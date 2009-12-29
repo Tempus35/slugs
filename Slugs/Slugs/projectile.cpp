@@ -208,9 +208,10 @@ bool Projectile_Grenade::Update(float elapsedTime, const Vec2f& gravity, const V
 	class Projectile_Mine
 */
 
-Projectile_Mine::Projectile_Mine(Object* creator, float armTime, float dudChance) : Projectile(creator)
+Projectile_Mine::Projectile_Mine(float armTime, float dudChance) : Projectile(NULL)
 {
 
+	timer = -1.0f;
 	armTimer = armTime;
 
 	float pick = Random::RandomFloat(0.0f, 1.0f);
@@ -311,5 +312,30 @@ bool Projectile_HomingMissile::Update(float elapsedTime, const Vec2f& gravity, c
 		armTimer -= elapsedTime;
 
 	return Projectile_Bazooka::Update(elapsedTime, gravity, wind);
+
+}
+
+/*
+	class Projectile_Dynamite
+*/
+
+Projectile_Dynamite::Projectile_Dynamite() : Projectile(NULL)
+{
+
+	timer = 3.0f;
+
+}
+
+bool Projectile_Dynamite::OnCollideWithTerrain()
+{
+
+	return Object::OnCollideWithTerrain();
+
+}
+
+void Projectile_Dynamite::OnCollideWithObject(Object* object)
+{
+
+	// Do nothing
 
 }

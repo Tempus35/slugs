@@ -223,6 +223,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\attachment.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\camera.cpp"
 					>
 				</File>
@@ -542,6 +546,10 @@
 				</File>
 				<File
 					RelativePath=".\app.h"
+					>
+				</File>
+				<File
+					RelativePath=".\attachment.h"
 					>
 				</File>
 				<File

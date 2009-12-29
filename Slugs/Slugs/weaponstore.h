@@ -35,6 +35,9 @@ public:
 	// Adds a weapon to the store, this function takes ownership of the weapon instance
 	void Add(Weapon* weapon);
 
+	// Adds ammo to a weapon
+	void Add(WeaponType weaponType, int ammo);
+
 	// Gets the first weapon that has ammo from the store
 	Weapon* Get() const;
 

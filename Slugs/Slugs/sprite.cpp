@@ -61,10 +61,17 @@ void Sprite::SetCenter(float x, float y)
 
 }
 
+void Sprite::Center()
+{
+
+	data.SetCenter(data.GetSize().x / 2, data.GetSize().y / 2);
+
+}
+
 void Sprite::SetPosition(float x, float y)
 {
 
-	data.SetPosition(x, y);
+	data.SetPosition(x, -y);
 
 }
 
@@ -145,5 +152,12 @@ float Sprite::GetHeight() const
 
 	Vec2f size = data.GetSize();
 	return size.y;
+
+}
+
+void Sprite::SetMirrored(bool state)
+{
+
+	data.FlipX(state);
 
 }

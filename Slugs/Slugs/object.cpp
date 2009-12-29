@@ -32,6 +32,15 @@ Object::Object(Object* creator, ObjectType t)
 Object::~Object()
 {
 
+	// Free attachments
+	for (unsigned int i = 0; i < attachPoints.size(); ++ i)
+	{
+
+		for (unsigned int j = 0; j < attachPoints[i].attachments.size(); ++ j)
+			SafeDelete(attachPoints[i].attachments[j]);
+
+	}
+
 }
 
 const std::string& Object::GetName() const
@@ -108,7 +117,7 @@ void Object::SetHitpoints(int newHitpoints)
 void Object::Moved()
 {
 
-	sprite.SetPosition(bounds.center.x, -bounds.center.y);
+	sprite.SetPosition(bounds.center.x, bounds.center.y);
 
 }
 
@@ -265,7 +274,17 @@ void Object::DebugRender()
 void Object::Render()
 {
 
+	// Render object sprite
 	Renderer::Get()->Render(sprite);
+
+	// Render attachments
+	for (unsigned int i = 0; i < attachPoints.size(); ++ i)
+	{
+
+		for (unsigned int j = 0; j < attachPoints[i].attachments.size(); ++ j)
+			attachPoints[i].attachments[j]->Render(GetPosition() + attachPoints[i].offset);
+
+	}
 
 }
 
@@ -308,5 +327,22 @@ std::string ObjectTypeToString(ObjectType type)
 	}
 
 	return "ObjectType_UNKNOWN";
+
+}
+
+void Object::AddAttachpoint(const Vec2f& position)
+{
+
+	AttachPoint ap;
+	ap.offset = position;
+	attachPoints.push_back(ap);
+
+}
+
+void Object::AddAttachment(unsigned int attachPointIndex, Attachment* attachment)
+{
+
+	if ((attachPointIndex >= 0) && (attachPointIndex <= attachPoints.size()))
+		attachPoints[attachPointIndex].attachments.push_back(attachment);
 
 }

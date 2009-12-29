@@ -259,4 +259,7 @@ public:
 	// Gets the location of a free area on the terrain
 	Vec2f GetSpawnPoint();
 
+	// Gets the location of a free area on the terrain onto which an object can be dropped
+	Vec2f GetDropPoint();
+
 };

@@ -143,7 +143,7 @@ protected:
 
 public:
 
-	Projectile_Mine(Object* creator, float armTime, float dudChance);
+	Projectile_Mine(float armTime, float dudChance);
 
 	virtual bool OnCollideWithTerrain();
 	virtual void OnCollideWithObject(Object* object);
@@ -172,5 +172,19 @@ public:
 	Projectile_HomingMissile(Object* creator, const Vec2f& targetPosition);
 
 	virtual bool Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind);
+
+};
+
+class Projectile_Dynamite : public Projectile
+{
+
+protected:
+
+public:
+
+	Projectile_Dynamite();
+
+	virtual bool OnCollideWithTerrain();
+	virtual void OnCollideWithObject(Object* object);
 
 };

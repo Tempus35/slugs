@@ -64,25 +64,25 @@ class Slug : public Object
 
 private:
 
-	int				movementDirection;								// Current movement direction
-	FaceDirection	facingDirection;								// Current facing direction
-	float			aimAngle;										// View/aiming angle, -PI/2 <= x <= PI/2
+	int						movementDirection;						// Current movement direction
+	FaceDirection			facingDirection;						// Current facing direction
+	float					aimAngle;								// View/aiming angle, -PI/2 <= x <= PI/2
 
-	Weapon*			currentWeapon;									// Pointer to the currently selected weapon
-	WeaponStore*	weaponStore;									// Pointer to the weapon store for this slug
-	bool			ownsWeaponStore;								// Does this slug own the weapon store instance?
-	float			power;											// Shot power 0 <= x <= 1
-	bool			charging;										// Currently charging a shot?
+	Weapon*					currentWeapon;							// Pointer to the currently selected weapon
+	WeaponStore*			weaponStore;							// Pointer to the weapon store for this slug
+	bool					ownsWeaponStore;						// Does this slug own the weapon store instance?
+	float					power;									// Shot power 0.0f <= x <= 1.0f
+	bool					charging;								// Currently charging a shot?
 
-	Team*			team;											// Pointer to the owning team
+	Team*					team;									// Pointer to the owning team
 
-	float			death;											// Death timer
+	float					death;									// Death timer
 
-	AIController*	controller;										// Pointer to our AI controller if we have one
+	AIController*			controller;								// Pointer to our AI controller if we have one
 
-	Object*			goal;											// Pointer to last goal object
-
-	float			stunTimer;										// Remaining duration of a stun effect if > 0
+	Object*					goal;									// Pointer to last goal object
+		
+	float					stunTimer;								// Remaining duration of a stun effect if > 0
 
 public:
 
@@ -199,5 +199,11 @@ public:
 
 	// Returns true is the slug is the currently active slug of the player whose turn it is
 	bool IsActive() const;
+
+	// Transforms an attachment offset into slug space
+	Vec2f TransformAttachmentOffset(const Vec2f& offset);
+
+	// Adds a weapon to the slugs weaponstore
+	void GiveWeapon(WeaponType weaponType, int ammo);
 
 };

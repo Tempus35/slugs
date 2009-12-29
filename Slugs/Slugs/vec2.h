@@ -165,7 +165,7 @@ struct Vec2
 	sf::Vector2<T> ToSF()
 	{
 
-		return sf::Vector2<T>(x, y);
+		return sf::Vector2<T>(x, -y);
 
 	}
 

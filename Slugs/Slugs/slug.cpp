@@ -43,6 +43,10 @@ Slug::Slug(Team* _team, AIController* aiController) : Object(NULL, ObjectType_Sl
 	goal = NULL;
 	stunTimer = 0.0f;
 
+	// Add an attachpoint and attach a hat
+	AddAttachpoint(Vec2f(3.0f, 7.0f));
+	AddAttachment(0, new Attachment(ResourceManager::Get()->GetImage("image_hat0")));
+
 }
 
 Slug::~Slug()
@@ -710,6 +714,27 @@ void Slug::SetGoal(Object* object)
 void Slug::Render()
 {
 
+	// Render object sprite
+	Renderer::Get()->Render(sprite);
+
+	// Render attachments
+	for (unsigned int i = 0; i < attachPoints.size(); ++ i)
+	{
+
+		for (unsigned int j = 0; j < attachPoints[i].attachments.size(); ++ j)
+		{
+
+			if (facingDirection == FACINGDIRECTION_RIGHT)
+				attachPoints[i].attachments[j]->SetMirrored(false);
+			else
+				attachPoints[i].attachments[j]->SetMirrored(true);
+
+			attachPoints[i].attachments[j]->Render(GetPosition() + TransformAttachmentOffset(attachPoints[i].offset));
+
+		}
+
+	}
+
 	if (IsActive())
 	{
 
@@ -744,8 +769,6 @@ void Slug::Render()
 		}
 
 	}
-
-	Object::Render();
 
 }
 
@@ -805,5 +828,23 @@ bool Slug::IsActive() const
 		return true;
 
 	return false;
+
+}
+
+Vec2f Slug::TransformAttachmentOffset(const Vec2f& offset)
+{
+
+	if (facingDirection == FACINGDIRECTION_LEFT)
+		return Vec2f(-offset.x, offset.y);
+
+	return offset;
+
+}
+
+void Slug::GiveWeapon(WeaponType weaponType, int ammo)
+{
+
+	if (weaponStore)
+		weaponStore->Add(weaponType, ammo);
 
 }

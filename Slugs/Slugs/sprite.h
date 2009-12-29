@@ -30,6 +30,7 @@ public:
 	void SetColor(Color& newColor);
 	void SetImage(ImageResource* resource);
 	void SetCenter(float x, float y);
+	void Center();
 	void SetPosition(float x, float y);
 	void SetRotation(float degrees);
 	void SetOrientation(const Vec2f& direction);
@@ -41,5 +42,6 @@ public:
 	void SetAlphaBlend(bool state);
 	float GetWidth() const;
 	float GetHeight() const;
+	void SetMirrored(bool state);
 
 };

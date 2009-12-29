@@ -363,13 +363,13 @@ void World::CameraMoved(const Vec2f& newPosition)
 	halfXDifference = ((int)size.x - terrain->WidthInPixels()) / 2;
 	halfYDifference = ((int)size.y - terrain->HeightInPixels()) / 2;
 
-	backgroundSprites[0].SetPosition((float)(offCenterX / 2 - halfXDifference), (float)(offCenterY / 2 - terrain->HeightInPixels() + halfYDifference));
+	backgroundSprites[0].SetPosition((float)(offCenterX / 2 - halfXDifference), -(float)(offCenterY / 2 - terrain->HeightInPixels() + halfYDifference));
 
 	size = backgroundSprites[1].GetSize();
 	halfXDifference = RoundToInt((size.x - terrain->WidthInPixels()) / 2.0f);
 	halfYDifference = RoundToInt((size.y - terrain->HeightInPixels()) / 2.0f);
 
-	backgroundSprites[1].SetPosition((float)(offCenterX / 4 - halfXDifference), float(offCenterY / 4 - terrain->HeightInPixels() + halfYDifference));
+	backgroundSprites[1].SetPosition((float)(offCenterX / 4 - halfXDifference), -(float)(offCenterY / 4 - terrain->HeightInPixels() + halfYDifference));
 
 }
 
@@ -854,9 +854,16 @@ void World::GetObjectsNear(std::vector<Object*>& list, Object* object, float rad
 {
 
 	ASSERT(object != NULL);
+
+	return GetObjectsNear(list, object->GetPosition(), radius, type, object);
+
+}
+
+void World::GetObjectsNear(std::vector<Object*>& list, const Vec2f& point, float radius, ObjectType type, Object* ignore)
+{
+
 	ASSERT(radius > 0.0f);
 
-	Vec2f objectPosition = object->GetPosition();
 	float radiusSquared = Sqr(radius);
 
 	std::list<Object*>::iterator i = objects.begin();
@@ -866,10 +873,10 @@ void World::GetObjectsNear(std::vector<Object*>& list, Object* object, float rad
 
 		Object* obj = (*i);
 
-		if ((obj != object) && ((type == ObjectType_Any) || (obj->GetType() == type)))
+		if ((obj != ignore) && ((type == ObjectType_Any) || (obj->GetType() == type)))
 		{
 
-			if ((obj->GetPosition() - objectPosition).LengthSquared() <= radiusSquared)
+			if ((obj->GetPosition() - point).LengthSquared() <= radiusSquared)
 				list.push_back(obj);
 
 		}
@@ -940,7 +947,7 @@ bool World::ObjectCanSeeParabolic(Object* from, Object* to, Vec2f& optimalDirect
 void World::SetCrosshairPosition(const Vec2f& position)
 {
 
-	crosshairSprite.SetPosition(position.x, -position.y);
+	crosshairSprite.SetPosition(position.x, position.y);
 
 }
 
@@ -948,5 +955,68 @@ void World::SetCrosshairVisible(bool state)
 {
 
 	crosshairVisible = state;
+
+}
+
+void World::DropCrate()
+{
+
+	const float REQUIRED_RADIUS = 100.0f;
+
+	int numAttempts = 20;
+	Vec2f dropPoint;
+	std::vector<Object*> objects;
+	bool found = false;
+
+	// Find a suitable drop location
+	for (int i = 0; i < numAttempts; ++ i)
+	{
+
+		dropPoint = terrain->GetDropPoint();
+		GetObjectsNear(objects, dropPoint, REQUIRED_RADIUS);
+
+		if (objects.size() == 0)
+		{
+
+			found = true;
+			break;
+
+		}
+		else
+			objects.clear();
+
+	}
+
+	if (found)
+	{
+
+		//
+		// Pick and create a random crate
+		//
+
+		float pick = Random::RandomFloat();
+
+		Pickup* crate;
+
+		if (pick < 0.25f)
+			crate = new Pickup_Health();
+		else if (pick < 0.5f)
+			crate = new Pickup_Exploding();
+		else
+			crate = new Pickup_Weapon();
+
+		// Add the crate to the world
+
+		if (crate)
+		{
+
+			crate->SetPosition(dropPoint.x, (float)HeightInPixels() + 50.0f);
+			crate->SetBounds(16.0f, 16.0f);
+			crate->SetImage(ResourceManager::Get()->GetImage("image_crate"));
+			AddCreatedObject(crate);
+
+		}
+
+	}
 
 }
