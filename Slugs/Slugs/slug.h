@@ -45,6 +45,7 @@ enum MovementDirection
 	Forward Declarations
 */
 
+class Player;
 class Team;
 class AIController;
 
@@ -171,6 +172,9 @@ public:
 
 	// Gets the team to which the slug is assigned
 	Team* GetTeam() const;
+
+	// Gets the player which owns the slug
+	Player* GetPlayer() const;
 
 	// Faces the slug to the right
 	void FaceRight();

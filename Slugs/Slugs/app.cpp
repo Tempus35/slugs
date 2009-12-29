@@ -291,7 +291,7 @@ void App::Render()
 
 	// Draw FPS counter
 	sprintf_s(fpsBuffer, "FPS: %.1f", fps);
-	Renderer::Get()->RenderTextShadowed(10, 10, (FontResource*)ResourceManager::Get()->GetResource("font_arial"), fpsBuffer);
+	Renderer::Get()->RenderText(10, 5, (FontResource*)ResourceManager::Get()->GetResource("font_arial"), fpsBuffer);
 
 	// Present frame
 	Renderer::Get()->Present();

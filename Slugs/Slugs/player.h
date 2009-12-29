@@ -87,6 +87,9 @@ public:
 	// Returns true if the player has performed any action other than choosing a slug this turn
 	virtual bool HasActed() const;
 
+	// Sets the acted flag for the player. This is reset at the start of the next turn.
+	virtual void Acted();
+
 	// Returns true if the current turn is in the process of ending
 	virtual bool IsTurnEnding() const;
 

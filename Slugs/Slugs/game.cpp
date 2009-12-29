@@ -145,6 +145,16 @@ void Game::Render()
 		sprintf_s(debugInfo, 1024, "%s - %s (%.1f)", currentPlayer->GetName().c_str(), currentPlayer->GetCurrentSlug()->GetName().c_str(), currentPlayer->GetTurnTimeRemaining());
 		Renderer::Get()->RenderText(10, 40, NULL, debugInfo, 16.0f, Color(255, 255, 255));
 
+		float power = currentPlayer->GetCurrentSlug()->GetPower() * 100.0f;
+
+		if (power > 0.0f)
+		{
+
+			sprintf_s(debugInfo, 1024, "%.0f%%", power);
+			Renderer::Get()->RenderText(10, (float)Renderer::Get()->GetHeight() - 40, NULL, debugInfo, 30.0f, Color(255, 255, 255));
+
+		}
+
 	}
 
 	float playerInfoY = 70.0f;
@@ -757,7 +767,7 @@ bool Game::GetGameDefaultBool(GameBool flag) const
 	{
 
 	case GameBool_CanChooseSlug:
-		return false;
+		return true;
 
 	case GameBool_CanUseMultipleSlugsPerTurn:
 		return false;

@@ -98,6 +98,8 @@ void Player::ResetForTurn()
 	turnEnding = false;
 	turnEndTimer = Game::Get()->GetGameFloat(GameFloat_TurnEndTime);
 
+	acted = false;
+
 }
 
 void Player::TurnEnds()
@@ -238,6 +240,13 @@ bool Player::HasActed() const
 {
 
 	return acted;
+
+}
+
+void Player::Acted()
+{
+
+	acted = true;
 
 }
 

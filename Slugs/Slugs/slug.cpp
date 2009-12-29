@@ -276,6 +276,8 @@ void Slug::OnHitpointsChanged(int oldValue)
 void Slug::StartMovingLeft()
 {
 
+	GetPlayer()->Acted();
+
 	if (stunTimer <= 0.0f)
 	{
 
@@ -288,6 +290,8 @@ void Slug::StartMovingLeft()
 
 void Slug::StartMovingRight()
 {
+
+	GetPlayer()->Acted();
 
 	if (stunTimer <= 0.0f)
 	{
@@ -309,6 +313,8 @@ void Slug::StopMoving()
 void Slug::StartAimingUp()
 {
 
+	GetPlayer()->Acted();
+
 	if (stunTimer <= 0.0f)
 	{
 
@@ -322,6 +328,8 @@ void Slug::StartAimingUp()
 void Slug::StartAimingDown()
 {
 
+	GetPlayer()->Acted();
+
 	if (stunTimer <= 0.0f)
 	{
 
@@ -334,6 +342,8 @@ void Slug::StartAimingDown()
 
 bool Slug::StartAimingTowards(const Vec2f& direction)
 {
+
+	GetPlayer()->Acted();
 
 	if (stunTimer > 0.0f)
 		return false;
@@ -409,6 +419,8 @@ void Slug::StopEverything()
 void Slug::StartCharging()
 {
 
+	GetPlayer()->Acted();
+
 	if (!charging)
 	{
 
@@ -434,6 +446,8 @@ void Slug::StartCharging()
 void Slug::Jump()
 {
 
+	GetPlayer()->Acted();
+
 	//
 	// We can only jump if we are in the resting state
 	// Cancel the resting state and give the slug a velocity in the correct direction
@@ -457,6 +471,8 @@ void Slug::Jump()
 
 void Slug::Fire()
 {
+
+	GetPlayer()->Acted();
 
 	if (currentWeapon)
 	{
@@ -596,6 +612,8 @@ void Slug::ArmSelf()
 void Slug::ArmSelf(WeaponType type)
 {
 
+	GetPlayer()->Acted();
+
 	if (!charging)
 	{
 
@@ -645,8 +663,17 @@ Team* Slug::GetTeam() const
 
 }
 
+Player* Slug::GetPlayer() const
+{
+
+	return team->GetPlayer();
+
+}
+
 void Slug::FaceRight()
 {
+
+	GetPlayer()->Acted();
 
 	if (facingDirection != FACINGDIRECTION_RIGHT)
 	{
@@ -660,6 +687,8 @@ void Slug::FaceRight()
 
 void Slug::FaceLeft()
 {
+
+	GetPlayer()->Acted();
 
 	if (facingDirection != FACINGDIRECTION_LEFT)
 	{
