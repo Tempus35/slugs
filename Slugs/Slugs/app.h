@@ -13,6 +13,7 @@
 #include "resourcemanager.h"
 #include "game.h"
 #include "ini.h"
+#include "localizer.h"
 
 class App
 {

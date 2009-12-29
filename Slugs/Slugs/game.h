@@ -74,6 +74,7 @@ enum GameState
 
 	GameState_None,					// Initial state when the app is loaded
 	GameState_MainMenu,				// On the main menu
+	GameState_Loading,				// On the loading screen
 	GameState_Game,					// In the game world
 
 };

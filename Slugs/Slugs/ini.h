@@ -22,7 +22,7 @@ public:
 	IniReader(const std::string& path);
 
 	// Reads values from an ini file
-	void Read(std::string& value, const std::string& section, const std::string& key);
+	std::string Read(const std::string& section, const std::string& key, const std::string& defaultValue = "");
 	int ReadInt(const std::string& section, const std::string& key, int defaultValue = 0);
 	bool ReadBool(const std::string& section, const std::string& key, bool defaultValue = false);
 

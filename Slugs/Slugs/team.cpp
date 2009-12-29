@@ -114,13 +114,12 @@ void Team::Randomize(int numSlugs)
 {
 
 	// Get random team name
-	((TextResource*)ResourceManager::Get()->GetResource("text_teamnames"))->GetRandomLine(name, true);
+	name = ResourceManager::Get()->GetText("text_teamnames")->GetRandomLine(true);
 
-	std::string colorString;
-	ResourceManager::Get()->GetText("text_colors")->GetRandomLine(colorString, true);
-	color = ColorFromString(colorString);
+	std::string colorString = ResourceManager::Get()->GetText("text_colors")->GetRandomLine(true);
+	color = Color(colorString);
 
-	TextResource* slugNames = (TextResource*)ResourceManager::Get()->GetResource("text_slugnames");
+	TextResource* slugNames = ResourceManager::Get()->GetText("text_slugnames");
 
 	for (int i = 0; i < numSlugs; ++ i)
 	{
@@ -134,9 +133,7 @@ void Team::Randomize(int numSlugs)
 
 		Slug* slug = new Slug(this, controller);
 
-		std::string n;
-		slugNames->GetRandomLine(n, true);
-		slug->SetName(n);
+		slug->SetName(slugNames->GetRandomLine(true));
 
 		Add(slug);
 

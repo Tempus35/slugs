@@ -1,0 +1,1 @@
+label_fps=FPS: %.1f

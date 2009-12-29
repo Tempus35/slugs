@@ -37,6 +37,18 @@ struct Color
 
 	}
 
+	Color(const std::string& string)
+	{
+
+		int red, green, blue;
+		sscanf_s(string.c_str(), "%i,%i,%i", &red, &green, &blue);
+
+		r = red;
+		g = green;
+		b = blue;
+
+	}
+
 	// Convert to an sf::Color structure
 	sf::Color ToSF() const
 	{

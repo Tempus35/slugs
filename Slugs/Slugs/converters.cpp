@@ -10,12 +10,16 @@ std::string BoolToString(bool value)
 
 }
 
-Color ColorFromString(const std::string& string)
+std::vector<std::string> StringSplit(const std::string& string, char delimiter)
 {
 
-	int r, g, b;
-	sscanf_s(string.c_str(), "%i,%i,%i", &r, &g, &b);
+	std::stringstream stream(string);
+	std::vector<std::string> elements;
+	std::string e;
 
-	return Color(r, g, b);
+	while (std::getline(stream, e, delimiter))
+		elements.push_back(e);
+
+	return elements;
 
 }

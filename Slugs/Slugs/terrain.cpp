@@ -1005,8 +1005,10 @@ void Terrain::ClearCircle(const Vec2f& position, float radius, float border)
 	if (textureBuffer->Intersection(sx, sy, ex, ey, x, y))
 	{
 
-		ASSERT(x[1] - x[0] <= WidthInPixels());
-		ASSERT(y[1] - y[0] <= HeightInPixels());
+		// TODO: We sometimes get broken rects. Find out where they are coming from.
+		//       Hopefully these asserts will catch it.
+		ASSERT(Abs(x[1] - x[0]) <= WidthInPixels());
+		ASSERT(Abs(y[1] - y[0]) <= HeightInPixels());
 
 		// Set dirty rect
 		dirtyRects.insert(dirtyRects.begin(), DirtyRect(x[0], y[0], x[1], y[1]));

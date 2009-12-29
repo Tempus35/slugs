@@ -23,6 +23,7 @@ TextResource::TextResource(const std::string& path)
 	}
 
 	numUsed = 0;
+	empty = "";
 
 }
 
@@ -41,10 +42,11 @@ TextResource::TextResource(const std::vector<std::string>& strings)
 	}
 
 	numUsed = 0;
+	empty = "";
 
 }
 
-void TextResource::GetLine(std::string& line, unsigned int index, bool markAsUsed)
+const std::string& TextResource::GetLine(unsigned int index, bool markAsUsed)
 {
 
 	if ((index >= 0) && (index < lines.size()))
@@ -58,7 +60,7 @@ void TextResource::GetLine(std::string& line, unsigned int index, bool markAsUse
 
 		}
 
-		line = lines[index].text;
+		return lines[index].text;
 
 	}
 
@@ -74,11 +76,11 @@ bool TextResource::IsLineUsed(unsigned int index)
 
 }
 
-void TextResource::GetRandomLine(std::string& line, bool markAsUsed)
+const std::string& TextResource::GetRandomLine(bool markAsUsed)
 {
 
 	if (numUsed == lines.size())
-		return;
+		return empty;
 
 	int numAttempts = 5;
 	int pick;
@@ -88,26 +90,23 @@ void TextResource::GetRandomLine(std::string& line, bool markAsUsed)
 		pick = Random::RandomInt(0, lines.size() - 1);
 
 		if (!lines[pick].used)
-		{
-		
-			GetLine(line, pick, markAsUsed);
-			return;
-
-		}
+			return GetLine(pick, markAsUsed);
 
 		numAttempts --;
 
 	}
 
-	GetFirstUnusedLine(line, markAsUsed);
+	return GetFirstUnusedLine(markAsUsed);
 
 }
 
-void TextResource::GetFirstUnusedLine(std::string& line, bool markAsUsed)
+const std::string& TextResource::GetFirstUnusedLine(bool markAsUsed)
 {
 
+	const std::string empty = "";
+
 	if (numUsed == lines.size())
-		return;
+		return empty;
 
 	for (unsigned int i = 0; i < lines.size(); ++ i)
 	{
@@ -118,11 +117,18 @@ void TextResource::GetFirstUnusedLine(std::string& line, bool markAsUsed)
 			if (markAsUsed)
 				lines[i].used = true;
 
-			line = lines[i].text;
+			return lines[i].text;
 
 		}
 
 	}
+
+}
+
+unsigned int TextResource::GetNumLines() const
+{
+
+	return lines.size();
 
 }
 

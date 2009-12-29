@@ -54,7 +54,26 @@ App::App()
 	icon.LoadFromFile(iconPath);
 
 	if (icon.GetPixelsPtr() != NULL)
-		Renderer::Get()->SetIcon(icon); 
+		Renderer::Get()->SetIcon(icon);
+
+	//
+	// Initialize localizer
+	//
+
+	std::vector<std::string> localizationFiles;
+	localizationFiles.push_back("data/strings");
+
+	std::string languageString = ini.Read("language", "id", "enUs");
+	Language language = Localizer::Get()->StringToLanguage(languageString);
+
+	if (!Localizer::Get()->Initialize(localizationFiles, language))
+	{
+
+		// Try english. If this fails we exit the app.
+		if (!Localizer::Get()->Initialize(localizationFiles, Language_enUS))
+			exit = true;
+
+	}
 
 }
 
@@ -70,6 +89,8 @@ App::~App()
 	ini.WriteInt("display", "width", Renderer::Get()->GetWidth());
 	ini.WriteInt("display", "height", Renderer::Get()->GetHeight());
 	ini.WriteBool("display", "fullscreen", Renderer::Get()->IsFullscreen());
+
+	ini.Write("language", "id", Localizer::Get()->GetLanguageString());
 
 	//
 	// Destroy singletons
@@ -290,7 +311,7 @@ void App::Render()
 	Renderer::Get()->SetCamera(NULL);
 
 	// Draw FPS counter
-	sprintf_s(fpsBuffer, "FPS: %.1f", fps);
+	sprintf_s(fpsBuffer, Localizer::Get()->Localize("label_fps").c_str(), fps);
 	Renderer::Get()->RenderText(10, 5, (FontResource*)ResourceManager::Get()->GetResource("font_arial"), fpsBuffer);
 
 	// Present frame

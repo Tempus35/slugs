@@ -11,12 +11,12 @@ IniReader::IniReader(const std::string& path)
 
 }
 
-void IniReader::Read(std::string& value, const std::string& section, const std::string& key)
+std::string IniReader::Read(const std::string& section, const std::string& key, const std::string& defaultValue)
 {
 
-	GetPrivateProfileString(section.c_str(), key.c_str(), "", buffer, 256, filePath.c_str()); 
+	GetPrivateProfileString(section.c_str(), key.c_str(), defaultValue.c_str(), buffer, 256, filePath.c_str()); 
 
-	value = buffer;
+	return buffer;
 
 }
 
