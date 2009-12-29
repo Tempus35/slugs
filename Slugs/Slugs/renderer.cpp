@@ -161,11 +161,11 @@ void Renderer::DrawDebugArrow(const Vec2f& start, const Vec2f& end, const Color&
 }
 
 
-void Renderer::DrawDebugTrajectory(const Vec2f& start, const Vec2f& direction, float initialSpeed, const Color& color)
+void Renderer::DrawDebugTrajectory(const Vec2f& start, const Vec2f& direction, float initialSpeed, float absGravity, const Color& color)
 {
 
 	const float sample = 0.025f;
-	const float g = -1000.0f;
+	const float g = -absGravity;
 
 	Vec2f previous, current;
 	previous = start;

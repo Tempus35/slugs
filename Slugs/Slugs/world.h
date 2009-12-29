@@ -24,7 +24,6 @@
 #define WORLD_CLOUD_LAYERS			3
 #define WORLD_EXPLOSION_BORDER		6
 
-#define WORLD_CROSSHAIR_DISTANCE	60
 #define WORLD_ARROW_DISTANCE		75
 
 class World
@@ -64,6 +63,7 @@ private:
 	Object*									selectedObject;
 
 	Sprite									crosshairSprite, arrowSprite;
+	bool									crosshairVisible;
 
 public:
 
@@ -123,7 +123,10 @@ public:
 	// Processes all deferred explosions
 	void SimulateExplosions();
 
-	// Finds a intersection with the world along a ray
+	// Returns true if an object or the terrain lies within the circle
+	bool GetCircleIntersection(const Vec2f& center, float radius);
+
+	// Finds an intersection with the world along a ray
 	Intersection GetRayIntersection(const Vec2f& start, const Vec2f& direction, Object* ignore, float range = Math::INFINITY);
 
 	// Finds an intersection with the world along a line
@@ -158,5 +161,11 @@ public:
 
 	// Returns true if an object can hit another with a parabolic weapon
 	bool ObjectCanSeeParabolic(Object* from, Object* to, Vec2f& optimalDirection, float& optimalSpeed);
+
+	// Sets the position of the global crosshair sprite
+	void SetCrosshairPosition(const Vec2f& position);
+
+	// Enables or disables rendering the crosshair sprite
+	void SetCrosshairVisible(bool state);
 
 };

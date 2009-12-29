@@ -120,6 +120,8 @@ void Projectile::SetExplosionData(const ExplosionData& data)
 Projectile_Bazooka::Projectile_Bazooka(Object* creator) : Projectile(creator)
 {
 
+	timer = -1.0f;
+
 }
 
 void Projectile_Bazooka::UpdateOrientation()
@@ -248,7 +250,66 @@ bool Projectile_Mine::Update(float elapsedTime, const Vec2f& gravity, const Vec2
 
 	if (armTimer > 0.0f)
 		armTimer -= elapsedTime;
+	else
+	{
+
+		//
+		// Check for nearby slugs
+		//
+
+		std::vector<Object*> objects;
+
+		const float DETONATION_RADIUS = 30.0f;
+		Game::Get()->GetWorld()->GetObjectsNear(objects, this, DETONATION_RADIUS, ObjectType_Slug);
+
+		// Explode if we found a slug in the detonation radius
+		if (objects.size() > 0)
+			Die();
+
+	}
 
 	return Projectile::Update(elapsedTime, gravity, wind);
+
+}
+
+void Projectile_Mine::DebugRender()
+{
+
+	// Show detonation radius
+	Renderer::Get()->DrawDebugCircle(GetPosition(), 30.0f, Color::red);
+
+}
+
+/*
+	class Projectile_HomingMissile
+*/
+
+Projectile_HomingMissile::Projectile_HomingMissile(Object* creator, const Vec2f& targetPosition) : Projectile_Bazooka(creator)
+{
+
+	target = targetPosition;
+	timer = 10.0f;
+	armTimer = 0.5f;
+
+}
+
+bool Projectile_HomingMissile::Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind)
+{
+
+	// Adjust velocity to try to match the direction of the target
+	const float ADJUSTMENT_SPEED = 100.0f;
+
+	// Start homing as soon as the arm timer runs out
+	if (armTimer <= 0.0f)
+	{
+
+		Vec2f directionToTarget = (target - GetPosition()).Normalize();
+		velocity += directionToTarget * ADJUSTMENT_SPEED;
+
+	}
+	else
+		armTimer -= elapsedTime;
+
+	return Projectile_Bazooka::Update(elapsedTime, gravity, wind);
 
 }

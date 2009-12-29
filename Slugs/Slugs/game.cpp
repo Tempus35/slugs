@@ -82,6 +82,10 @@ void Game::Render()
 	if (world)
 		world->Render();
 
+	//
+	// World space debugging overlay
+	//
+
 	#ifdef _DEBUG
 
 		if (GetGameBool(GameBool_Debug))
@@ -125,7 +129,11 @@ void Game::Render()
 	// Render world space debugging overlay
 	Renderer::Get()->DebugDraw();
 
-	// Don't use the camera since this data is overlayed
+	//
+	// Screen space debugging overlay
+	//
+
+	// Don't use the camera
 	Renderer::Get()->SetCamera(NULL);
 
 	Player* currentPlayer = GetCurrentPlayer();
@@ -136,6 +144,32 @@ void Game::Render()
 		char debugInfo[1024];
 		sprintf_s(debugInfo, 1024, "%s - %s (%.1f)", currentPlayer->GetName().c_str(), currentPlayer->GetCurrentSlug()->GetName().c_str(), currentPlayer->GetTurnTimeRemaining());
 		Renderer::Get()->RenderText(10, 40, NULL, debugInfo, 16.0f, Color(255, 255, 255));
+
+	}
+
+	float playerInfoY = 70.0f;
+	char buffer[256];
+	for (unsigned int i = 0; i < players.size(); ++ i)
+	{
+
+		// Player name
+		Renderer::Get()->RenderText(10, playerInfoY, NULL, players[i]->GetName(), 16.0f, (players[i]->GetType() == PlayerType_Local ? Color::white : Color::red), FontFlag_Bold);
+		playerInfoY += 20.0f;
+
+		// Player's teams
+		for (unsigned int j = 0; j < players[j]->GetNumTeams(); ++ j)
+		{
+
+			Team* team = players[i]->GetTeam(j);
+
+			// Team name
+			sprintf_s(buffer, 256, "%s (%i)", team->GetName().c_str(), team->GetTotalHitpoints());
+			Renderer::Get()->RenderText(10, playerInfoY, NULL, buffer, 16.0f, team->GetColor(), FontFlag_Bold);
+			playerInfoY += 20.0f;
+
+		}
+
+		playerInfoY += 10.0f;
 
 	}
 
@@ -205,6 +239,13 @@ bool Game::KeyDown(sf::Key::Code key, bool shift, bool control, bool alt)
 
 			// Toggle debug overlay
 			ToggleGameBool(GameBool_Debug);
+
+			break;
+
+		case sf::Key::E:
+
+			// Force the current players turn to end
+			Game::EndTurn();
 
 			break;
 
@@ -322,6 +363,27 @@ bool Game::KeyDown(sf::Key::Code key, bool shift, bool control, bool alt)
 
 			break;
 
+		case sf::Key::Num6:
+
+			if (selectedSlug)
+				selectedSlug->ArmSelf(WeaponType_HomingMissile);
+
+			break;
+
+		case sf::Key::Num9:
+
+			if (selectedSlug)
+				selectedSlug->ArmSelf(WeaponType_Airstrike);
+
+			break;
+
+		case sf::Key::Num0:
+
+			if (selectedSlug)
+				selectedSlug->ArmSelf(WeaponType_Teleporter);
+
+			break;
+
 		}
 
 	}
@@ -384,6 +446,22 @@ bool Game::MouseDown(const Vec2i& position, sf::Mouse::Button button)
 
 	if (state == GameState_Game)
 	{
+
+		if (button == sf::Mouse::Left)
+		{
+
+			Slug* selectedSlug;
+
+			if ((Game::Get()->GetCurrentPlayer()) && (GetCurrentPlayer()->GetType() == PlayerType_Local))
+				selectedSlug = Game::Get()->GetCurrentPlayer()->GetCurrentSlug();
+			else
+				selectedSlug = NULL;
+
+			if (selectedSlug)
+				selectedSlug->SetTarget(camera->GetWorldPosition(position.x, position.y));
+
+		}
+			
 
 		#ifdef _DEBUG
 
@@ -513,7 +591,8 @@ void Game::LoadResourcesForState(GameState gameState)
 
 		// Team and name texts
 		resourceManager->AddResource("text_teamnames", new TextResource("data\\teamnames.txt"));
-		resourceManager->AddResource("text_slugnames", new TextResource("data\\slugnames.txt"));
+		resourceManager->AddResource("text_slugnames", new TextResource("data\\slugnames.txt"));\
+		resourceManager->AddResource("text_colors", new TextResource("data\\colors.txt"));
 
 		// Images
 		resourceManager->AddResource("image_gravestone", new ImageResource("gfx\\graves\\gravestone16x16.png"));
@@ -573,27 +652,41 @@ void Game::CreateWorld()
 	// Notify the world that the camera moved (updates parallax)
 	world->CameraMoved(camera->GetPosition());
 
-	// Create 2 players
+	// Create 4 players
 	Player* player = new Player("Player");
-	AIPlayer* computer = new AIPlayer("Computer");
+	AIPlayer* computer0 = new AIPlayer("Computer0");
+	AIPlayer* computer1 = new AIPlayer("Computer1");
+	AIPlayer* computer2 = new AIPlayer("Computer2");
 
-	// Create 2 teams
+	// Create 4 teams
 	Team* teamA = new Team(player);
 	teamA->Randomize();
 
-	Team* teamB = new Team(computer);
+	Team* teamB = new Team(computer0);
 	teamB->Randomize();
+
+	Team* teamC = new Team(computer1);
+	teamC->Randomize();
+
+	Team* teamD = new Team(computer2);
+	teamD->Randomize();
 
 	// Assign teams to players
 	player->AddTeam(teamA);
-	computer->AddTeam(teamB);
+	computer0->AddTeam(teamB);
+	computer1->AddTeam(teamC);
+	computer2->AddTeam(teamD);
 
 	// Place teams in world
 	player->PlaceInWorld();
-	computer->PlaceInWorld();
+	computer0->PlaceInWorld();
+	computer1->PlaceInWorld();
+	computer2->PlaceInWorld();
 
 	players.push_back(player);
-	players.push_back(computer);
+	players.push_back(computer0);
+	players.push_back(computer1);
+	players.push_back(computer2);
 
 	// Set active player and start the game
 	activePlayer = Random::RandomInt(0, players.size() - 1);
@@ -690,6 +783,9 @@ bool Game::GetGameDefaultBool(GameBool flag) const
 	case GameBool_DamageEndsTurn:
 		return true;
 
+	case GameBool_DebugTerrain:
+		return false;
+
 	}
 
 	ASSERTMSG(0, "No default value for GameBool!");
@@ -743,11 +839,21 @@ void Game::EndTurn()
 	// End current players turn
 	players[activePlayer]->TurnEnds();
 
-	// Start next players turn
-	activePlayer ++;
+	// Search for the next player with slugs remaining and start their turn
+	bool foundNextPlayer = false;
 
-	if (activePlayer == players.size())
-		activePlayer = 0;
+	while (!foundNextPlayer)
+	{
+
+		activePlayer ++;
+
+		if (activePlayer == players.size())
+			activePlayer = 0;
+
+		if (players[activePlayer]->HasAliveSlugs())
+			foundNextPlayer = true;
+
+	}
 
 	players[activePlayer]->TurnBegins();
 
@@ -767,5 +873,12 @@ bool Game::EnsureNoAction() const
 {
 
 	return noAction;
+
+}
+
+bool Game::IsActivePlayer(Player* player) const
+{
+
+	return (player == players[activePlayer]);
 
 }

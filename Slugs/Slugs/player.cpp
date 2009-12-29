@@ -153,6 +153,7 @@ void Player::SelectNextSlug()
 	if (activeSlug == NULL)
 	{
 
+		// This should only be hit to set the initial slug on the players first turn
 		slug = availableSlugs[0];
 
 	}
@@ -178,10 +179,8 @@ void Player::SelectNextSlug()
 
 			if (availableSlugs[i] == activeSlug)
 			{
-
 				lastSlugIndex = i;
 				get = true;
-
 			}
 
 		}
@@ -208,10 +207,14 @@ void Player::SelectNextSlug()
 
 	}
 
-	ASSERT(slug != NULL);
+	// If we didn't find another slug, we must be the last one left on our team
+	if (slug != NULL)
+	{
 
-	activeSlug = slug;
-	activeTeam = slug->GetTeam();
+		activeSlug = slug;
+		activeTeam = slug->GetTeam();
+
+	}
 
 	MoveCameraToActiveSlug();
 
@@ -264,5 +267,34 @@ void Player::DebugRender()
 			Renderer::Get()->DrawDebugCircle(activeSlug->GetPosition(), 25.0f, Color(255, 255, 0));
 
 	}
+
+}
+
+unsigned int Player::GetNumTeams() const
+{
+
+	return teams.size();
+
+}
+
+Team* Player::GetTeam(int index) const
+{
+
+	return teams[index];
+
+}
+
+bool Player::HasAliveSlugs() const
+{
+
+	for (unsigned int i = 0; i < teams.size(); ++ i)
+	{
+
+		if (teams[i]->HasAliveSlugs())
+			return true;
+
+	}
+
+	return false;
 
 }

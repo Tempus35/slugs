@@ -70,30 +70,39 @@ public:
 	virtual void SlugFired();
 
 	// Adds a team tot he players team list
-	void AddTeam(Team* team);
+	virtual void AddTeam(Team* team);
 
 	// Places all the players teams in the world
-	void PlaceInWorld();
+	virtual void PlaceInWorld();
 
 	// Makes the next slug in the chain active
-	void SelectNextSlug();
+	virtual void SelectNextSlug();
 
 	// Makes the camera move to the position of the active slug
-	void MoveCameraToActiveSlug();
+	virtual void MoveCameraToActiveSlug();
 
 	// Gets the remaining turn time for the player
-	float GetTurnTimeRemaining() const;
+	virtual float GetTurnTimeRemaining() const;
 
 	// Returns true if the player has performed any action other than choosing a slug this turn
-	bool HasActed() const;
+	virtual bool HasActed() const;
 
 	// Returns true if the current turn is in the process of ending
-	bool IsTurnEnding() const;
+	virtual bool IsTurnEnding() const;
 
 	// Sets the turn ending flag
-	void EndTurn();
+	virtual void EndTurn();
 
 	// Renders debugging information
-	void DebugRender();
+	virtual void DebugRender();
+
+	// Gets the number of teams the player owns
+	virtual unsigned int GetNumTeams() const;
+
+	// Gets a team
+	virtual Team* GetTeam(int index) const;
+
+	// Returns true if the player has any slugs still alive
+	virtual bool HasAliveSlugs() const;
 
 };

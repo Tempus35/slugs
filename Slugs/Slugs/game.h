@@ -28,7 +28,8 @@ enum GameBool
 
 	GameBool_Pause,								// Is the game paused?
 	GameBool_LockCameraToLevel,					// Lock the camera so that it stays inside the level bounds
-	GameBool_Debug,								// Show debugging info
+	GameBool_Debug,								// Show game debugging info
+	GameBool_DebugTerrain,						// Show terrain debugging info
 	
 	GameBool_LAST,								// MUST BE LAST ON THE LIST
 
@@ -174,5 +175,8 @@ public:
 
 	// Returns true if anything is currently going on in the game
 	bool EnsureNoAction() const;
+
+	// Returns true if player is the active player
+	bool IsActivePlayer(Player* player) const;
 
 };

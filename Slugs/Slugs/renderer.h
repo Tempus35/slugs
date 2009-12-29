@@ -110,7 +110,7 @@ public:
 	void DrawDebugArrow(const Vec2f& start, const Vec2f& end, const Color& color);
 
 	// Draws a debug trajectory
-	void DrawDebugTrajectory(const Vec2f& start, const Vec2f& direction, float initialSpeed, const Color& color);
+	void DrawDebugTrajectory(const Vec2f& start, const Vec2f& direction, float initialSpeed, float absGravity, const Color& color);
 
 	// Draws a debug hint box
 	void DrawDebugHint(const Vec2f& position, const std::string& text, const Color& color);

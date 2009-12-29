@@ -51,6 +51,7 @@ protected:
 	bool					alive;				// Is this object alive (dead objects are removed by the world)
 	int						hps;				// Hit points
 	bool					invulnerable;		// Is this object immune to harm
+	bool					forceImmune;		// Is this object uneffected by external forces? (excluding gravity/wind)
 
 	Sprite					sprite;				// Sprite instance for the object
 
@@ -138,8 +139,17 @@ public:
 	// Gets the base type of the object
 	ObjectType GetType() const;
 
+	// Renders the object
+	virtual void Render();
+
 	// Renders debugging info for the object
 	virtual void DebugRender();
+
+	// Returns true if this object is unaffected by external forces
+	virtual bool IsForceImmune() const;
+
+	// Sets whether or not the object is force immune
+	virtual void SetForceImmune(bool state);
 
 };
 

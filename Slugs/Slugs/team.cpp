@@ -12,12 +12,6 @@ Team::Team(Player* player)
 	name = "";
 	color = Color(128, 0, 0);
 
-	numAlive = 0;
-	maxHealth = 0;
-	currentHealth = 0;
-
-	activeIndex = -1;
-
 	weaponStore = NULL;
 
 }
@@ -95,57 +89,11 @@ bool Team::Add(Slug* slug)
 		// Add the slug to the team
 		slugs.push_back(slug);
 
-		// If we don't have an active slug, make this one active
-		if (activeIndex == -1)
-			activeIndex = 0;
-
 		return true;
 
 	}
 
 	return false;
-
-}
-
-Slug* Team::Next()
-{
-
-	activeIndex ++;
-
-	if (activeIndex == slugs.size())
-		activeIndex = 0;
-
-	return slugs[activeIndex];
-
-}
-
-Slug* Team::Previous()
-{
-
-	activeIndex --;
-
-	if (activeIndex < 0)
-		activeIndex = slugs.size() - 1;
-
-	return slugs[activeIndex];;
-
-}
-
-Slug* Team::First()
-{
-
-	activeIndex = 0;
-
-	return slugs[activeIndex];;
-
-}
-
-Slug* Team::Last()
-{
-
-	activeIndex = slugs.size() - 1;
-
-	return slugs[activeIndex];;
 
 }
 
@@ -167,7 +115,10 @@ void Team::Randomize(int numSlugs)
 
 	// Get random team name
 	((TextResource*)ResourceManager::Get()->GetResource("text_teamnames"))->GetRandomLine(name, true);
-	color = Color(Random::RandomInt(64, 255), Random::RandomInt(64, 255), Random::RandomInt(64, 255));
+
+	std::string colorString;
+	ResourceManager::Get()->GetText("text_colors")->GetRandomLine(colorString, true);
+	color = ColorFromString(colorString);
 
 	TextResource* slugNames = (TextResource*)ResourceManager::Get()->GetResource("text_slugnames");
 
@@ -221,5 +172,32 @@ void Team::PlaceInWorld()
 		Game::Get()->GetWorld()->AddObject(slugs[i]);
 
 	}
+
+}
+
+int Team::GetTotalHitpoints() const
+{
+
+	int total = 0;
+
+	for (unsigned int i = 0; i < slugs.size(); ++ i)
+		total += Max(slugs[i]->GetHitPoints(), 0);
+
+	return total;
+
+}
+
+bool Team::HasAliveSlugs() const
+{
+
+	for (unsigned int i = 0; i < slugs.size(); ++ i)
+	{
+
+		if (slugs[i]->GetHitPoints() > 0)
+			return true;
+
+	}
+
+	return false;
 
 }

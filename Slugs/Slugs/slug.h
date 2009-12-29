@@ -92,13 +92,13 @@ public:
 	~Slug();
 
 	// Main update, all processing is done here
-	virtual bool Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind);
+	bool Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind);
 
 	// Overridden to apply falling damage
-	virtual bool OnCollideWithTerrain();
+	bool OnCollideWithTerrain();
 
 	// Overriden to end the players turn if the slug takes damage
-	virtual void OnHitpointsChanged(int oldValue);
+	void OnHitpointsChanged(int oldValue);
 
 	// Starts the slug moving left
 	void StartMovingLeft();
@@ -181,10 +181,19 @@ public:
 	// Sets the current goal object
 	void SetGoal(Object* object);
 
+	// Renders the slug and associated objects
+	void Render();
+
 	// Renders debugging information
 	void DebugRender();
 
 	// Stuns the slug for duration seconds. Stunned slugs can't perform any actions.
 	void StunSelf(float duration);
+
+	// Sets the target position if the current weapon is targetable
+	void SetTarget(const Vec2f& position);
+
+	// Returns true is the slug is the currently active slug of the player whose turn it is
+	bool IsActive() const;
 
 };

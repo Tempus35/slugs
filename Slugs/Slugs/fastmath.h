@@ -97,6 +97,14 @@ inline float Cos(float x)
 	
 }
 
+// Calculates the tangent of x
+inline float Tan(float x)
+{
+
+	return tanf(x);
+
+}
+
 // Calculates the arccosine of x
 inline float Acos(float x)
 {

@@ -371,6 +371,14 @@
 					>
 				</File>
 				<File
+					RelativePath=".\color.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\converters.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\fastmath.cpp"
 					>
 				</File>
@@ -384,6 +392,10 @@
 				</File>
 				<File
 					RelativePath=".\singleton.inl"
+					>
+				</File>
+				<File
+					RelativePath=".\trajectory.cpp"
 					>
 				</File>
 			</Filter>
@@ -470,6 +482,10 @@
 				</File>
 				<File
 					RelativePath=".\singleton.h"
+					>
+				</File>
+				<File
+					RelativePath=".\trajectory.h"
 					>
 				</File>
 				<File

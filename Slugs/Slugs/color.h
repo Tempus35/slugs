@@ -1,10 +1,16 @@
 #pragma once
 
+#include <sfml/graphics.hpp>
+
 #include "global.h"
 
 struct Color
 {
 
+	// Predefined colors
+	static const Color red, green, blue, yellow, cyan, purple, black, white;
+
+	// Red, green, blue, alpha values (0 - 255)
 	byte r, g, b, a;
 
 	Color()
@@ -31,6 +37,7 @@ struct Color
 
 	}
 
+	// Convert to an sf::Color structure
 	sf::Color ToSF() const
 	{
 

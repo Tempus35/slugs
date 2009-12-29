@@ -150,4 +150,27 @@ public:
 
 	virtual bool Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind);
 
+	virtual void DebugRender();
+
+};
+
+/*
+	class Projectile_HomingMissile
+	Like a bazooka rocket but homes in on its target
+*/
+
+class Projectile_HomingMissile : public Projectile_Bazooka
+{
+
+protected:
+
+	Vec2f		target;				// Position of the target
+	float		armTimer;			// Time before homing starts
+
+public:
+
+	Projectile_HomingMissile(Object* creator, const Vec2f& targetPosition);
+
+	virtual bool Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind);
+
 };

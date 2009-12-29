@@ -22,6 +22,7 @@ Object::Object(Object* creator, ObjectType t)
 	alive = true;
 	hps = 1;
 	invulnerable = false;
+	forceImmune = false;
 
 	// Objects don't bounce much by default
 	bounceCoefficient = 0.1f;
@@ -258,6 +259,27 @@ void Object::DebugRender()
 	Vec2f perpendicular = Game::Get()->GetWorld()->GetTerrain()->GetNormalForBox(ground.x, ground.y, Max(bounds.extents.x, 5.0f) * 2.0f, Max(bounds.extents.x, 5.0f) * 2.0f).Perpendicular();
 
 	Renderer::Get()->DrawDebugLine(ground - perpendicular * 10.0f, ground + perpendicular * 10.0f, Color(0, 255, 0));
+
+}
+
+void Object::Render()
+{
+
+	Renderer::Get()->Render(sprite);
+
+}
+
+bool Object::IsForceImmune() const
+{
+
+	return forceImmune;
+
+}
+
+void Object::SetForceImmune(bool state)
+{
+
+	forceImmune = state;
 
 }
 

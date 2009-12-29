@@ -64,8 +64,6 @@ void AIController::Update(Slug* slug, float elapsedTime)
 
 		AIAttackAction* attackAction = (AIAttackAction*)currentAction;
 
-		Renderer::Get()->DrawDebugCircle(attackAction->target->GetPosition(), 10.0f, Color(0, 255, 0));
-
 		slug->ArmSelf(attackAction->weapon);
 
 		Vec2f aimDirection = slug->GetAimDirection();

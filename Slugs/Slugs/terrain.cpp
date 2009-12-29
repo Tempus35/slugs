@@ -1,4 +1,5 @@
 #include "terrain.h"
+#include "game.h"
 
 /*
 	class TerrainBlock
@@ -888,16 +889,23 @@ void Terrain::MarkEdge(int index, byte r, byte g, byte b)
 	if (data)
 	{
 
-		#ifdef PB_TERRAIN_DEBUG
+		#ifdef _DEBUG
+
+		if (Game::Get()->GetGameBool(GameBool_DebugTerrain))
+		{
 
 			data[index].r = r;
 			data[index].g = g;
 			data[index].b = b;
 			data[index].a = TERRAINALPHA_EDGE;
 		
+		}
+		else
+			data[index].a = TERRAINALPHA_EDGE;
+
 		#else
 
-			data[index].a = TERRAINALPHA_EDGE;
+		data[index].a = TERRAINALPHA_EDGE;
 
 		#endif
 
@@ -996,6 +1004,9 @@ void Terrain::ClearCircle(const Vec2f& position, float radius, float border)
 	// Clamp the enclosing square to the buffer
 	if (textureBuffer->Intersection(sx, sy, ex, ey, x, y))
 	{
+
+		ASSERT(x[1] - x[0] <= WidthInPixels());
+		ASSERT(y[1] - y[0] <= HeightInPixels());
 
 		// Set dirty rect
 		dirtyRects.insert(dirtyRects.begin(), DirtyRect(x[0], y[0], x[1], y[1]));
@@ -1446,13 +1457,17 @@ float Terrain::GetHeightAt(const Vec2f& position)
 
 }
 
-bool Terrain::CircleCollision(int centerX, int centerY, int radius)
+bool Terrain::CircleCollision(const Vec2f& center, float radius)
 {
 
+	int sx = RoundDownToInt(center.x - radius);
+	int sy = RoundDownToInt(center.y - radius);
+	int ex = RoundDownToInt(center.x + radius);
+	int ey = RoundDownToInt(center.y + radius);
 	int x[2], y[2];
 
 	// Clamp the enclosing square to the buffer
-	if (textureBuffer->Intersection(centerX - radius, centerY - radius, centerX + radius, centerY + radius, x, y))
+	if (textureBuffer->Intersection(sx, sy, ex, ey, x, y))
 	{
 
 		// Get pointer to data
@@ -1463,8 +1478,8 @@ bool Terrain::CircleCollision(int centerX, int centerY, int radius)
 
 			// Clear the section
 			int yAdvance = textureBuffer->Width() - (x[1] - x[0]);
-			int radiusSquared = radius * radius;
-			int dx, dy;
+			float radiusSquared = radius * radius;
+			float dx, dy;
 
 			for (int i = y[0]; i < y[1]; ++ i)
 			{
@@ -1472,8 +1487,8 @@ bool Terrain::CircleCollision(int centerX, int centerY, int radius)
 				for (int j = x[0]; j < x[1]; ++ j)
 				{
 
-					dx = j - centerX;
-					dy = i - centerY;
+					dx = j - center.x;
+					dy = i - center.y;
 
 					// Restrict to within radius of circle
 					if (dx * dx + dy * dy < radiusSquared)

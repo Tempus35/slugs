@@ -15,8 +15,6 @@
 // Definitions
 //
 
-// #define PB_TERRAIN_DEBUG
-
 #define TERRAIN_BLOCK_SIZE					1024
 
 #define TERRAIN_SMOOTHNESS_MIN				5.0f
@@ -201,7 +199,6 @@ public:
 	// Collision detection
 	//
 
-	bool CircleCollision(int centerX, int centerY, int radius);
 	bool Contains(float x, float y);
 	bool ContainsOpenTop(float x, float y);
 
@@ -231,6 +228,9 @@ public:
 
 	// Tests a point in the terrainbuffer for a collision
 	bool PointCollision(float x, float y);
+
+	// Tests a circle for an intersection with the terrain
+	bool CircleCollision(const Vec2f& center, float radius);
 
 	// Tests a row of the terrainbuffer for a collision
 	bool RowCollision(float y, float startX, float endX);

@@ -63,7 +63,7 @@ bool Slug::Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind)
 	const float SLUG_MAX_DOWN_STEP = 10.0f;			// Maximum number of pixels a slug can move down without falling
 	const float SLUG_MOVEMENT_SPEED = 50.0f;		// Slug movement speed in pixels/second
 	const float SLUG_AIM_SPEED = Radians(45.0f);	// Rate at which the slug can aim in radians/second
-	const float SHOT_POWER_CHARGE_RATE = 1.0f;		// Rate of weapon charge in units/second	
+	const float SHOT_POWER_CHARGE_RATE = 0.5f;		// Rate of weapon charge in units/second	
 
 	//
 	// Find out if we are alive
@@ -402,6 +402,7 @@ void Slug::StopEverything()
 	StopAiming();
 
 	goal = NULL;
+	power = 0.0f;
 
 }
 
@@ -677,20 +678,73 @@ void Slug::SetGoal(Object* object)
 
 }
 
+void Slug::Render()
+{
+
+	if (IsActive())
+	{
+
+		// Draw crosshair if weapon requires aiming
+		if (currentWeapon->RequiresAiming())
+		{
+
+			const float CROSSHAIR_DISTANCE = 60.0f;
+
+			Vec2f crosshairPosition = GetPosition() + GetAimDirection() * CROSSHAIR_DISTANCE;
+			Game::Get()->GetWorld()->SetCrosshairPosition(crosshairPosition);		
+			Game::Get()->GetWorld()->SetCrosshairVisible(true);
+
+		}
+		else
+			Game::Get()->GetWorld()->SetCrosshairVisible(false);
+
+		// Draw current target for targetable weapons
+		if (currentWeapon->IsTargetable())
+		{
+
+			TargetableWeapon* weapon = (TargetableWeapon*)currentWeapon;
+
+			if (weapon->HasTarget())
+			{
+
+				Renderer::Get()->DrawDebugCircle(weapon->GetTarget(), 20.0f, Color::green);
+				Renderer::Get()->DrawDebugCircle(weapon->GetTarget(), 10.0f, Color::green);
+
+			}
+
+		}
+
+	}
+
+	Object::Render();
+
+}
+
 void Slug::DebugRender()
 {
 
 	if (goal != NULL)
 	{
 
-		// Goal arrow
+		// Goal arrow for AI controlled slugs
 		Renderer::Get()->DrawDebugArrow(GetPosition(), goal->GetPosition(), Color(255, 0, 0));
-
-		// Aiming trajectory
-		Renderer::Get()->DrawDebugTrajectory(GetPosition(), GetAimDirection(), 1500.0f, Color(0, 0, 255));
 
 	}
 
+	// Debugging for the active slug
+	if (IsActive())
+	{
+
+		// Aiming trajectory
+		if (power > 0.0f)
+			Renderer::Get()->DrawDebugTrajectory(GetPosition(), GetAimDirection(), currentWeapon->GetLaunchSpeed(power), Game::Get()->GetWorld()->Gravity().Length(), Color(0, 0, 255));
+
+		// Weapon debug
+		currentWeapon->DebugRender();
+
+	}
+
+	// Draw object debugging info (bounds, etc)
 	Object::DebugRender();
 
 }
@@ -699,5 +753,28 @@ void Slug::StunSelf(float duration)
 {
 
 	stunTimer = duration;
+
+}
+
+void Slug::SetTarget(const Vec2f& position)
+{
+
+	if (currentWeapon->IsTargetable())
+	{
+
+		TargetableWeapon* weapon = (TargetableWeapon*)currentWeapon;
+		weapon->SetTargetPoint(position);
+
+	}
+
+}
+
+bool Slug::IsActive() const
+{
+
+	if ((team->GetPlayer()->GetCurrentSlug() == this) && (Game::Get()->IsActivePlayer(team->GetPlayer())))
+		return true;
+
+	return false;
 
 }

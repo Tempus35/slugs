@@ -7,8 +7,9 @@
 
 #pragma once
 
-#include "debug.h"
+#include "global.h"
 
+#include "trajectory.h"
 #include "projectile.h"
 #include "updatemanager.h"
 
@@ -30,6 +31,9 @@ enum WeaponType
 	WeaponType_Shotgun,
 	WeaponType_Machinegun,
 	WeaponType_Mine,
+	WeaponType_HomingMissile,
+	WeaponType_Teleporter,
+	WeaponType_Airstrike,
 	WeaponType_LAST,					// Should be last on the list, used to determine number of available weapon types
 
 };
@@ -47,11 +51,12 @@ protected:
 	WeaponType		type;				// Type identifier
 	int				ammo;				// Ammo remaining (-1 is infinite ammo)
 	bool			needsCharge;		// True if this weapon charges, false if it fires instantly
+	bool			requiresAiming;		// True if this weapon requires aiming
 
 protected:
 
 	// Constructor
-	Weapon(WeaponType t, int initialAmmo, bool charges);
+	Weapon(WeaponType t, int initialAmmo, bool charges, bool aims);
 
 public:
 
@@ -75,6 +80,51 @@ public:
 	// Fires the weapon, returns true if the weapon fired. projectileCreated should be set to the launched projectile (if any) for camera tracking
 	virtual bool Fire(Slug* owner, Projectile*& projectileCreated) = 0;
 
+	// Returns true if the weapon is targetable (default implementation returns false)
+	virtual bool IsTargetable() const;
+
+	// Gets the launch speed for a given power level (should be overriden, default implementation returns 0.0f)
+	virtual float GetLaunchSpeed(float power = 1.0f) const;
+
+	// Renders debugging information
+	virtual void DebugRender();
+
+	// Returns true if this weapon requires aiming
+	virtual bool RequiresAiming() const;
+
+};
+
+/*
+	class TargetableWeapon
+	A weapon that requires the user to set a target with the mouse
+*/
+
+class TargetableWeapon : public Weapon
+{
+
+protected:
+
+	bool			targetSelected;		// True if a target point has been selected
+	Vec2f			targetPoint;		// Current target point for the weapon
+
+public:
+
+	// Constructor
+	TargetableWeapon(WeaponType t, int initialAmmo, bool charges, bool aims);
+
+	// Sets the target point for the weapon
+	virtual void SetTargetPoint(const Vec2f& point);
+
+	// Returns true
+	virtual bool IsTargetable() const;
+
+	// Returns true if the weapon has a target set
+	virtual bool HasTarget() const;
+
+	// Returns the targeted point
+	virtual const Vec2f& GetTarget() const;
+
+
 };
 
 /*
@@ -93,6 +143,8 @@ public:
 	
 	virtual bool Fire(Slug* owner, Projectile*& projectileCreated);
 
+	virtual float GetLaunchSpeed(float power = 1.0f) const;
+
 };
 
 /*
@@ -110,6 +162,8 @@ public:
 	Weapon_Grenade(int initialAmmo = -1);
 
 	virtual bool Fire(Slug* owner, Projectile*& projectileCreated);
+
+	virtual float GetLaunchSpeed(float power = 1.0f) const;
 
 };
 
@@ -173,5 +227,68 @@ public:
 	Weapon_Mine(int initialAmmo = -1);
 
 	virtual bool Fire(Slug* owner, Projectile*& projectileCreated);
+
+};
+
+/*
+	class Weapon_HomingMissile
+*/
+
+class Weapon_HomingMissile : public TargetableWeapon
+{
+
+protected:
+
+public:
+
+	Weapon_HomingMissile(int initialAmmo = -1);
+
+	virtual bool Fire(Slug* owner, Projectile*& projectileCreated);
+
+	virtual float GetLaunchSpeed(float power = 1.0f) const;
+
+};
+
+/*
+	class Weapon_Teleporter
+*/
+
+class Weapon_Teleporter : public TargetableWeapon
+{
+
+protected:
+
+public:
+
+	Weapon_Teleporter(int initialAmmo = -1);
+
+	virtual bool Fire(Slug* owner, Projectile*& projectileCreated);
+
+	// From TargetableWeapon - overriden to prevent teleporting into terrain/objects
+	virtual void SetTargetPoint(const Vec2f& point);
+
+};
+
+/*
+	class Weapon_Airstrike
+*/
+
+class Weapon_Airstrike : public TargetableWeapon
+{
+
+protected:
+
+	Vec2f launchDirection;
+	Vec2f launchPoint;
+
+public:
+
+	Weapon_Airstrike(int initialAmmo = -1);
+
+	virtual bool Fire(Slug* owner, Projectile*& projectileCreated);
+
+	virtual float GetLaunchSpeed(float power = 1.0f) const;
+
+	virtual void DebugRender();
 
 };

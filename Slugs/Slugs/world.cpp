@@ -22,12 +22,19 @@ World::World()
 	ir = (ImageResource*)ResourceManager::Get()->GetResource("image_crosshair");
 
 	if (ir)
+	{
+
 		crosshairSprite = Sprite(ir);
+		crosshairSprite.SetCenter(crosshairSprite.GetWidth() / 2, crosshairSprite.GetHeight() / 2);
+
+	}
 
 	ir = (ImageResource*)ResourceManager::Get()->GetResource("image_arrow");
 	
 	if (ir)
 		arrowSprite = Sprite(ir);
+
+	crosshairVisible = false;
 
 }
 
@@ -444,7 +451,7 @@ void World::SimulateExplosion(const Vec2f& position, const ExplosionData& data)
 		dy = pos.y - position.y;
 		d = sqrtf(dx * dx + dy * dy);
 
-		if (d <= data.forceRadius)
+		if ((!obj->IsForceImmune()) && (d <= data.forceRadius))
 		{
 
 			float forcePower = 1.0f - (d / data.forceRadius);
@@ -530,38 +537,13 @@ void World::Render()
 		if (obj->IsAlive())
 		{
 
-			const Sprite& s = obj->GetSprite();
-			renderer->Render(obj->GetSprite());
-
-			#ifdef PB_DEBUG
-				renderer->Render(obj->marker);
-			#endif
+			obj->Render();
 
 			if (obj->GetType() == ObjectType_Slug)
 			{
 
 				Slug* slugObj = (Slug*)obj;
 				Vec2f objPos = slugObj->GetPosition();
-
-				if (slugObj == Game::Get()->GetCurrentPlayer()->GetCurrentSlug())
-				{
-
-					Vec2f size;
-					float angle = slugObj->GetAimAngle();
-
-					size = crosshairSprite.GetSize();
-
-					if (slugObj->GetFacingDirection() == FACINGDIRECTION_RIGHT)
-						crosshairSprite.SetPosition(objPos.x + cosf(angle) * WORLD_CROSSHAIR_DISTANCE - size.x / 2, -objPos.y - sinf(angle) * WORLD_CROSSHAIR_DISTANCE - size.y / 2);
-					else
-						crosshairSprite.SetPosition(objPos.x - cosf(angle) * WORLD_CROSSHAIR_DISTANCE - size.x / 2, -objPos.y - sinf(angle) * WORLD_CROSSHAIR_DISTANCE - size.y / 2);
-					
-					size = arrowSprite.GetSize();
-					arrowSprite.SetPosition(objPos.x - size.x / 2, objPos.y - WORLD_ARROW_DISTANCE - size.y / 2);				
-
-					renderer->Render(crosshairSprite);
-
-				}
 
 				if (Game::Get()->GetGameBool(GameBool_AlwaysShowNames))
 					Renderer::Get()->RenderTextShadowed(objPos.x, -objPos.y - 34.0f, (FontResource*)ResourceManager::Get()->GetResource("font_copacetix"), slugObj->GetName(), 16.0f, slugObj->GetTeam()->GetColor(), Color(0, 0, 0), FontFlag_Bold|FontFlag_Centered);
@@ -587,6 +569,10 @@ void World::Render()
 
 	// Render FX
 	Game::Get()->GetFXManager()->Render();
+
+	// Render Crosshair
+	if (crosshairVisible)
+		Renderer::Get()->Render(crosshairSprite);
 
 }
 
@@ -655,6 +641,17 @@ Intersection World::GetLineIntersection(const Vec2f& start, const Vec2f& end, Ob
 
 	Vec2f direction = end - start;
 	return GetRayIntersection(start, direction.Normalize(), ignore, direction.Length());
+
+}
+
+bool World::GetCircleIntersection(const Vec2f& center, float radius)
+{
+
+	// Check terrain
+	if (terrain->CircleCollision(center, radius))
+		return true;
+
+	return false;
 
 }
 
@@ -744,7 +741,7 @@ Terrain* World::GetTerrain() const
 void World::GetSpawnPoints(std::vector<Vec2f>& list, int count)
 {
 
-	const float blockRadius = 50.0f;
+	const float blockRadius = 75.0f;
 
 	for (int i = 0; i < count; ++ i)
 		list.push_back(GetSpawnPointAndBlock(blockRadius));
@@ -937,5 +934,19 @@ bool World::ObjectCanSeeParabolic(Object* from, Object* to, Vec2f& optimalDirect
 	optimalSpeed = maxSpeed;
 
 	return true;
+
+}
+
+void World::SetCrosshairPosition(const Vec2f& position)
+{
+
+	crosshairSprite.SetPosition(position.x, -position.y);
+
+}
+
+void World::SetCrosshairVisible(bool state)
+{
+
+	crosshairVisible = state;
 
 }
