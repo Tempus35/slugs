@@ -560,6 +560,13 @@ float Slug::GetPower() const
 
 }
 
+void Slug::SetPower(float newPower)
+{
+
+	power = newPower;
+
+}
+
 void Slug::Die(bool instant)
 {
 
@@ -600,7 +607,7 @@ void Slug::SpawnGravestone() const
 
 }
 
-void Slug::ArmSelf()
+Weapon* Slug::ArmSelf()
 {
 
 	if (!charging)
@@ -611,9 +618,11 @@ void Slug::ArmSelf()
 
 	}
 
+	return currentWeapon;
+
 }
 
-void Slug::ArmSelf(WeaponType type)
+Weapon* Slug::ArmSelf(WeaponType type)
 {
 
 	GetPlayer()->Acted();
@@ -625,6 +634,8 @@ void Slug::ArmSelf(WeaponType type)
 			currentWeapon = weaponStore->Get(type);
 
 	}
+
+	return currentWeapon;
 
 }
 
@@ -739,7 +750,7 @@ void Slug::Render()
 	{
 
 		// Draw crosshair if weapon requires aiming
-		if (currentWeapon->RequiresAiming())
+		if ((currentWeapon->RequiresAiming()) && (hps > 0))
 		{
 
 			const float CROSSHAIR_DISTANCE = 60.0f;
@@ -794,8 +805,12 @@ void Slug::DebugRender()
 		// Weapon debug
 		currentWeapon->DebugRender();
 
-	}
+		// AI debugging
+		if (controller)
+			controller->DebugRender();
 
+	}
+	
 	// Draw object debugging info (bounds, etc)
 	Object::DebugRender();
 

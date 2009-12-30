@@ -32,7 +32,7 @@ AIAttackAction::AIAttackAction(WeaponType _weapon, Object* _target, const Vec2f&
 	weapon = _weapon;
 	target = _target;
 	direction = _direction;
-	speed = speed;
+	speed = _speed;
 
 }
 

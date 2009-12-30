@@ -158,11 +158,14 @@ public:
 	// Gets the current charge level
 	float GetPower() const;
 
+	// Sets the weapon charge level
+	void SetPower(float newPower);
+
 	// Arms the slug with the first available weapon in its weapon store
-	void ArmSelf();
+	Weapon* ArmSelf();
 
 	// Arms the slug with the given weapon type
-	void ArmSelf(WeaponType type);
+	Weapon* ArmSelf(WeaponType type);
 	
 	// Sets the weapons store available to the slug
 	void SetWeapons(WeaponStore* store, bool slugOwns = false);

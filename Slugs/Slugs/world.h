@@ -182,11 +182,14 @@ public:
 	// Gets all objects within a given radius of a point
 	void GetObjectsNear(std::vector<Object*>& list, const Vec2f& point, float radius, ObjectType type = ObjectType_Any, Object* ignore= NULL);
 
+	// Finds an object within a circle
+	Object* FindObject(const Vec2f& position, float radius);
+
 	// Returns true if a direct line of sight exists between two objects
-	bool ObjectCanSee(Object* from, Object* to);
+	bool ObjectCanSeeDirect(Object* from, Object* to);
 
 	// Returns true if an object can hit another with a parabolic weapon
-	bool ObjectCanSeeParabolic(Object* from, Object* to, Vec2f& optimalDirection, float& optimalSpeed);
+	bool ObjectCanShootIndirect(Object* from, Object* to, float maxSpeed, Vec2f& optimalDirection, float& optimalSpeed);
 
 	// Sets the position of the global crosshair sprite
 	void SetCrosshairPosition(const Vec2f& position);

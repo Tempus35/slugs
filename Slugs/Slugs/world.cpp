@@ -903,7 +903,30 @@ void World::GetObjectsNear(std::vector<Object*>& list, const Vec2f& point, float
 
 }
 
-bool World::ObjectCanSee(Object* from, Object* to)
+Object* World::FindObject(const Vec2f& position, float radius)
+{
+
+	float radiusSquared = Sqr(radius);
+
+	std::list<Object*>::iterator i = objects.begin();
+
+	while (i != objects.end())
+	{
+
+		Object* obj = (*i);
+
+		if ((obj->GetPosition() - position).LengthSquared() <= radiusSquared)
+			return obj;
+
+		i ++;
+			
+	}
+
+	return NULL;
+
+}
+
+bool World::ObjectCanSeeDirect(Object* from, Object* to)
 {
 
 	Vec2f intersectionPos;
@@ -913,50 +936,107 @@ bool World::ObjectCanSee(Object* from, Object* to)
 
 }
 
-bool World::ObjectCanSeeParabolic(Object* from, Object* to, Vec2f& optimalDirection, float& optimalSpeed)
+bool World::ObjectCanShootIndirect(Object* from, Object* to, float maxSpeed, Vec2f& optimalDirection, float& optimalSpeed)
 {
 
-	const float maxSpeed		= 1500.0f;
-	const float g				= 1000.0f;
+	//
+	// Calculate the two launch angles that will hit the target
+	//
 
-	Vec2f toPos = to->GetPosition();
-	Vec2f fromPos = from->GetPosition();
+	float g = -gravity.Length();
+	const Vec2f& start = from->GetPosition();
 
-	float u = maxSpeed;
+	Vec2f directions[2];
 
-	float x = toPos.x - fromPos.x;
-	float y = toPos.y - fromPos.y;
+	bool canShoot = false;
+	float testSpeed, testDirection;
 
-	float d = Sqr(u) - 2.0f * g * (y + 0.5f * g * (Sqr(x) / Sqr(u)));
+	//if ((start - to->GetPosition()).LengthSquared() < 500 * 500)
+	//{
+	
+		testDirection = 1.0f;
+		testSpeed = 300.0f;
+	
+	//}
+	//else
+	//{
 
-	if (d < 0.0f)
+	//	testDirection = - =1.0f;
+	//	testSpeed = maxSpeed;
+
+	//}
+
+	// Start a max speed and reduce until we find a valid path
+	while (!canShoot)
+	{
+	
+		canShoot = CalculateLaunchDirection2(start, to->GetPosition(), testSpeed, -g, directions[0], directions[1]);
+		optimalSpeed = testSpeed;
+
+		testSpeed += 300.0f * testDirection;
+
+		if ((testSpeed < 300.0f) || (testSpeed > 1500.0f))
+			break;
+
+	}	
+
+	if (canShoot)
 	{
 
-		// Out of range
-		return false;
+		//
+		// Test the path for intersections with the terrain and objects
+		// The lower direction is tested first
+		//
+
+		const float sample = 0.0125f;
+
+		for (int i = 0; i < 2; ++ i)
+		{
+
+			Vec2f position = start;
+
+			float t = sample;
+			Vec2f velocity = directions[i] * optimalSpeed;
+
+			Vec2f intersection;
+
+			while (position.y >= 0.0f)
+			{
+
+				position.x = start.x + velocity.x * t;
+				position.y = start.y + velocity.y * t + 0.5f * g * t * t;
+
+				Renderer::Get()->DrawDebugBox(Boxf(position, Vec2f(2.5f, 2.5f)), Color::purple);
+
+				if (terrain->BoxCollision(position.x, position.y, 5.0f, 5.0f, intersection))
+					return false;
+
+				Object* object = FindObject(position, 5.0f);
+
+				if (object)
+				{
+
+					if (object == to)
+					{
+					
+						optimalDirection = directions[i];
+						return true;
+					
+					}
+					else if (object != from)
+						break;
+
+				}
+
+				t += sample;
+
+			}
+
+		}
 
 	}
 
-	float sqrtD = Sqrt(d);
-	float gxOverU = g * x / u;
-
-	float angle0 = Atan((u + sqrtD) / gxOverU);
-	float angle1 = Atan((u - sqrtD) / gxOverU);
-
-	if (fromPos.x > toPos.x)
-	{
-
-		angle0 = Math::PI + angle0;
-		angle1 = Math::PI + angle1;
-
-	}
-
-	float optimalAngle = Max(angle0, angle1);
-	optimalDirection = Vec2f(Cos(optimalAngle), Sin(optimalAngle));
-
-	optimalSpeed = maxSpeed;
-
-	return true;
+	return canShoot;
 
 }
 

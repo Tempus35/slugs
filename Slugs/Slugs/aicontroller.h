@@ -38,6 +38,11 @@ protected:
 	AISkillLevel				skill;			// Skill level of this controller
 	std::queue<AIAction*>		actionQueue;	// Queue of actions to process
 
+	std::vector<Object*>		validTargets;
+	std::vector<Object*>		invalidTargets;
+	std::vector<Object*>		badTargets;
+	std::vector<Object*>		farTargets;
+
 protected:
 
 	// Decides what the slug will try to accomplish this turn and creates an action queue
@@ -56,5 +61,8 @@ public:
 
 	// Returns the skill level of the controller
 	AISkillLevel GetSkillLevel() const;
+
+	// Renders debugging info
+	void DebugRender();
 
 };

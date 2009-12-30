@@ -64,7 +64,7 @@ void AIController::Update(Slug* slug, float elapsedTime)
 
 		AIAttackAction* attackAction = (AIAttackAction*)currentAction;
 
-		slug->ArmSelf(attackAction->weapon);
+		Weapon* weapon = slug->ArmSelf(attackAction->weapon);
 
 		Vec2f aimDirection = slug->GetAimDirection();
 
@@ -78,9 +78,16 @@ void AIController::Update(Slug* slug, float elapsedTime)
 			//
 
 			slug->StopAiming();
-
 			slug->StartCharging();
-			actionFinished = true;
+
+			if (weapon->GetLaunchSpeed(slug->GetPower()) >= attackAction->speed)
+			{
+
+				slug->SetPower(attackAction->speed / 1500.0f);
+				slug->Fire();
+				actionFinished = true;
+
+			}
 
 		}
 
@@ -137,6 +144,10 @@ AISkillLevel AIController::GetSkillLevel() const
 void AIController::DecideWhatToDo(Slug* slug)
 {
 
+	validTargets.clear();
+	invalidTargets.clear();
+	badTargets.clear();
+
 	std::vector<Object*> objects;
 	Game::Get()->GetWorld()->GetObjectsNear(objects, slug, Math::INFINITY);
 
@@ -149,7 +160,7 @@ void AIController::DecideWhatToDo(Slug* slug)
 	Vec2f closestEnemyDirection;
 	Object* closestEnemyIndirect = NULL;
 	float closestEnemyDistanceIndirect = Math::INFINITY;
-	float optimalSpeed;
+	float optimalSpeed, speed;
 	Vec2f optimalDirection, direction;
 
 	for (unsigned int i = 0; i < objects.size(); ++ i)
@@ -162,7 +173,8 @@ void AIController::DecideWhatToDo(Slug* slug)
 
 			Slug* p = (Slug*)object;
 
-			if (p->GetTeam()->GetPlayer() != slug->GetTeam()->GetPlayer())
+			// Make sure we aren't on the same team or dead and still in the world
+			if ((p->GetTeam()->GetPlayer() != slug->GetTeam()->GetPlayer()) && (p->GetHitPoints() > 0))
 			{
 
 				Vec2f delta = object->GetPosition() - slug->GetPosition();
@@ -173,7 +185,7 @@ void AIController::DecideWhatToDo(Slug* slug)
 				{
 
 					// Check for line of sight
-					if (Game::Get()->GetWorld()->ObjectCanSee(slug, object))
+					if (Game::Get()->GetWorld()->ObjectCanSeeDirect(slug, object))
 					{
 
 						closestEnemyDistance = d;
@@ -187,17 +199,32 @@ void AIController::DecideWhatToDo(Slug* slug)
 				if (d < closestEnemyDistanceIndirect)
 				{
 
-					// Check for parabolic line of sight
-					if (Game::Get()->GetWorld()->ObjectCanSeeParabolic(slug, object, direction, optimalSpeed))
+					// Ensure we aren't so close that we would take damage if we shot this object
+					if ((object->GetPosition() - slug->GetPosition()).LengthSquared() > 100 * 100)
 					{
 
-						optimalDirection = direction;
-						closestEnemyDistanceIndirect = d;
-						closestEnemyIndirect = object;
+						// Check for parabolic line of sight
+						if (Game::Get()->GetWorld()->ObjectCanShootIndirect(slug, object, 1500.0f, direction, speed))
+						{
+
+							optimalDirection = direction;
+							optimalSpeed = speed;
+							closestEnemyDistanceIndirect = d;
+							closestEnemyIndirect = object;
+
+							validTargets.push_back(object);
+
+						}
+						else
+							invalidTargets.push_back(object);
 
 					}
+					else
+						badTargets.push_back(object);
 
 				}
+				else
+					farTargets.push_back(object);
 
 			}
 
@@ -212,8 +239,8 @@ void AIController::DecideWhatToDo(Slug* slug)
 	// Attack an enemy
 	//
 
-	if (closestEnemy == NULL)
-	{
+	//if (closestEnemy == NULL)
+	//{
 
 		if (closestEnemyIndirect == NULL)
 		{
@@ -225,16 +252,21 @@ void AIController::DecideWhatToDo(Slug* slug)
 		else
 		{
 
+			WeaponType weaponType = WeaponType_Bazooka;
+
+			// Throw in a few grenades if appropriate
+			if ((closestEnemyIndirect->GetPosition().y < slug->GetPosition().y) && (closestEnemyDistanceIndirect > 500 * 500) && (Random::RandomFloat() < 0.9f))
+				weaponType = WeaponType_Bazooka;
+
 			slug->SetGoal(closestEnemyIndirect);
-			actionQueue.push(new AIAttackAction(WeaponType_Bazooka, closestEnemyIndirect, optimalDirection, optimalSpeed));
+			actionQueue.push(new AIAttackAction(weaponType, closestEnemyIndirect, optimalDirection, optimalSpeed));
 
 		}
 	
+	/*
 	}
 	else
 	{
-
-		WeaponType weaponType;
 
 		if (closestEnemyDistance < 100.0f)
 			weaponType = WeaponType_Machinegun;
@@ -245,5 +277,23 @@ void AIController::DecideWhatToDo(Slug* slug)
 		actionQueue.push(new AIAttackAction(weaponType, closestEnemy, closestEnemyDirection, 2000.0f));
 
 	}
+	*/
+
+}
+
+void AIController::DebugRender()
+{
+
+	for (unsigned int i = 0; i < validTargets.size(); ++ i)
+		Renderer::Get()->DrawDebugCircle(validTargets[i]->GetPosition(), 10.0f, Color::green);
+
+	for (unsigned int i = 0; i < invalidTargets.size(); ++ i)
+		Renderer::Get()->DrawDebugCircle(invalidTargets[i]->GetPosition(), 10.0f, Color::gray);
+
+	for (unsigned int i = 0; i < badTargets.size(); ++ i)
+		Renderer::Get()->DrawDebugCircle(badTargets[i]->GetPosition(), 10.0f, Color::red);
+
+	for (unsigned int i = 0; i < farTargets.size(); ++ i)
+		Renderer::Get()->DrawDebugCircle(farTargets[i]->GetPosition(), 10.0f, Color::blue);
 
 }

@@ -1198,10 +1198,10 @@ bool Terrain::BoxCollision(float centerX, float centerY, float width, float heig
 	if (textureBuffer->Intersection(sx, sy, ex, ey, x, y))
 	{
 
-		for (int i = y[0]; i <= y[1]; ++ i)
+		for (int i = y[0]; i < y[1]; ++ i)
 		{
 
-			for (int j = x[0]; j <= x[1]; ++ j)
+			for (int j = x[0]; j < x[1]; ++ j)
 			{
 
 				// Get pointer to data
@@ -1387,10 +1387,10 @@ Vec2f Terrain::GetNormalForBox(float centerX, float centerY, float width, float 
 		Vec2f normal;
 		float dx, dy;
 
-		for (int ix = x[0]; ix <= x[1]; ++ ix)
+		for (int ix = x[0]; ix < x[1]; ++ ix)
 		{
 
-			for (int iy = y[0]; iy <= y[1]; ++ iy)
+			for (int iy = y[0]; iy < y[1]; ++ iy)
 			{
 
 				if (ix < centerX)

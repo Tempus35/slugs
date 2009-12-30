@@ -827,7 +827,7 @@ void Game::SetupWorld()
 {
 
 	// Create 4 players
-	Player* player = new Player("Player");
+	Player* player = new AIPlayer("Player");
 	AIPlayer* computer0 = new AIPlayer("Computer0");
 	AIPlayer* computer1 = new AIPlayer("Computer1");
 	AIPlayer* computer2 = new AIPlayer("Computer2");
