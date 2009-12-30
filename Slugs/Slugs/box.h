@@ -27,7 +27,7 @@ public:
 
 	// Constructors
 	Box();
-	Box(Vec2<T> _center, Vec2<T> _extents);
+	Box(const Vec2<T>& _center, const Vec2<T>& _extents);
 
 	// Gets the minimum of the box
 	Vec2<T> GetMin() const;

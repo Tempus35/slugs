@@ -1,12 +1,13 @@
 #pragma once
 
 #include "debug.h"
+#include "renderable.h"
 #include "imageresource.h"
 #include "vec2.h"
 #include "color.h"
 #include "fastmath.h"
 
-class Sprite
+class Sprite : public Renderable
 {
 
 protected:
@@ -20,7 +21,7 @@ public:
 	Sprite(ImageResource* res, Color& color = Color(255, 255, 255));
 	~Sprite();
 	
-	const sf::Sprite& GetData() const;
+	const sf::Drawable& GetData() const;
 
 	//
 	// Accessors

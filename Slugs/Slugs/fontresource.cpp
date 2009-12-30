@@ -1,6 +1,6 @@
 #include "fontresource.h"
 
-FontResource::FontResource(const std::string& path, unsigned int size)
+FontResource::FontResource(const std::string& path, unsigned int size) : Resource(ResourceType_Font)
 {
 
 	font.LoadFromFile(path, size);

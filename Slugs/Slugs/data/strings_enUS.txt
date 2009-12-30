@@ -1,1 +1,3 @@
 label_fps=FPS: %.1f
+console_badcommand='%s' is not a valid command.
+console_invalidargs=Invalid arguments for command '%s'.

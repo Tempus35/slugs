@@ -12,6 +12,17 @@ App::App()
 	free(dir);
 
 	//
+	// Set application icon
+	//
+
+	sf::Image icon;
+	std::string iconPath = workingDirectory + "\\slug.png";
+	icon.LoadFromFile(iconPath);
+
+	if (icon.GetPixelsPtr() != NULL)
+		Renderer::Get()->SetIcon(icon);
+
+	//
 	// Load configuration settings
 	//
 
@@ -44,17 +55,6 @@ App::App()
 
 	Renderer::Get()->Initialize(resolution.x, resolution.y, "Slugs", !fullscreen);
 	Game::Get()->GetCamera()->SetViewSize(resolution.x, resolution.y);
-
-	//
-	// Set application icon
-	//
-
-	sf::Image icon;
-	std::string iconPath = workingDirectory + "\\slug.png";
-	icon.LoadFromFile(iconPath);
-
-	if (icon.GetPixelsPtr() != NULL)
-		Renderer::Get()->SetIcon(icon);
 
 	//
 	// Initialize localizer
@@ -105,20 +105,23 @@ App::~App()
 void App::UpdateFPS(float elapsedTime)
 {
 
-	frame++;
-	time += elapsedTime;
+	if (elapsedTime < 0.1f)
+	{
 
-	if (time > 1e-4f)
-		fps = (float)frame / time;
-	else
-		fps = 0;
+		frame++;
+		time += elapsedTime;
+
+		if (time > 1e-4f)
+			fps = (float)frame / time;
+		else
+			fps = 0;
+
+	}
 
 }
 
 void App::MainLoop()
 {
-
-	Game::Get()->ChangeGameState(GameState_Game);
 
 	while (!exit)
 	{
@@ -303,7 +306,7 @@ void App::Render()
 {
 
 	// Clear backbuffer
-	Renderer::Get()->Clear(Color(100, 100, 100));
+	Renderer::Get()->Clear(Color::black);
 
 	// Render game
 	Game::Get()->Render();
@@ -312,7 +315,7 @@ void App::Render()
 
 	// Draw FPS counter
 	sprintf_s(fpsBuffer, Localizer::Get()->Localize("label_fps").c_str(), fps);
-	Renderer::Get()->RenderText(10, 5, (FontResource*)ResourceManager::Get()->GetResource("font_arial"), fpsBuffer);
+	Renderer::Get()->RenderText(10, 5, ResourceManager::Get()->GetFont("font_arial"), fpsBuffer);
 
 	// Present frame
 	Renderer::Get()->Present();

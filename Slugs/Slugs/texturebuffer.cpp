@@ -4,7 +4,7 @@
 	class TextureBuffer
 */
 
-TextureBuffer::TextureBuffer(const std::string& path)
+TextureBuffer::TextureBuffer(const std::string& path) : Resource(ResourceType_TextureBuffer)
 {
 
 	ilInit();
@@ -28,7 +28,7 @@ TextureBuffer::TextureBuffer(const std::string& path)
 
 }
 
-TextureBuffer::TextureBuffer(int textureWidth, int textureHeight, int numChannels)
+TextureBuffer::TextureBuffer(int textureWidth, int textureHeight, int numChannels) : Resource(ResourceType_TextureBuffer)
 {
 
 	data = NULL;

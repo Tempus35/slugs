@@ -4,10 +4,13 @@
 
 #include "global.h"
 #include "singleton.h"
+#include "renderable.h"
 #include "color.h"
 #include "sprite.h"
 #include "fontresource.h"
 #include "box.h"
+#include "shape.h"
+#include "text.h"
 
 /*
 	Enumeration of font rendering styles (can be ORed together)
@@ -29,36 +32,6 @@ enum FontFlag
 class Camera;
 
 /*
-	struct DebugDrawable
-	Container for an object to be draw in the debug layer
-*/
-
-struct DebugDrawable
-{
-
-	virtual const sf::Drawable& GetDrawable() = 0;
-
-};
-
-struct DebugShape : public DebugDrawable
-{
-
-	sf::Shape shape;
-
-	const sf::Drawable& GetDrawable() { return shape; }
-
-};
-
-struct DebugString : public DebugDrawable
-{
-
-	sf::String string;
-
-	const sf::Drawable& GetDrawable() { return string; }
-
-};
-
-/*
 	class Renderer
 */
 
@@ -74,7 +47,7 @@ private:
 	bool							fullscreen;
 	std::string						windowTitle;
 
-	std::vector<DebugDrawable*>		debugLayer;
+	std::vector<Renderable*>		debugLayer;
 
 	FontResource*					defaultFont;
 
@@ -88,10 +61,10 @@ public:
 	void Initialize(int width, int height, char* name, bool windowed = true);
 	void UpdateWindow();
 
-	void Clear(Color& color);
+	void Clear(const Color& color);
 	void Present();
 
-	void Render(const Sprite& sprite);
+	void Render(const Renderable& renderable);
 
 	sf::RenderWindow& GetWindow();
 	void SetIcon(sf::Image& icon);

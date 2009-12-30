@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include "thread.h"
 #include "vec2.h"
 #include "terrain.h"
 #include "clouds.h"
@@ -16,6 +17,23 @@
 #include "circle.h"
 #include "pickup.h"
 
+/*
+	class WorldBuilderThread
+*/
+
+class WorldBuilderThread : public Thread
+{
+
+public:
+
+	 unsigned int DoWork(void* object);
+
+};
+
+/*
+	class World
+*/
+
 #define WORLD_DEFAULT_GRAVITY		-1000.0f
 #define WORLD_WATER_LINES			5
 #define WORLD_WATER_MIN_SPEED		50.0f
@@ -29,6 +47,8 @@
 
 class World
 {
+
+friend class WorldBuildThread;
 
 private:
 
@@ -65,6 +85,8 @@ private:
 
 	Sprite									crosshairSprite, arrowSprite;
 	bool									crosshairVisible;
+
+	WorldBuilderThread						workerThread;					// Handles the tough job of building the world
 
 public:
 
@@ -174,5 +196,11 @@ public:
 
 	// Creates and drops a random crate
 	void DropCrate();
+
+	// Returns true if the worker thread is currently building the world
+	bool IsBuilding() const;
+
+	// Cancels any building of the world in progress
+	void CancelBuilding();
 
 };

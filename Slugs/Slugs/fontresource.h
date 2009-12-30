@@ -20,7 +20,7 @@ protected:
 public:
 
 	// Constructor
-	FontResource(const std::string& path, unsigned int size = 30);
+	FontResource(const std::string& path, unsigned int size = 64);
 
 	// Object accessor
 	const sf::Font& GetFont();

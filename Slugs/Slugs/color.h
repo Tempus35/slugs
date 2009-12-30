@@ -8,7 +8,7 @@ struct Color
 {
 
 	// Predefined colors
-	static const Color red, green, blue, yellow, cyan, purple, black, white;
+	static const Color red, green, blue, yellow, cyan, purple, black, white, gray;
 
 	// Red, green, blue, alpha values (0 - 255)
 	byte r, g, b, a;

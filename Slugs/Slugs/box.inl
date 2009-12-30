@@ -15,7 +15,7 @@ Box<T>::Box()
 }
 
 template <class T>
-Box<T>::Box(Vec2<T> _center, Vec2<T> _extents)
+Box<T>::Box(const Vec2<T>& _center, const Vec2<T>& _extents)
 {
 
 	center = _center;

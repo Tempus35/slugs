@@ -4,6 +4,19 @@
 //#define PB_DEBUG
 
 /*
+	class WorldBuilderThread
+*/
+
+unsigned int WorldBuilderThread::DoWork(void* object)
+{
+
+	((Terrain*)object)->Generate(0);
+
+	return 0;
+
+}
+
+/*
 	class World
 */
 
@@ -29,10 +42,10 @@ World::World()
 
 	}
 
-	ir = (ImageResource*)ResourceManager::Get()->GetResource("image_arrow");
+	//ir = (ImageResource*)ResourceManager::Get()->GetResource("image_arrow");
 	
-	if (ir)
-		arrowSprite = Sprite(ir);
+	//if (ir)
+	//	arrowSprite = Sprite(ir);
 
 	crosshairVisible = false;
 
@@ -57,7 +70,6 @@ void World::Build(int width, int height, TextureBuffer* groundTexture, TextureBu
 	// Create the terrain, set art and generate
 	terrain = new Terrain(width, height);
 	terrain->SetArt(groundTexture, overTexture, underTexture);
-	terrain->Generate(0);
 
 	int spacing = waterImage->Image().GetHeight() / 2;
 	int start = waterImage->Image().GetHeight() * WORLD_WATER_LINES / 2;
@@ -72,6 +84,10 @@ void World::Build(int width, int height, TextureBuffer* groundTexture, TextureBu
 	}	
 
 	clouds = new Clouds((ImageResource*)ResourceManager::Get()->GetResource("image_cloud"), Color(150, 150, 150), 0, -terrain->HeightInPixels() + 20, terrain->WidthInPixels(), Random::RandomInt(WORLD_CLOUDS_MIN, WORLD_CLOUDS_MAX), WORLD_CLOUD_LAYERS);
+
+	// Build the terrain on the worker thread
+	ASSERT(!workerThread.IsRunning());
+	workerThread.Start(terrain);
 
 }
 
@@ -1018,5 +1034,22 @@ void World::DropCrate()
 		}
 
 	}
+
+}
+
+bool World::IsBuilding() const
+{
+
+	return workerThread.IsRunning();
+
+}
+
+void World::CancelBuilding()
+{
+
+	if (workerThread.IsRunning())
+		workerThread.Stop();
+
+	// TODO: This doesn't actually cancel anything since the thread doesn't check for stop events at the moment
 
 }

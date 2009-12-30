@@ -11,6 +11,7 @@
 #include "player.h"
 #include "camera.h"
 #include "resourcemanager.h"
+#include "uimanager.h"
 
 /*
 	Enumeration of bool game flags
@@ -74,7 +75,7 @@ enum GameState
 
 	GameState_None,					// Initial state when the app is loaded
 	GameState_MainMenu,				// On the main menu
-	GameState_Loading,				// On the loading screen
+	GameState_Build,				// Building a world
 	GameState_Game,					// In the game world
 
 };
@@ -94,6 +95,7 @@ private:
 
 	UpdateManager*					updateManager;		// Pointer to UpdateManager instance
 	FXManager*						fxManager;			// Pointer to FXManager instance
+	UIManager*						uiManager;			// Pointer to the UI manager
 
 	std::vector<Player*>			players;			// List of all players currently in the game
 	unsigned int					activePlayer;		// Index of the currently active player
@@ -105,6 +107,8 @@ private:
 	bool							noAction;			// Set to true if nothing moved on the last update
 
 	Vec2i							cursorPosition;		// Current position of the mouse cursor in screen space
+
+	bool							loading;			// Are we waiting for resources to load?
 
 private:
 
@@ -128,6 +132,9 @@ public:
 	// Gets a pointer to the fx manager
 	FXManager* GetFXManager() const;
 
+	// Gets a pointer to the ui manager
+	UIManager* GetUIManager() const;
+
 	// Handles key presses
 	bool KeyDown(sf::Key::Code key, bool shift, bool control, bool alt);
 
@@ -149,8 +156,11 @@ public:
 	// Changes the game state
 	void ChangeGameState(GameState gameState);
 
-	// Creates and sets up the world
+	// Creates the world
 	void CreateWorld();
+
+	// Sets up the world, called after CreateWorld
+	void SetupWorld();
 		
 	// Gets the game camera
 	Camera* GetCamera() const;
@@ -182,5 +192,11 @@ public:
 
 	// Returns true if player is the active player
 	bool IsActivePlayer(Player* player) const;
+
+	// Shows a loading screen
+	void SetLoading(bool state);
+
+	// Fired when resources for a state have completed loading
+	void ResourcesLoaded();
 
 };

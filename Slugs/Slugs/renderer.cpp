@@ -44,7 +44,7 @@ void Renderer::UpdateWindow()
 
 }
 
-void Renderer::Clear(Color& color)
+void Renderer::Clear(const Color& color)
 {
 
 	window.Clear(color.ToSF());
@@ -58,10 +58,10 @@ void Renderer::Present()
 
 }
 
-void Renderer::Render(const Sprite& sprite)
+void Renderer::Render(const Renderable& renderable)
 {
 
-	window.Draw(sprite.GetData());
+	window.Draw(renderable.GetData());
 
 }
 
@@ -92,7 +92,7 @@ void Renderer::SetCamera(Camera* camera)
 void Renderer::DrawDebugCircle(const Vec2f& center, float radius, const Color& color)
 {
 
-	DebugShape* d = new DebugShape();
+	Shape* d = new Shape();
 	
 	d->shape = sf::Shape::Circle(center.x, -center.y, radius, color.ToSF(), 1.0f, color.ToSF());
 	d->shape.EnableOutline(true);
@@ -105,7 +105,7 @@ void Renderer::DrawDebugCircle(const Vec2f& center, float radius, const Color& c
 void Renderer::DrawDebugRay(const Vec2f& start, const Vec2f& direction, float length, const Color& color)
 {
 
-	DebugShape* d = new DebugShape();
+	Shape* d = new Shape();
 
 	d->shape = sf::Shape::Line(start.x, -start.y, start.x + direction.x * length, -(start.y + direction.y * length), 1.0f, color.ToSF(), 1.0f, color.ToSF());
 	d->shape.EnableFill(true);
@@ -118,7 +118,7 @@ void Renderer::DrawDebugRay(const Vec2f& start, const Vec2f& direction, float le
 void Renderer::DrawDebugLine(const Vec2f& start, const Vec2f& end, const Color& color)
 {
 
-	DebugShape* d = new DebugShape();
+	Shape* d = new Shape();
 
 	d->shape = sf::Shape::Line(start.x, -start.y, end.x, -end.y, 1.0f, color.ToSF(), 1.0f, color.ToSF());
 	d->shape.EnableFill(true);
@@ -132,9 +132,9 @@ void Renderer::DrawDebugLine(const Vec2f& start, const Vec2f& end, const Color& 
 void Renderer::DrawDebugArrow(const Vec2f& start, const Vec2f& end, const Color& color)
 {
 
-	DebugShape* d;
+	Shape* d;
 
-	d = new DebugShape();
+	d = new Shape();
 	d->shape = sf::Shape::Line(start.x, -start.y, end.x, -end.y, 1.0f, color.ToSF(), 1.0f, color.ToSF());
 	d->shape.EnableFill(true);
 	d->shape.EnableOutline(false);
@@ -146,13 +146,13 @@ void Renderer::DrawDebugArrow(const Vec2f& start, const Vec2f& end, const Color&
 	const float head = 10.0f;
 	Vec2f headPoint = end - direction * head;
 
-	d = new DebugShape();
+	d = new Shape();
 	d->shape = sf::Shape::Line(end.x, -end.y, headPoint.x + cross.x * head, -(headPoint.y + cross.y * head), 1.0f, color.ToSF(), 1.0f, color.ToSF());
 	d->shape.EnableFill(true);
 	d->shape.EnableOutline(false);
 	debugLayer.push_back(d);
 
-	d = new DebugShape();
+	d = new Shape();
 	d->shape = sf::Shape::Line(end.x, -end.y, headPoint.x - cross.x * head, -(headPoint.y - cross.y * head), 1.0f, color.ToSF(), 1.0f, color.ToSF());
 	d->shape.EnableFill(true);
 	d->shape.EnableOutline(false);
@@ -179,7 +179,7 @@ void Renderer::DrawDebugTrajectory(const Vec2f& start, const Vec2f& direction, f
 		current.x = start.x + velocity.x * t;
 		current.y = start.y + velocity.y * t + 0.5f * g * t * t;
 
-		DebugShape* d = new DebugShape();
+		Shape* d = new Shape();
 
 		d->shape = sf::Shape::Line(current.x, -current.y, previous.x, -previous.y, 1.0f, color.ToSF(), 1.0f, color.ToSF());
 		d->shape.EnableFill(true);
@@ -200,13 +200,13 @@ void Renderer::DrawDebugHint(const Vec2f& position, const std::string& text, con
 
 	const float border = 5.0f;
 
-	DebugString* s = new DebugString();
+	Text* s = new Text();
 
 	s->string = sf::String(text, sf::Font::GetDefaultFont(), 16.0f);
 	s->string.SetPosition(position.x, -position.y);
 	s->string.SetColor(color.ToSF());
 
-	DebugShape* d = new DebugShape();
+	Shape* d = new Shape();
 
 	const sf::FloatRect& hintRect = s->string.GetRect();
 	d->shape = sf::Shape::Rectangle(hintRect.Left - border, hintRect.Bottom + border, hintRect.Right + border, hintRect.Top - border, Color(0, 0, 0, 128).ToSF());
@@ -219,7 +219,7 @@ void Renderer::DrawDebugHint(const Vec2f& position, const std::string& text, con
 void Renderer::DrawDebugBox(const Boxf& box, const Color& color)
 {
 
-	DebugShape* d = new DebugShape();
+	Shape* d = new Shape();
 
 	d->shape = sf::Shape::Rectangle(box.center.x - box.extents.x, -(box.center.y - box.extents.y), box.center.x + box.extents.x, -(box.center.y + box.extents.y), color.ToSF());
 	debugLayer.push_back(d);
@@ -232,7 +232,7 @@ void Renderer::DebugDraw()
 	for (unsigned int i = 0; i < debugLayer.size(); ++ i)
 	{
 
-		window.Draw(debugLayer[i]->GetDrawable());
+		window.Draw(debugLayer[i]->GetData());
 		delete debugLayer[i];
 
 	}

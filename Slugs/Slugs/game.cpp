@@ -8,6 +8,7 @@ Game::Game()
 	world = NULL;
 	updateManager = new UpdateManager();
 	fxManager = new FXManager();
+	uiManager = new UIManager();
 
 	for (int i = 0; i < GameBool_LAST; ++ i)
 		gameBools.push_back(GetGameDefaultBool((GameBool)i));
@@ -23,6 +24,7 @@ Game::Game()
 	camera = new Camera();
 
 	noAction = true;
+	loading = false;
 
 	// Load initial resources
 	LoadResourcesForState(GameState_None);
@@ -35,9 +37,18 @@ Game::~Game()
 	for (unsigned int i = 0; i < players.size(); ++ i)
 		SafeDelete(players[i]);
 	
-
 	SafeDelete(camera);
+
+	while (world->IsBuilding())
+	{
+
+		world->CancelBuilding();
+		Sleep(10);
+
+	}
+
 	SafeDelete(world);
+	
 	SafeDelete(updateManager);
 	SafeDelete(fxManager);
 
@@ -46,27 +57,60 @@ Game::~Game()
 void Game::Update(float elapsedTime)
 {
 
-	if (!GetGameBool(GameBool_Pause))
+	// Update the UI
+	uiManager->Update(elapsedTime);
+
+	if (loading)
 	{
 
-		// Update the active player object
-		if (activePlayer != -1)
-			players[activePlayer]->Update(elapsedTime);
+		if (state == GameState_Build)
+		{
 
-		// Update the camera
-		if (camera->Update(elapsedTime))
-			world->CameraMoved(camera->GetPosition());
+			// We just finished building the world, advance to the game state
+			if (!world->IsBuilding())
+				ResourcesLoaded();
 
-		// Update the update manager
-		if (updateManager)
-			updateManager->Update(elapsedTime);
+		}
+		else
+		{
 
-		// Update world
-		if (world)
-			noAction = !world->Update(elapsedTime);
+			if (!ResourceManager::Get()->IsLoading())
+				ResourcesLoaded();
 
-		if (fxManager)
-			fxManager->Update(elapsedTime);
+		}
+
+	}
+	else
+	{
+
+		if (state == GameState_Game)
+		{
+
+			if (!GetGameBool(GameBool_Pause))
+			{
+
+				// Update the active player object
+				if (activePlayer != -1)
+					players[activePlayer]->Update(elapsedTime);
+
+				// Update the camera
+				if (camera->Update(elapsedTime))
+					world->CameraMoved(camera->GetPosition());
+
+				// Update the update manager
+				if (updateManager)
+					updateManager->Update(elapsedTime);
+
+				// Update world
+				if (world)
+					noAction = !world->Update(elapsedTime);
+
+				if (fxManager)
+					fxManager->Update(elapsedTime);
+
+			}
+
+		}
 
 	}
 
@@ -75,111 +119,142 @@ void Game::Update(float elapsedTime)
 void Game::Render()
 {
 
-	// Set out camera
-	Renderer::Get()->SetCamera(camera);
-
-	// Render the world
-	if (world)
-		world->Render();
-
-	//
-	// World space debugging overlay
-	//
-
-	#ifdef _DEBUG
-
-		if (GetGameBool(GameBool_Debug))
-		{
-
-			//
-			// Show debugging info about the object under the cursor
-			//
-
-			Object* object = world->SelectedObject();
-			
-			if (!object)
-			{
-
-				Vec2f worldPos = camera->GetWorldPosition(cursorPosition.x, cursorPosition.y);
-				object = world->GetObjectAtPosition(worldPos);
-
-			}
-
-			if (object)
-			{
-
-				ObjectType objectType = object->GetType();
-				const Vec2f& objectPos = object->GetPosition();
-				const Vec2f& objectVel = object->GetVelocity();
-
-				char debugString[1024];
-				sprintf_s(debugString, 1024, "[%s] (%i hps)\n\nPosition: %.1f, %.1f\nVelocity: %.1f, %.1f (%.1f)\n\nAtRest = %s", ObjectTypeToString(objectType).c_str(), object->GetHitPoints(), objectPos.x, objectPos.y, objectVel.x, objectVel.y, object->GetSpeed(), BoolToString(object->IsAtRest()).c_str());
-				
-				if (objectType == ObjectType_Projectile)
-					sprintf_s(&debugString[strlen(debugString)], 1024 - strlen(debugString), "\n\nTimer: %.1f", ((Projectile*)object)->GetTimer());
-				
-				Renderer::Get()->DrawDebugHint(objectPos + Vec2f(20.0f, -20.0f), debugString, Color(255, 255, 255));
-
-			}
-
-		}
-
-	#endif
-
-	// Render world space debugging overlay
-	Renderer::Get()->DebugDraw();
-
-	//
-	// Screen space debugging overlay
-	//
-
-	// Don't use the camera
-	Renderer::Get()->SetCamera(NULL);
-
-	Player* currentPlayer = GetCurrentPlayer();
-
-	if ((currentPlayer) && (currentPlayer->GetCurrentSlug()))
+	if (loading)
 	{
 
-		char debugInfo[1024];
-		sprintf_s(debugInfo, 1024, "%s - %s (%.1f)", currentPlayer->GetName().c_str(), currentPlayer->GetCurrentSlug()->GetName().c_str(), currentPlayer->GetTurnTimeRemaining());
-		Renderer::Get()->RenderText(10, 40, NULL, debugInfo, 16.0f, Color(255, 255, 255));
+		//
+		// Render the loading screen
+		//
 
-		float power = currentPlayer->GetCurrentSlug()->GetPower() * 100.0f;
+		Renderer::Get()->SetCamera(NULL);
 
-		if (power > 0.0f)
-		{
-
-			sprintf_s(debugInfo, 1024, "%.0f%%", power);
-			Renderer::Get()->RenderText(10, (float)Renderer::Get()->GetHeight() - 40, NULL, debugInfo, 30.0f, Color(255, 255, 255));
-
-		}
+		uiManager->Render();
 
 	}
-
-	float playerInfoY = 70.0f;
-	char buffer[256];
-	for (unsigned int i = 0; i < players.size(); ++ i)
+	else
 	{
 
-		// Player name
-		Renderer::Get()->RenderText(10, playerInfoY, NULL, players[i]->GetName(), 16.0f, (players[i]->GetType() == PlayerType_Local ? Color::white : Color::red), FontFlag_Bold);
-		playerInfoY += 20.0f;
+		// Set the camera
+		Renderer::Get()->SetCamera(camera);
 
-		// Player's teams
-		for (unsigned int j = 0; j < players[j]->GetNumTeams(); ++ j)
+		// Render the world
+		if (world)
+			world->Render();
+
+		//
+		// World space debugging overlay
+		//
+
+		#ifdef _DEBUG
+
+			if (GetGameBool(GameBool_Debug))
+			{
+
+				//
+				// Show debugging info about the object under the cursor
+				//
+
+				Object* object = world->SelectedObject();
+				
+				if (!object)
+				{
+
+					Vec2f worldPos = camera->GetWorldPosition(cursorPosition.x, cursorPosition.y);
+					object = world->GetObjectAtPosition(worldPos);
+
+				}
+
+				if (object)
+				{
+
+					ObjectType objectType = object->GetType();
+					const Vec2f& objectPos = object->GetPosition();
+					const Vec2f& objectVel = object->GetVelocity();
+
+					char Text[1024];
+					sprintf_s(Text, 1024, "[%s] (%i hps)\n\nPosition: %.1f, %.1f\nVelocity: %.1f, %.1f (%.1f)\n\nAtRest = %s", ObjectTypeToString(objectType).c_str(), object->GetHitPoints(), objectPos.x, objectPos.y, objectVel.x, objectVel.y, object->GetSpeed(), BoolToString(object->IsAtRest()).c_str());
+					
+					if (objectType == ObjectType_Projectile)
+						sprintf_s(&Text[strlen(Text)], 1024 - strlen(Text), "\n\nTimer: %.1f", ((Projectile*)object)->GetTimer());
+					
+					Renderer::Get()->DrawDebugHint(objectPos + Vec2f(20.0f, -20.0f), Text, Color(255, 255, 255));
+
+				}
+
+			}
+
+		#endif
+
+		// Render world space debugging overlay
+		Renderer::Get()->DebugDraw();
+
+		// Turn the camera off for screen space mode
+		Renderer::Get()->SetCamera(NULL);
+
+		//
+		// Render UI
+		// TODO: This eventually needs to move behind the screen space debug layer when it is cleared in favor of ui controls
+		//
+
+		uiManager->Render();
+
+		//
+		// Screen space debugging overlay
+		//
+
+		UIConsole* console = (UIConsole*)uiManager->GetWidget("console");
+
+		if ((console == NULL) || (!console->IsOpen()))
 		{
 
-			Team* team = players[i]->GetTeam(j);
+			Player* currentPlayer = GetCurrentPlayer();
 
-			// Team name
-			sprintf_s(buffer, 256, "%s (%i)", team->GetName().c_str(), team->GetTotalHitpoints());
-			Renderer::Get()->RenderText(10, playerInfoY, NULL, buffer, 16.0f, team->GetColor(), FontFlag_Bold);
-			playerInfoY += 20.0f;
+			if ((currentPlayer) && (currentPlayer->GetCurrentSlug()))
+			{
+
+				char debugInfo[1024];
+				sprintf_s(debugInfo, 1024, "%s - %s (%.1f)", currentPlayer->GetName().c_str(), currentPlayer->GetCurrentSlug()->GetName().c_str(), currentPlayer->GetTurnTimeRemaining());
+				Renderer::Get()->RenderText(10, 40, NULL, debugInfo, 16.0f, Color(255, 255, 255));
+
+				float power = currentPlayer->GetCurrentSlug()->GetPower() * 100.0f;
+
+				if (power > 0.0f)
+				{
+
+					sprintf_s(debugInfo, 1024, "%.0f%%", power);
+					Renderer::Get()->RenderText(10, (float)Renderer::Get()->GetHeight() - 40, NULL, debugInfo, 30.0f, Color(255, 255, 255));
+
+				}
+
+			}
+
+			float playerInfoY = 70.0f;
+			char buffer[256];
+			for (unsigned int i = 0; i < players.size(); ++ i)
+			{
+
+				// Player name
+				Renderer::Get()->RenderText(10, playerInfoY, NULL, players[i]->GetName(), 16.0f, (players[i]->GetType() == PlayerType_Local ? Color::white : Color::red), FontFlag_Bold);
+				playerInfoY += 20.0f;
+
+				// Player's teams
+				for (unsigned int j = 0; j < players[j]->GetNumTeams(); ++ j)
+				{
+
+					Team* team = players[i]->GetTeam(j);
+
+					// Team name
+					sprintf_s(buffer, 256, "%s (%i)", team->GetName().c_str(), team->GetTotalHitpoints());
+					Renderer::Get()->RenderText(10, playerInfoY, NULL, buffer, 16.0f, team->GetColor(), FontFlag_Bold);
+					playerInfoY += 20.0f;
+
+				}
+
+				playerInfoY += 10.0f;
+
+			}
 
 		}
-
-		playerInfoY += 10.0f;
 
 	}
 
@@ -206,8 +281,19 @@ FXManager* Game::GetFXManager() const
 
 }
 
+UIManager* Game::GetUIManager() const
+{
+
+	return uiManager;
+
+}
+
 bool Game::KeyDown(sf::Key::Code key, bool shift, bool control, bool alt)
 {
+
+	// UI gets first shot at the event
+	if (uiManager->KeyDown(key, shift, control, alt))
+		return true;
 
 	if (state == GameState_Game)
 	{
@@ -267,6 +353,13 @@ bool Game::KeyDown(sf::Key::Code key, bool shift, bool control, bool alt)
 			break;
 
 		#endif
+
+		case sf::Key::Tilde:
+
+			// Open or close the console
+			((UIConsole*)Game::Get()->GetUIManager()->GetWidget("console"))->Toggle();
+
+			break;
 
 		//
 		// Game Controls
@@ -418,6 +511,10 @@ bool Game::KeyDown(sf::Key::Code key, bool shift, bool control, bool alt)
 
 bool Game::KeyUp(sf::Key::Code key, bool shift, bool control, bool alt)
 {
+
+	// UI gets first shot at the event
+	if (uiManager->KeyUp(key, shift, control, alt))
+		return true;
 
 	if (state == GameState_Game)
 	{
@@ -588,69 +685,104 @@ void Game::LoadResourcesForState(GameState gameState)
 		// These resources are loaded at app start
 		//
 
-		// Fonts
+		// Loading graphic
+		// This is loaded on the main thread and added to the resource manager since we need it to display the loading screen
+		resourceManager->AddResource("image_loading", new ImageResource("gfx\\placeholders\\loadingpie_ph.tga"));
 		resourceManager->AddResource("font_arial", new FontResource("gfx\\fonts\\arial.ttf"));
-		resourceManager->AddResource("font_copacetix", new FontResource("gfx\\fonts\\copacetix.ttf", 64));
+
+		// Show the loading screen
+		SetLoading(true);
+
+		// Fonts
+		resourceManager->QueueResource("font_copacetix", ResourceType_Font, "gfx\\fonts\\copacetix.ttf");
 		
 		// UI Sounds
-		resourceManager->AddResource("menu_click", new SoundResource("sfx\\menu_click.wav"));
-
-		// Set default rendering font
-		Renderer::Get()->SetDefaultFont(resourceManager->GetFont("font_arial"));
-
-	}
-	else if (gameState == GameState_Game)
-	{
-
-		//
-		// These resources are loaded when a battle starts
-		//
+		resourceManager->QueueResource("menu_click", ResourceType_Sound, "sfx\\menu_click.wav");
 
 		// UI Images
-		resourceManager->AddResource("ui_timer", new ImageResource("gfx\\ui\\timer.tga"));
-		resourceManager->AddResource("ui_windbar_empty", new ImageResource("gfx\\ui\\windbar_empty.tga"));
-		resourceManager->AddResource("ui_windbar_full", new ImageResource("gfx\\ui\\windbar_full.tga"));
-		resourceManager->AddResource("ui_teambar_empty", new ImageResource("gfx\\ui\\teambar_empty.tga"));
-		resourceManager->AddResource("ui_teambar_full", new ImageResource("gfx\\ui\\teambar_full.tga"));
+		resourceManager->QueueResource("ui_timer", ResourceType_Image, "gfx\\ui\\timer.tga");
+		resourceManager->QueueResource("ui_windbar_empty", ResourceType_Image, "gfx\\ui\\windbar_empty.tga");
+		resourceManager->QueueResource("ui_windbar_full", ResourceType_Image, "gfx\\ui\\windbar_full.tga");
+		resourceManager->QueueResource("ui_teambar_empty", ResourceType_Image, "gfx\\ui\\teambar_empty.tga");
+		resourceManager->QueueResource("ui_teambar_full", ResourceType_Image, "gfx\\ui\\teambar_full.tga");
 
 		// Team and name texts
-		resourceManager->AddResource("text_teamnames", new TextResource("data\\teamnames.txt"));
-		resourceManager->AddResource("text_slugnames", new TextResource("data\\slugnames.txt"));\
-		resourceManager->AddResource("text_colors", new TextResource("data\\colors.txt"));
+		resourceManager->QueueResource("text_teamnames", ResourceType_Text, "data\\teamnames.txt");
+		resourceManager->QueueResource("text_slugnames", ResourceType_Text, "data\\slugnames.txt");
+		resourceManager->QueueResource("text_colors", ResourceType_Text, "data\\colors.txt");
 
 		// Ambient
-		resourceManager->AddResource("image_cloud", new ImageResource("gfx\\clouds\\standard\\smallcloud0.png"));
-		resourceManager->AddResource("image_water0", new ImageResource("gfx\\levels\\test\\water.tga"));
-		resourceManager->AddResource("image_backgroundfar", new ImageResource("gfx\\levels\\test\\back2.png"));
-		resourceManager->AddResource("image_backgroundnear", new ImageResource("gfx\\levels\\test\\back1.png"));
+		resourceManager->QueueResource("image_cloud", ResourceType_Image, "gfx\\clouds\\standard\\smallcloud0.png");
+		resourceManager->QueueResource("image_water0", ResourceType_Image, "gfx\\levels\\test\\water.tga");
+		resourceManager->QueueResource("image_backgroundfar", ResourceType_Image, "gfx\\levels\\test\\back2.png");
+		resourceManager->QueueResource("image_backgroundnear", ResourceType_Image, "gfx\\levels\\test\\back1.png");
 
 		// Flavor objects
-		resourceManager->AddResource("image_gravestone", new ImageResource("gfx\\graves\\gravestone16x16.png"));
+		resourceManager->QueueResource("image_gravestone", ResourceType_Image, "gfx\\graves\\gravestone16x16.png");
 		
 		// Ground
-		resourceManager->AddResource("tb_ground", new TextureBuffer("gfx\\levels\\test\\ground_ice.tga"));
-		resourceManager->AddResource("tb_over", new TextureBuffer("gfx\\levels\\test\\over_ice.tga"));
-		resourceManager->AddResource("tb_under", new TextureBuffer("gfx\\levels\\test\\under_ice.tga"));
+		resourceManager->QueueResource("tb_ground", ResourceType_TextureBuffer, "gfx\\levels\\test\\ground_ice.tga");
+		resourceManager->QueueResource("tb_over", ResourceType_TextureBuffer, "gfx\\levels\\test\\over_ice.tga");
+		resourceManager->QueueResource("tb_under", ResourceType_TextureBuffer, "gfx\\levels\\test\\under_ice.tga");
 
 		// Slug
-		resourceManager->AddResource("image_crosshair", new ImageResource("gfx\\levels\\test\\crosshair.tga"));
-		resourceManager->AddResource("image_slug_left", new ImageResource("gfx\\placeholders\\slug_ph_left.tga"));
-		resourceManager->AddResource("image_slug_right", new ImageResource("gfx\\placeholders\\slug_ph_right.tga"));
+		resourceManager->QueueResource("image_crosshair", ResourceType_Image, "gfx\\levels\\test\\crosshair.tga");
+		resourceManager->QueueResource("image_slug_left", ResourceType_Image, "gfx\\placeholders\\slug_ph_left.tga");
+		resourceManager->QueueResource("image_slug_right", ResourceType_Image, "gfx\\placeholders\\slug_ph_right.tga");
 
 		// Projectiles
-		resourceManager->AddResource("image_rocket", new ImageResource("gfx\\placeholders\\rocket_ph.tga"));
-		resourceManager->AddResource("image_grenade", new ImageResource("gfx\\placeholders\\grenade_ph.tga"));
-		resourceManager->AddResource("image_mine", new ImageResource("gfx\\placeholders\\mine_ph.tga"));
-		resourceManager->AddResource("image_dynamite", new ImageResource("gfx\\placeholders\\dynamite_ph.tga"));
+		resourceManager->QueueResource("image_rocket", ResourceType_Image, "gfx\\placeholders\\rocket_ph.tga");
+		resourceManager->QueueResource("image_grenade", ResourceType_Image, "gfx\\placeholders\\grenade_ph.tga");
+		resourceManager->QueueResource("image_mine", ResourceType_Image, "gfx\\placeholders\\mine_ph.tga");
+		resourceManager->QueueResource("image_dynamite", ResourceType_Image, "gfx\\placeholders\\dynamite_ph.tga");
 
 		// Pickups
-		resourceManager->AddResource("image_crate", new ImageResource("gfx\\placeholders\\crate_ph.tga"));
+		resourceManager->QueueResource("image_crate", ResourceType_Image, "gfx\\placeholders\\crate_ph.tga");
 
 		// Particles
-		resourceManager->AddResource("particle_explosion", new ImageResource("gfx\\misc\\explosion0.tga"));
+		resourceManager->QueueResource("particle_explosion", ResourceType_Image, "gfx\\misc\\explosion0.tga");
 
 		// Hats
-		resourceManager->AddResource("image_hat0", new ImageResource("gfx\\placeholders\\hat_ph.tga"));
+		resourceManager->QueueResource("image_hat0", ResourceType_Image, "gfx\\placeholders\\hat_ph.tga");
+
+		// Load 'em
+		resourceManager->LoadQueuedResources();
+
+	}
+
+}
+
+void Game::ResourcesLoaded()
+{
+
+	if (state == GameState_None)
+	{
+
+		// Set default rendering font
+		Renderer::Get()->SetDefaultFont(ResourceManager::Get()->GetFont("font_arial"));
+
+		// Add a console to the UI
+		uiManager->AddWidget(new UIConsole("console"));
+
+		// Advance to the game state
+		ChangeGameState(GameState_Build);
+
+		// Create the world
+		CreateWorld();
+
+	}
+	else if (state == GameState_Build)
+	{
+
+		SetupWorld();
+
+		ChangeGameState(GameState_Game);
+	
+	}
+	else if (state == GameState_Game)
+	{
+
+		SetLoading(false);
 
 	}
 
@@ -660,17 +792,6 @@ void Game::ChangeGameState(GameState gameState)
 {
 
 	LoadResourcesForState(gameState);
-
-	switch (gameState)
-	{
-
-	case GameState_Game:
-
-		CreateWorld();
-
-		break;
-
-	}
 
 	state = gameState;
 
@@ -692,6 +813,11 @@ void Game::CreateWorld()
 
 	// Notify the world that the camera moved (updates parallax)
 	world->CameraMoved(camera->GetPosition());
+
+}
+
+void Game::SetupWorld()
+{
 
 	// Create 4 players
 	Player* player = new Player("Player");
@@ -937,5 +1063,37 @@ bool Game::IsActivePlayer(Player* player) const
 {
 
 	return (player == players[activePlayer]);
+
+}
+
+void Game::SetLoading(bool state)
+{
+
+	if (loading != state)
+	{
+
+		loading = state;
+
+		if (loading)
+		{
+		
+			uiManager->RemoveWidgetsInGroup(UIGroup_Other);
+
+			UILoadGraphic* graphic = new UILoadGraphic(ResourceManager::Get()->GetImage("image_loading"), "graphic_loading", UIGroup_Other);
+			graphic->SetPosition(Vec2i(Renderer::Get()->GetWidth() / 2, Renderer::Get()->GetHeight() / 2));
+
+			uiManager->AddWidget(graphic);
+
+		}
+		else
+			uiManager->RemoveWidgetsInGroup(UIGroup_Other);
+
+	}
+	else
+	{
+
+		ASSERT(0);
+
+	}
 
 }

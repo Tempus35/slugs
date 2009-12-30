@@ -4,7 +4,7 @@
 	class ImageResource
 */
 
-ImageResource::ImageResource(int width, int height, bool smooth)
+ImageResource::ImageResource(int width, int height, bool smooth) : Resource(ResourceType_Image)
 {
 
 	image.Create(width, height);
@@ -12,7 +12,7 @@ ImageResource::ImageResource(int width, int height, bool smooth)
 
 }
 
-ImageResource::ImageResource(const std::string& path)
+ImageResource::ImageResource(const std::string& path) : Resource(ResourceType_Image)
 {
 
 	image.LoadFromFile(path);

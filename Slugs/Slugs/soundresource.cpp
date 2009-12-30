@@ -4,7 +4,7 @@
 	class SoundResource
 */
 
-SoundResource::SoundResource(const std::string& path)
+SoundResource::SoundResource(const std::string& path) : Resource(ResourceType_Font)
 {
 
 	Buffer.LoadFromFile(path);

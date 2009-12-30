@@ -19,7 +19,7 @@ Sprite::~Sprite()
 
 }
 
-const sf::Sprite& Sprite::GetData() const
+const sf::Drawable& Sprite::GetData() const
 {
 
 	return data;

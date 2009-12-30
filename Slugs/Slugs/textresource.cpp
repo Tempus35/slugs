@@ -1,6 +1,6 @@
 #include "textresource.h"
 
-TextResource::TextResource(const std::string& path)
+TextResource::TextResource(const std::string& path) : Resource(ResourceType_Text)
 {
 
 	std::ifstream fs(path.c_str(), std::ios_base::in);
@@ -27,7 +27,7 @@ TextResource::TextResource(const std::string& path)
 
 }
 
-TextResource::TextResource(const std::vector<std::string>& strings)
+TextResource::TextResource(const std::vector<std::string>& strings) : Resource(ResourceType_Text)
 {
 
 	Line line;
@@ -63,6 +63,8 @@ const std::string& TextResource::GetLine(unsigned int index, bool markAsUsed)
 		return lines[index].text;
 
 	}
+
+	return empty;
 
 }
 
@@ -103,8 +105,6 @@ const std::string& TextResource::GetRandomLine(bool markAsUsed)
 const std::string& TextResource::GetFirstUnusedLine(bool markAsUsed)
 {
 
-	const std::string empty = "";
-
 	if (numUsed == lines.size())
 		return empty;
 
@@ -122,6 +122,8 @@ const std::string& TextResource::GetFirstUnusedLine(bool markAsUsed)
 		}
 
 	}
+
+	return empty;
 
 }
 

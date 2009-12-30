@@ -195,7 +195,15 @@
 					>
 				</File>
 				<File
+					RelativePath=".\shape.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\sprite.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\text.cpp"
 					>
 				</File>
 				<File
@@ -387,6 +395,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\criticalsection.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\fastmath.cpp"
 					>
 				</File>
@@ -400,6 +412,10 @@
 				</File>
 				<File
 					RelativePath=".\singleton.inl"
+					>
+				</File>
+				<File
+					RelativePath=".\thread.cpp"
 					>
 				</File>
 				<File
@@ -420,6 +436,10 @@
 				</File>
 				<File
 					RelativePath=".\uiconsole.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\uiloadgraphic.cpp"
 					>
 				</File>
 				<File
@@ -473,6 +493,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\criticalsection.h"
+					>
+				</File>
+				<File
 					RelativePath=".\fastmath.h"
 					>
 				</File>
@@ -490,6 +514,10 @@
 				</File>
 				<File
 					RelativePath=".\singleton.h"
+					>
+				</File>
+				<File
+					RelativePath=".\thread.h"
 					>
 				</File>
 				<File
@@ -521,11 +549,23 @@
 					>
 				</File>
 				<File
+					RelativePath=".\renderable.h"
+					>
+				</File>
+				<File
 					RelativePath=".\renderer.h"
 					>
 				</File>
 				<File
+					RelativePath=".\shape.h"
+					>
+				</File>
+				<File
 					RelativePath=".\sprite.h"
+					>
+				</File>
+				<File
+					RelativePath=".\text.h"
 					>
 				</File>
 				<File
@@ -710,6 +750,10 @@
 				</File>
 				<File
 					RelativePath=".\uiconsole.h"
+					>
+				</File>
+				<File
+					RelativePath=".\uiloadgraphic.h"
 					>
 				</File>
 				<File
