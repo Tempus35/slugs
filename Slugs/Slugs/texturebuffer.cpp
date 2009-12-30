@@ -110,8 +110,8 @@ bool TextureBuffer::Intersection(int x0, int y0, int x1, int y1, int* x, int* y)
 	// Clamp to buffer size
 	x[0] = Max(0, x0);
 	y[0] = Max(0, y0);
-	x[1] = Min(x1, width - 1);
-	y[1] = Min(y1, height - 1);
+	x[1] = Min(x1, width);
+	y[1] = Min(y1, height);
 
 	if ((x[1] != x[0]) || (y[1] != y[0]))
 		return true;

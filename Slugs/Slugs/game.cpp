@@ -326,8 +326,8 @@ bool Game::KeyDown(sf::Key::Code key, bool shift, bool control, bool alt)
 		case sf::Key::K:
 
 			// Kill the current slug
-			if (selectedSlug)
-				selectedSlug->SetHitpoints(-1);
+			if (world->SelectedObject())
+				world->SelectedObject()->SetHitpoints(-1);
 			
 			break;
 
@@ -349,6 +349,13 @@ bool Game::KeyDown(sf::Key::Code key, bool shift, bool control, bool alt)
 
 			// Drop a crate
 			Game::Get()->GetWorld()->DropCrate();
+
+			break;
+
+		case sf::Key::S:
+
+			// Simulate an explosion
+			world->SimulateExplosion(camera->GetWorldPosition(cursorPosition.x, cursorPosition.y), ExplosionData(100.0f, 125.0f, 500.0f, 100.0f, 0.0f));
 
 			break;
 
@@ -382,7 +389,7 @@ bool Game::KeyDown(sf::Key::Code key, bool shift, bool control, bool alt)
 			{
 
 				if ((GetGameBool(GameBool_CanUseMultipleSlugsPerTurn)) || (!GetCurrentPlayer()->HasActed()))
-						GetCurrentPlayer()->SelectNextSlug();
+					GetCurrentPlayer()->SelectNextSlug();
 				else
 					GetCurrentPlayer()->MoveCameraToActiveSlug();
 
@@ -723,7 +730,7 @@ void Game::LoadResourcesForState(GameState gameState)
 		// Ground
 		resourceManager->QueueResource("tb_ground", ResourceType_TextureBuffer, "gfx\\levels\\test\\ground_ice.tga");
 		resourceManager->QueueResource("tb_over", ResourceType_TextureBuffer, "gfx\\levels\\test\\over_ice.tga");
-		resourceManager->QueueResource("tb_under", ResourceType_TextureBuffer, "gfx\\levels\\test\\under_ice.tga");
+		resourceManager->QueueResource("tb_under", ResourceType_TextureBuffer, "gfx\\levels\\test\\under.tga");
 
 		// Slug
 		resourceManager->QueueResource("image_crosshair", ResourceType_Image, "gfx\\levels\\test\\crosshair.tga");

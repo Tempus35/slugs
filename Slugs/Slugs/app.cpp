@@ -12,17 +12,6 @@ App::App()
 	free(dir);
 
 	//
-	// Set application icon
-	//
-
-	sf::Image icon;
-	std::string iconPath = workingDirectory + "\\slug.png";
-	icon.LoadFromFile(iconPath);
-
-	if (icon.GetPixelsPtr() != NULL)
-		Renderer::Get()->SetIcon(icon);
-
-	//
 	// Load configuration settings
 	//
 
@@ -33,6 +22,23 @@ App::App()
 	resolution.y = ini.ReadInt("display", "height", 768);
 
 	bool fullscreen = ini.ReadBool("display", "fullscreen", false);
+
+	//
+	// Initialize Renderer
+	//
+
+	Renderer::Get()->Initialize(resolution.x, resolution.y, "Slugs", !fullscreen);
+
+	//
+	// Set application icon
+	//
+
+	sf::Image icon;
+	std::string iconPath = workingDirectory + "\\slug.png";
+	icon.LoadFromFile(iconPath);
+
+	if (icon.GetPixelsPtr() != NULL)
+		Renderer::Get()->SetIcon(icon);
 
 	//
 	// Setup states
@@ -50,10 +56,9 @@ App::App()
 	mouseButtonStates[2] = false;
 
 	//
-	// Initialize renderer and game
+	// Initialize game
 	//
 
-	Renderer::Get()->Initialize(resolution.x, resolution.y, "Slugs", !fullscreen);
 	Game::Get()->GetCamera()->SetViewSize(resolution.x, resolution.y);
 
 	//

@@ -52,7 +52,6 @@ void TerrainBlock::Update(TextureBuffer* buffer, int x0, int y0, int x1, int y1)
 
 		sf::Image& image = imageResource->Image();
 
-		// Couldn't find a buffer with stride function for sf::image, so we have to copy pixels
 		Color* ptr = (Color*)buffer->Data((int)position.x + x0, (int)position.y + y0);
 		int yAdvance = buffer->Width() - (x1 - x0);
 		sf::Color c;
@@ -514,10 +513,28 @@ void Terrain::FillColumn(int column, int row)
 
 				// Over texture
 				Color* color = &((Color*)art[1]->Data())[column % overWidth + filled * overWidth];
-				data[index].r = color->r;
-				data[index].g = color->g;
-				data[index].b = color->b;
-				data[index].a = TERRAINALPHA_OVER;
+
+				if (color->a > 0)
+				{
+
+					data[index].r = color->r;
+					data[index].g = color->g;
+					data[index].b = color->b;
+					data[index].a = TERRAINALPHA_OVER;
+
+				}
+				else
+				{
+
+					Color* mainColor = &((Color*)art[0]->Data())[column % groundWidth + ((row - filled) % groundHeight) * groundWidth];
+					data[index].r = mainColor->r;
+					data[index].g = mainColor->g;
+					data[index].b = mainColor->b;
+					data[index].a = TERRAINALPHA_FILLED;
+
+				}
+
+				
 
 			}
 			else if (filled > under)
@@ -525,6 +542,7 @@ void Terrain::FillColumn(int column, int row)
 
 				// Under texture
 				Color* color = &((Color*)art[2]->Data())[column % underWidth + (filled - under) * underWidth];
+
 				data[index].r = color->r;
 				data[index].g = color->g;
 				data[index].b = color->b;
@@ -612,6 +630,7 @@ void Terrain::ClearColumnDrawUnder(int column, int row)
 					break;
 
 				Color* color = &((Color*)art[2]->Data())[column % underWidth + changed * underWidth];
+
 				data[idx].r = color->r;
 				data[idx].g = color->g;
 				data[idx].b = color->b;
@@ -678,7 +697,7 @@ void Terrain::CreateCavern(int centerX, int centerY, float smoothness, float cha
 	if (textureBuffer->Intersection(centerX - maxRadius, centerY - maxRadius, centerX + maxRadius, centerY + maxRadius, x, y))
 	{
 
-		float* radii = new float[numPoints];
+		float* radii = new float[numPoints + 1];
 
 		Color* ptr = (Color*)textureBuffer->Data(x[0], y[0]);
 		int yAdvance = textureBuffer->Width() - (x[1] - x[0]);
@@ -686,7 +705,7 @@ void Terrain::CreateCavern(int centerX, int centerY, float smoothness, float cha
 		int dx, dy;
 
 		// Create radii table
-		for (int i = 0; i < numPoints - 1; ++ i)
+		for (int i = 0; i < numPoints; ++ i)
 		{
 
 			if (currentRadius > averageRadius)
@@ -699,6 +718,7 @@ void Terrain::CreateCavern(int centerX, int centerY, float smoothness, float cha
 		}
 
 		radii[numPoints - 1] = radii[0];
+		radii[numPoints] = radii[0];
 
 		// Clear
 		int first, second;
@@ -716,7 +736,7 @@ void Terrain::CreateCavern(int centerX, int centerY, float smoothness, float cha
 				first = (int)(floorf(angle / angleStep));
 				second = first + 1;
 				lerp = (angle - (first * angleStep)) / angleStep;
-
+				
 				currentRadius = radii[first] + (radii[second] - radii[first]) * lerp;
 				radiusSquared = currentRadius * currentRadius;
 
@@ -755,6 +775,9 @@ void Terrain::CreateCavern(int centerX, int centerY, float smoothness, float cha
 				if (ptr->a == TERRAINALPHA_FILLED)
 				{
 
+					if (j == halfway)
+						break;
+
 					if (last == TERRAINALPHA_EMPTY)
 						filling = true;
 
@@ -776,6 +799,7 @@ void Terrain::CreateCavern(int centerX, int centerY, float smoothness, float cha
 					{
 							
 						Color* color = &((Color*)art[2]->Data())[i % art[2]->Width() + count * art[2]->Width()];
+
 						ptr->r = color->r;
 						ptr->g = color->g;
 						ptr->b = color->b;
@@ -810,6 +834,9 @@ void Terrain::CreateCavern(int centerX, int centerY, float smoothness, float cha
 				if (ptr->a != TERRAINALPHA_EMPTY)
 				{
 
+					if (j == halfway)
+						break;
+
 					if (last == TERRAINALPHA_EMPTY)
 						filling = true;
 
@@ -828,10 +855,16 @@ void Terrain::CreateCavern(int centerX, int centerY, float smoothness, float cha
 				{
 	
 					Color* color = &((Color*)art[1]->Data())[i % art[1]->Width() + count * art[1]->Width()];
-					ptr->r = color->r;
-					ptr->g = color->g;
-					ptr->b = color->b;
-					ptr->a = TERRAINALPHA_OVER;
+
+					if (color->a > 0)
+					{
+
+						ptr->r = color->r;
+						ptr->g = color->g;
+						ptr->b = color->b;
+						ptr->a = TERRAINALPHA_OVER;
+
+					}
 
 					count ++;
 
@@ -1551,7 +1584,7 @@ bool Terrain::Generate(unsigned int seed)
 	float smoothness = Random::RandomFloat();
 	float chaosity = Random::RandomFloat();
 	float platformarity = Random::RandomFloat();
-	float cavernacity = Random::RandomFloat();
+	float cavernacity = 1.0f;//Random::RandomFloat();
 
 	return Generate(landmass, smoothness, chaosity, platformarity, cavernacity, seed);
 

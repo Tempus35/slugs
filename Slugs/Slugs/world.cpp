@@ -71,15 +71,15 @@ void World::Build(int width, int height, TextureBuffer* groundTexture, TextureBu
 	terrain = new Terrain(width, height);
 	terrain->SetArt(groundTexture, overTexture, underTexture);
 
-	int spacing = waterImage->Image().GetHeight() / 2;
-	int start = waterImage->Image().GetHeight() * WORLD_WATER_LINES / 2;
+	int spacing = 32;
+	int start = 64 * WORLD_WATER_LINES / 2;
 	for (int i = 0; i < WORLD_WATER_LINES; ++ i)
 	{
 
 		if ((i % 2) == 0)
-			water[i] = new Water(waterImage, Color(83, 120, 249), 0, i * spacing - start, terrain->WidthInPixels(), Random::RandomFloat(WORLD_WATER_MIN_SPEED, WORLD_WATER_MAX_SPEED));
+			water[i] = new Water(waterImage, Color(83, 120, 249, 128), 0, i * spacing - start, terrain->WidthInPixels(), Random::RandomFloat(WORLD_WATER_MIN_SPEED, WORLD_WATER_MAX_SPEED));
 		else
-			water[i] = new Water(waterImage, Color(83, 120, 249), 0, i * spacing - start, terrain->WidthInPixels(), -Random::RandomFloat(WORLD_WATER_MIN_SPEED, WORLD_WATER_MAX_SPEED));
+			water[i] = new Water(waterImage, Color(83, 120, 249, 128), 0, i * spacing - start, terrain->WidthInPixels(), -Random::RandomFloat(WORLD_WATER_MIN_SPEED, WORLD_WATER_MAX_SPEED));
 		
 	}	
 
@@ -530,7 +530,7 @@ void World::Render()
 	clouds->Render();
 
 	// Render Background Water
-	for (int i = 0; i < WORLD_WATER_LINES / 2; ++ i)
+	for (int i = WORLD_WATER_LINES / 2 - 1; i >= 0; -- i)
 		water[i]->Render();
 
 	// Render terrain
@@ -580,7 +580,7 @@ void World::Render()
 	}
 
 	// Render Foreground Water
-	for (int i = WORLD_WATER_LINES / 2; i < WORLD_WATER_LINES; ++ i)
+	for (int i = WORLD_WATER_LINES - 1; i >= WORLD_WATER_LINES / 2; -- i)
 		water[i]->Render();
 
 	// Render FX

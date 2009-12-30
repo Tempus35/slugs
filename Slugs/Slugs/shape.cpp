@@ -93,7 +93,7 @@ void Shape_Pie::Update()
 	float angle = fill;
 	float done = 0.0f;
 	float size = Min(fill, Math::TWO_PI);
-	while ((angle > STEP_SIZE) && (done < Math::TWO_PI))
+	while ((angle > STEP_SIZE) && (done < size))
 	{
 
 		shape.AddPoint(Cos(angle) * radius, Sin(angle) * radius, Color(40, 128, 64, (byte)(64.0f * (1.0f - (done / size)))).ToSF());

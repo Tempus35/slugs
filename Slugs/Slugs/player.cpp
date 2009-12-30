@@ -86,7 +86,15 @@ void Player::TurnBegins()
 	if ((!Game::Get()->GetGameBool(GameBool_CanChooseSlug)) || (activeSlug == NULL))
 		SelectNextSlug();
 	else
+	{
+
+		// If our active slug is dead we need to move on
+		if (activeSlug->GetHitPoints() <= 0)
+			SelectNextSlug();
+
 		MoveCameraToActiveSlug();
+
+	}
 
 }
 
