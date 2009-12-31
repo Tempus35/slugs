@@ -46,6 +46,7 @@ protected:
 	std::string													text;							// Current command line
 	int															maxLines;						// Maximum number of output lines
 	std::list<std::string>										output;							// Output lines
+	std::list<std::string>::iterator							outputIt;						// First output line to render
 	char														buffer[MAX_COMMAND_LENGTH];		// Output format buffer
 	UIConsoleState												state;							// Current state of the console
 	float														timer;							// Used when opening/closing the console
@@ -54,6 +55,9 @@ protected:
 	float														bottom;							// Current position of the bottom of the console
 
 	Shape														background;						// Background box
+
+	std::vector<std::string>									autocomplete;					// List of matching autocomplete commands
+	unsigned int												autocompleteIndex;				// Index of active autocomplete entry
 
 protected:
 
@@ -95,6 +99,12 @@ public:
 	// Adds a command to the history list
 	void AddToHistory(const std::string& command);
 
+	// Sets the command text to the next history item
+	void NextHistory();
+
+	// Sets the command text to the previous history item
+	void PreviousHistory();
+
 	// Updates the console
 	void Update(float elapsedTime);
 
@@ -108,9 +118,24 @@ public:
 	void Toggle();
 
 	// Handles a key press
+	bool KeyDown(sf::Key::Code key, bool shift, bool control, bool alt);
+
+	// Handles a key release
 	bool KeyUp(sf::Key::Code key, bool shift, bool control, bool alt);
 
 	// Returns true if the consoole is open or opening
 	bool IsOpen();
+
+	// Autocompletion handler, if comlete is true, the text from autocomplete is filled in
+	void Autocomplete(bool complete = false);
+
+	// Moves to the next entry in the autocomplete list
+	void NextAutocomplete();
+
+	// Moves to the next output line
+	void NextOutput();
+
+	// Moves to the previous output line
+	void PreviousOutput();
 
 };

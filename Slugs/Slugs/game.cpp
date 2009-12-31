@@ -769,8 +769,13 @@ void Game::ResourcesLoaded()
 		Renderer::Get()->SetDefaultFont(ResourceManager::Get()->GetFont("font_arial"));
 
 		// Add a console to the UI
-		uiManager->AddWidget(new UIConsole("console"));
+		UIConsole* console = new UIConsole("console");
+		uiManager->AddWidget(console);
 
+		console->Register("debug", new ConsoleCommand_0<Game>("Toggles debugging mode.", this, &Game::ConsoleCallbackToggleDebug));
+		console->Register("game.turntime", new ConsoleCommand_1<Game, float>("Sets the time in seconds per turn.", this, &Game::ConsoleCallbackSetTurnTime));
+		console->Register("game.cratedropchance", new ConsoleCommand_1<Game, float>("Sets the chance of a crate drop occuring per turn (0.0 to 1.0)", this, &Game::ConsoleCallbackSetCrateDropChance));
+		
 		// Advance to the game state
 		ChangeGameState(GameState_Build);
 
@@ -827,7 +832,7 @@ void Game::SetupWorld()
 {
 
 	// Create 4 players
-	Player* player = new AIPlayer("Player");
+	Player* player = new Player("Player");
 	AIPlayer* computer0 = new AIPlayer("Computer0");
 	AIPlayer* computer1 = new AIPlayer("Computer1");
 	AIPlayer* computer2 = new AIPlayer("Computer2");
@@ -1102,5 +1107,26 @@ void Game::SetLoading(bool state)
 		ASSERT(0);
 
 	}
+
+}
+
+void Game::ConsoleCallbackToggleDebug()
+{
+
+	ToggleGameBool(GameBool_Debug);
+
+}
+
+void Game::ConsoleCallbackSetTurnTime(float v)
+{
+
+	SetGameFloat(GameFloat_TurnTime, v);
+
+}
+
+void Game::ConsoleCallbackSetCrateDropChance(float v)
+{
+
+	SetGameFloat(GameFloat_CrateDropChance, v);
 
 }

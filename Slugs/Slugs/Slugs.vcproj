@@ -431,6 +431,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\consolecommand.inl"
+					>
+				</File>
+				<File
 					RelativePath=".\uibutton.cpp"
 					>
 				</File>

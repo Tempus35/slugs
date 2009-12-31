@@ -199,4 +199,9 @@ public:
 	// Fired when resources for a state have completed loading
 	void ResourcesLoaded();
 
+	// Console callbacks - these are used by console commands only
+	void ConsoleCallbackToggleDebug();
+	void ConsoleCallbackSetTurnTime(float v);
+	void ConsoleCallbackSetCrateDropChance(float v);
+
 };

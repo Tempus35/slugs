@@ -18,7 +18,7 @@ const std::string& ConsoleCommand::GetDescription() const
 
 }
 
-bool ConsoleCommand::ConvertBool(const std::string& text, bool& result) const
+bool ConsoleCommand::Convert(const std::string& text, bool& result) const
 {
 
 	if (text == "true")
@@ -40,7 +40,7 @@ bool ConsoleCommand::ConvertBool(const std::string& text, bool& result) const
 
 }
 
-int ConsoleCommand::ConvertInt(const std::string& text, int& result) const
+bool ConsoleCommand::Convert(const std::string& text, int& result) const
 {
 
 	result = atoi(text.c_str());
@@ -48,36 +48,10 @@ int ConsoleCommand::ConvertInt(const std::string& text, int& result) const
 
 }
 
-float ConsoleCommand::ConvertFloat(const std::string& text, float& result) const
+bool ConsoleCommand::Convert(const std::string& text, float& result) const
 {
 
 	result = (float)atof(text.c_str());
-	return true;
-
-}
-
-/*
-	class ConsoleCommand_0
-*/
-
-template <class T>
-ConsoleCommand_0<T>::ConsoleCommand_0(const std::string& desc, T* target, void(T::*callback)(void)) : ConsoleCommand(desc)
-{
-
-	object = target;
-	function = callback;
-
-}
-
-template <class T>
-bool ConsoleCommand_0<T>::Call(const std::vector<std::string>& args)
-{
-
-	if (args.size() != 0)
-		return false;
-
-	(object->*function)();
-
 	return true;
 
 }

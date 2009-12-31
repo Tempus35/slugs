@@ -286,6 +286,29 @@ void Renderer::RenderText(float x, float y, FontResource* fontResource, const st
 
 }
 
+Boxf Renderer::MeasureText(const std::string& text, FontResource* fontResource, float size)
+{
+
+	FontResource* font;
+
+	if (fontResource == NULL)
+	{
+
+		ASSERT(defaultFont != NULL);
+		font = defaultFont;
+
+	}
+	else
+		font = fontResource;
+
+	sf::String outString(text, font->GetFont(), size);
+	sf::FloatRect bounds = outString.GetRect();
+
+	Vec2f extents = Vec2f(bounds.GetWidth() * 0.5f, bounds.GetHeight() * 0.5f);
+	return Boxf(Vec2f(bounds.Left + extents.x, bounds.Top + extents.y), extents);
+
+}
+
 void Renderer::RenderTextShadowed(float x, float y, FontResource* fontResource, const std::string& text, float size, const Color& color, const Color& shadow, unsigned int flags)
 {
 

@@ -68,3 +68,19 @@ Box<T> Box<T>::Expand(T x, T y) const
 	return Box(center, Vec2<T>(extents.x + x, extents.y + y));
 
 }
+
+template <class T>
+T Box<T>::GetWidth() const
+{
+
+	return extents.x * 2;
+
+}
+
+template <class T>
+T Box<T>::GetHeight() const
+{
+
+	return extents.y * 2;
+
+}

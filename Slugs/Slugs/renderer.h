@@ -100,6 +100,9 @@ public:
 	// Render text to the screen
 	void RenderText(float x, float y, FontResource* fontResource, const std::string& text, float size = 30.0f, const Color& color = Color(255, 255, 255), unsigned int flags = FontFlag_None);
 
+	// Measures a text string
+	Boxf MeasureText(const std::string& text, FontResource* fontResource, float size);
+
 	// Render text to the screen with a shadow effect
 	void RenderTextShadowed(float x, float y, FontResource* fontResource, const std::string& text, float size = 30.0f, const Color& color = Color(255, 255, 255), const Color& shadow = Color(0, 0, 0), unsigned int flags = FontFlag_None);
 

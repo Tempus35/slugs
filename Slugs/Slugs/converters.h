@@ -1,5 +1,7 @@
 #pragma once
 
+#include <sfml/system.hpp>
+
 #include <string>
 #include <sstream>
 #include <vector>
@@ -21,3 +23,6 @@ Vec2i ConvertVector(const Vec2f& v);
 
 // Converts a Vec2i to a Vec2f
 Vec2f ConvertVector(const Vec2i& v);
+
+// Converts an SFML Key code to a char
+bool SFMLKeyToChar(sf::Key::Code key, bool shift, char& c);

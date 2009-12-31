@@ -42,6 +42,12 @@ public:
 	// Gets an expanded bounding box
 	Box Expand(T x, T y) const;
 
+	// Gets the width of the box
+	T GetWidth() const;
+
+	// Gets the height of the box
+	T GetHeight() const;
+
 };
 
 // Predefined types
