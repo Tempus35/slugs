@@ -411,7 +411,15 @@
 					>
 				</File>
 				<File
+					RelativePath=".\log.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\singleton.inl"
+					>
+				</File>
+				<File
+					RelativePath=".\textwriter.cpp"
 					>
 				</File>
 				<File
@@ -436,6 +444,10 @@
 				</File>
 				<File
 					RelativePath=".\uibutton.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\uichargebar.cpp"
 					>
 				</File>
 				<File
@@ -513,11 +525,19 @@
 					>
 				</File>
 				<File
+					RelativePath=".\log.h"
+					>
+				</File>
+				<File
 					RelativePath=".\random.h"
 					>
 				</File>
 				<File
 					RelativePath=".\singleton.h"
+					>
+				</File>
+				<File
+					RelativePath=".\textwriter.h"
 					>
 				</File>
 				<File
@@ -750,6 +770,10 @@
 				</File>
 				<File
 					RelativePath=".\uibutton.h"
+					>
+				</File>
+				<File
+					RelativePath=".\uichargebar.h"
 					>
 				</File>
 				<File

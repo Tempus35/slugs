@@ -213,16 +213,22 @@ void Game::Render()
 			{
 
 				char debugInfo[1024];
-				sprintf_s(debugInfo, 1024, "%s - %s (%.1f)", currentPlayer->GetName().c_str(), currentPlayer->GetCurrentSlug()->GetName().c_str(), currentPlayer->GetTurnTimeRemaining());
+				sprintf_s(debugInfo, 1024, "%s - %s", currentPlayer->GetName().c_str(), currentPlayer->GetCurrentSlug()->GetName().c_str());
 				Renderer::Get()->RenderText(10, 40, NULL, debugInfo, 16.0f, Color(255, 255, 255));
 
-				float power = currentPlayer->GetCurrentSlug()->GetPower() * 100.0f;
-
-				if (power > 0.0f)
+				if (GetGameBool(GameBool_Debug))
 				{
 
-					sprintf_s(debugInfo, 1024, "%.0f%%", power);
-					Renderer::Get()->RenderText(10, (float)Renderer::Get()->GetHeight() - 40, NULL, debugInfo, 30.0f, Color(255, 255, 255));
+					float power = currentPlayer->GetCurrentSlug()->GetPower() * 100.0f;
+
+					if (power > 0.0f)
+					{
+
+						Vec2i powerPos = Renderer::Get()->GetRelativeCoordinate(0, 35, RenderPosition_Bottom);
+						sprintf_s(debugInfo, 1024, "%.0f%%", power);
+						Renderer::Get()->RenderText((float)powerPos.x, (float)powerPos.y, NULL, debugInfo, 30.0f, Color(255, 255, 255), FontFlag_Centered);
+
+					}
 
 				}
 
@@ -300,6 +306,7 @@ bool Game::KeyDown(sf::Key::Code key, bool shift, bool control, bool alt)
 
 		Slug* selectedSlug;
 		bool turnEnding = GetCurrentPlayer()->IsTurnEnding();
+		bool paused = GetGameBool(GameBool_Pause);
 
 		// Only allow the user to control their slug on their own turn
 		if ((Game::Get()->GetCurrentPlayer()) && (GetCurrentPlayer()->GetType() == PlayerType_Local))
@@ -405,105 +412,105 @@ bool Game::KeyDown(sf::Key::Code key, bool shift, bool control, bool alt)
 
 		case sf::Key::Left:
 
-			if (selectedSlug)
+			if ((selectedSlug) && (!paused))
 				selectedSlug->StartMovingLeft();
 
 			break;
 
 		case sf::Key::Right:
 
-			if (selectedSlug)
+			if ((selectedSlug) && (!paused))
 				selectedSlug->StartMovingRight();
 
 			break;
 
 		case sf::Key::Up:
 
-			if (selectedSlug)
+			if ((selectedSlug) && (!paused))
 				selectedSlug->StartAimingUp();
 
 			break;
 
 		case sf::Key::Down:
 			
-			if (selectedSlug)
+			if ((selectedSlug) && (!paused))
 				selectedSlug->StartAimingDown();
 
 			break;
 
 		case sf::Key::Return:
 
-			if (selectedSlug)
+			if ((selectedSlug) && (!paused))
 				selectedSlug->Jump();
 
 			break;
 
 		case sf::Key::Space:
 
-			if ((selectedSlug) && (!turnEnding))
+			if ((selectedSlug) && (!turnEnding) && (!paused))
 				selectedSlug->StartCharging();
 
 			break;
 
 		case sf::Key::Num1:
 
-			if (selectedSlug)
+			if ((selectedSlug) && (!paused))
 				selectedSlug->ArmSelf(WeaponType_Bazooka);
 
 			break;
 
 		case sf::Key::Num2:
 
-			if (selectedSlug)
+			if ((selectedSlug) && (!paused))
 				selectedSlug->ArmSelf(WeaponType_Grenade);
 
 			break;
 
 		case sf::Key::Num3:
 
-			if (selectedSlug)
+			if ((selectedSlug) && (!paused))
 				selectedSlug->ArmSelf(WeaponType_Shotgun);
 
 			break;
 
 		case sf::Key::Num4:
 
-			if (selectedSlug)
+			if ((selectedSlug) && (!paused))
 				selectedSlug->ArmSelf(WeaponType_Machinegun);
 
 			break;
 
 		case sf::Key::Num5:
 
-			if (selectedSlug)
+			if ((selectedSlug) && (!paused))
 				selectedSlug->ArmSelf(WeaponType_Mine);
 
 			break;
 
 		case sf::Key::Num6:
 
-			if (selectedSlug)
+			if ((selectedSlug) && (!paused))
 				selectedSlug->ArmSelf(WeaponType_HomingMissile);
 
 			break;
 
 		case sf::Key::Num7:
 
-			if (selectedSlug)
+			if ((selectedSlug) && (!paused))
 				selectedSlug->ArmSelf(WeaponType_Dynamite);
 
 			break;
 
 		case sf::Key::Num9:
 
-			if (selectedSlug)
+			if ((selectedSlug) && (!paused))
 				selectedSlug->ArmSelf(WeaponType_Airstrike);
 
 			break;
 
 		case sf::Key::Num0:
 
-			if (selectedSlug)
+			if ((selectedSlug) && (!paused))
 				selectedSlug->ArmSelf(WeaponType_Teleporter);
 
 			break;
@@ -528,6 +535,7 @@ bool Game::KeyUp(sf::Key::Code key, bool shift, bool control, bool alt)
 		
 		Slug* selectedSlug;
 		bool turnEnding = GetCurrentPlayer()->IsTurnEnding();
+		bool paused = GetGameBool(GameBool_Pause);
 
 		// Only allow the user to control their slug on their own turn
 		if ((Game::Get()->GetCurrentPlayer()) && (GetCurrentPlayer()->GetType() == PlayerType_Local))
@@ -556,7 +564,7 @@ bool Game::KeyUp(sf::Key::Code key, bool shift, bool control, bool alt)
 
 			case sf::Key::Space:
 
-				if ((selectedSlug) && (!turnEnding))
+				if ((selectedSlug) && (!paused) && (!turnEnding))
 					selectedSlug->Fire();
 
 				break;
@@ -707,7 +715,9 @@ void Game::LoadResourcesForState(GameState gameState)
 		resourceManager->QueueResource("menu_click", ResourceType_Sound, "sfx\\menu_click.wav");
 
 		// UI Images
-		resourceManager->QueueResource("ui_timer", ResourceType_Image, "gfx\\ui\\timer.tga");
+		resourceManager->QueueResource("ui_turntimer", ResourceType_Image, "gfx\\ui\\timer.tga");
+		resourceManager->QueueResource("ui_chargebar_bg", ResourceType_Image, "gfx\\ui\\chargebar_bg.tga");
+		resourceManager->QueueResource("ui_chargebar_fill", ResourceType_Image, "gfx\\ui\\chargebar_fill.tga");
 		resourceManager->QueueResource("ui_windbar_empty", ResourceType_Image, "gfx\\ui\\windbar_empty.tga");
 		resourceManager->QueueResource("ui_windbar_full", ResourceType_Image, "gfx\\ui\\windbar_full.tga");
 		resourceManager->QueueResource("ui_teambar_empty", ResourceType_Image, "gfx\\ui\\teambar_empty.tga");
@@ -772,10 +782,9 @@ void Game::ResourcesLoaded()
 		UIConsole* console = new UIConsole("console");
 		uiManager->AddWidget(console);
 
-		console->Register("debug", new ConsoleCommand_0<Game>("Toggles debugging mode.", this, &Game::ConsoleCallbackToggleDebug));
-		console->Register("game.turntime", new ConsoleCommand_1<Game, float>("Sets the time in seconds per turn.", this, &Game::ConsoleCallbackSetTurnTime));
-		console->Register("game.cratedropchance", new ConsoleCommand_1<Game, float>("Sets the chance of a crate drop occuring per turn (0.0 to 1.0)", this, &Game::ConsoleCallbackSetCrateDropChance));
-		
+		// Register console commands
+		RegisterConsoleCommands();
+
 		// Advance to the game state
 		ChangeGameState(GameState_Build);
 
@@ -793,6 +802,20 @@ void Game::ResourcesLoaded()
 	}
 	else if (state == GameState_Game)
 	{
+
+		//
+		// Add UI elements
+		//
+		
+		// Turn timer
+		UITimer* timer = new UITimer("turntimer", UIGroup_Game, ResourceManager::Get()->GetImage("ui_turntimer"), ResourceManager::Get()->GetFont("font_copacetix"));
+		timer->SetPosition(Renderer::Get()->GetRelativeCoordinate(64, 64, RenderPosition_BottomRight));
+		uiManager->AddWidget(timer);
+
+		// Charge indicator
+		UIChargebar* chargeBar = new UIChargebar("chargebar", UIGroup_Game, ResourceManager::Get()->GetImage("ui_chargebar_bg"), ResourceManager::Get()->GetImage("ui_chargebar_fill"));
+		chargeBar->SetPosition(Renderer::Get()->GetRelativeCoordinate(0, 64, RenderPosition_Bottom));
+		uiManager->AddWidget(chargeBar);
 
 		SetLoading(false);
 
@@ -987,6 +1010,9 @@ float Game::GetGameDefaultFloat(GameFloat flag) const
 	case GameFloat_CrateDropChance:
 		return 0.1f;
 
+	case GameFloat_WeaponChargeRate:
+		return 0.5f;
+
 	}
 
 	ASSERTMSG(0, "No default value for GameFloat!");
@@ -1110,6 +1136,23 @@ void Game::SetLoading(bool state)
 
 }
 
+void Game::RegisterConsoleCommands()
+{
+
+	UIConsole* console = (UIConsole*)uiManager->GetWidget("console");
+
+	if (console)
+	{
+
+		console->Register("debug", new ConsoleCommand_0<Game>("Toggles debugging mode.", this, &Game::ConsoleCallbackToggleDebug));
+		console->Register("game.turntime", new ConsoleCommand_1<Game, float>("Sets the time in seconds per turn.", this, &Game::ConsoleCallbackSetTurnTime));
+		console->Register("game.cratedropchance", new ConsoleCommand_1<Game, float>("Sets the chance of a crate drop occuring per turn (0.0 to 1.0)", this, &Game::ConsoleCallbackSetCrateDropChance));
+		console->Register("game.weaponchargerate", new ConsoleCommand_1<Game, float>("Sets the rate of weapon charge in units/second (weapons fire at charge = 1.0)", this, &Game::ConsoleCallbackSetWeaponChargeRate));
+
+	}
+
+}
+
 void Game::ConsoleCallbackToggleDebug()
 {
 
@@ -1128,5 +1171,41 @@ void Game::ConsoleCallbackSetCrateDropChance(float v)
 {
 
 	SetGameFloat(GameFloat_CrateDropChance, v);
+
+}
+
+void Game::ConsoleCallbackSetWeaponChargeRate(float v)
+{
+
+	SetGameFloat(GameFloat_WeaponChargeRate, v);
+
+}
+
+void Game::Log(LogType type, const char* format, ...)
+{
+
+	va_list args;
+	va_start(args, format);
+
+	if (GetGameBool(GameBool_Debug))
+	{
+
+		UIConsole* console = (UIConsole*)uiManager->GetWidget("console");
+
+		if (console)
+		{
+
+			char buffer[1024];
+			vsprintf_s(buffer, 1024, format, args);
+
+			console->Print(buffer);
+
+		}
+
+	}
+
+	Log::Get()->Write(type, format, args);
+
+	va_end(args);
 
 }

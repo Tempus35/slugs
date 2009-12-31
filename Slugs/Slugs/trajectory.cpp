@@ -3,6 +3,8 @@
 bool CalculateLaunchDirection(const Vec2f& from, const Vec2f& to, float speed, float absGravity, Vec2f& direction, bool chooseHigh)
 {
 
+	ASSERT(speed > 0.0f);
+
 	float x = to.x - from.x;
 	float y = to.y - from.y;
 	float speed2 = Sqr(speed);
@@ -47,6 +49,8 @@ bool CalculateLaunchDirection(const Vec2f& from, const Vec2f& to, float speed, f
 bool CalculateLaunchDirection2(const Vec2f& from, const Vec2f& to, float speed, float absGravity, Vec2f& directionLow, Vec2f& directionHigh)
 {
 
+	ASSERT(speed > 0.0f);
+
 	float x = to.x - from.x;
 	float y = to.y - from.y;
 	float speed2 = Sqr(speed);
@@ -74,8 +78,6 @@ bool CalculateLaunchDirection2(const Vec2f& from, const Vec2f& to, float speed, 
 		angle1 = Math::PI + angle1;
 
 	}
-
-	float optimalAngle;
 	
 	float angleLow = Min(angle0, angle1);
 	float angleHigh = Max(angle0, angle1);

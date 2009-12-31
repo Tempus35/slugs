@@ -13,6 +13,25 @@
 #include "text.h"
 
 /*
+	Enumeration of useful screen locations
+*/
+
+enum RenderPosition
+{
+
+	RenderPosition_Center,
+	RenderPosition_BottomLeft,
+	RenderPosition_BottomRight,
+	RenderPosition_TopLeft,
+	RenderPosition_TopRight,
+	RenderPosition_Left,
+	RenderPosition_Right,
+	RenderPosition_Top,
+	RenderPosition_Bottom,
+
+};
+
+/*
 	Enumeration of font rendering styles (can be ORed together)
 */
 
@@ -117,5 +136,8 @@ public:
 
 	// Gets the vertical resolution
 	int GetHeight() const;
+
+	// Gets a screen space coordinate relative to a screen position
+	Vec2i GetRelativeCoordinate(int x, int y, RenderPosition position) const;
 
 };

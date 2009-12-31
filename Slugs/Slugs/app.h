@@ -14,6 +14,7 @@
 #include "game.h"
 #include "ini.h"
 #include "localizer.h"
+#include "log.h"
 
 class App
 {
@@ -25,6 +26,7 @@ private:
 	unsigned int		frame;					// Current frame number
 	float				fps;					// Current frames per second
 	float				time;					// Total elapsed time in seconds since app started
+	bool				showFps;				// Show the fps counter?
 
 	bool				exit;					// Exit flag used to stop the application
 

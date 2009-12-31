@@ -3,7 +3,9 @@
 #include <sfml/graphics.hpp>
 #include <sfml/system.hpp>
 
+#include "global.h"
 #include "renderer.h"
+#include "vec2.h"
 #include "box.h"
 #include "imageresource.h"
 #include "fontresource.h"
@@ -27,8 +29,9 @@ enum UIGroup
 
 	UIGroup_All				= -1,
 	UIGroup_None			= 0,
-	UIGroup_System			= 1,
-	UIGroup_Other			= 2,
+	UIGroup_System			= 1,		// Never cleared (console)
+	UIGroup_Game			= 2,		// Anything used in the main game
+	UIGroup_Other			= 4,		// Temporary store for stuff like the loading graphic that will be cleared often
 
 };
 

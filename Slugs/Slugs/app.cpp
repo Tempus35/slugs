@@ -48,6 +48,7 @@ App::App()
 	fps = 0;
 	time = 0.0f;
 	exit = false;
+	showFps = true;
 
 	clock.Reset();
 
@@ -55,10 +56,10 @@ App::App()
 	mouseButtonStates[1] = false;
 	mouseButtonStates[2] = false;
 
-	//
-	// Initialize game
-	//
+	// Initialize Log
+	Log::Get()->Open("log.html", LogMode_HTML);
 
+	// Initialize game
 	Game::Get()->GetCamera()->SetViewSize(resolution.x, resolution.y);
 
 	//
@@ -104,6 +105,7 @@ App::~App()
 	Renderer::Get()->Destroy();
 	Game::Get()->Destroy();
 	ResourceManager::Get()->Destroy();
+	Log::Get()->Destroy();
 
 }
 
@@ -188,6 +190,9 @@ bool App::HandleKeyDown(sf::Key::Code key, bool shift, bool control, bool alt)
 
 bool App::HandleKeyUp(sf::Key::Code key, bool shift, bool control, bool alt)
 {
+
+	if (key == sf::Key::F)
+		showFps = !showFps;
 
 	// Pass to game for further processing
 	return Game::Get()->KeyUp(key, shift, control, alt);
@@ -319,8 +324,13 @@ void App::Render()
 	Renderer::Get()->SetCamera(NULL);
 
 	// Draw FPS counter
-	sprintf_s(fpsBuffer, Localizer::Get()->Localize("label_fps").c_str(), fps);
-	Renderer::Get()->RenderText(10, 5, ResourceManager::Get()->GetFont("font_arial"), fpsBuffer);
+	if (showFps)
+	{
+
+		sprintf_s(fpsBuffer, Localizer::Get()->Localize("label_fps").c_str(), fps);
+		Renderer::Get()->RenderText(10, 5, ResourceManager::Get()->GetFont("font_arial"), fpsBuffer);
+
+	}
 
 	// Present frame
 	Renderer::Get()->Present();

@@ -34,7 +34,7 @@ Water::Water(ImageResource* waterImage, Color& waterColor, int x, int y, int tot
 		{
 
 			s.SetPosition((float)cx, -(float)y);
-			sprites.insert(sprites.end(), s);
+			sprites.push_back(s);
 
 			cx += sectionWidth;
 

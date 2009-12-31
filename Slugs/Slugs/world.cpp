@@ -83,6 +83,8 @@ void World::Build(int width, int height, TextureBuffer* groundTexture, TextureBu
 		
 	}	
 
+	waterHeight = (float)start * 0.5f;
+
 	clouds = new Clouds((ImageResource*)ResourceManager::Get()->GetResource("image_cloud"), Color(150, 150, 150), 0, -terrain->HeightInPixels() + 20, terrain->WidthInPixels(), Random::RandomInt(WORLD_CLOUDS_MIN, WORLD_CLOUDS_MAX), WORLD_CLOUD_LAYERS);
 
 	// Build the terrain on the worker thread
@@ -175,6 +177,10 @@ bool World::Update(float elapsedTime)
 			// Get starting position
 			Vec2f lastPos = obj->GetPosition();
 			Vec2f collisionPos, freePos;
+			
+			// If this is a slug, check for drowning
+			if ((obj->GetType() == ObjectType_Slug) && (lastPos.y <= waterHeight))
+				obj->SetHitpoints(0);
 
 			// Update object
 			bool moved = obj->Update(elapsedTime, gravity, wind);
@@ -304,7 +310,7 @@ void World::AddCreatedObject(Object* object)
 {
 
 	if (object)
-		pendingObjects.insert(pendingObjects.end(), object);
+		pendingObjects.push_back(object);
 
 }
 
@@ -973,7 +979,7 @@ bool World::ObjectCanShootIndirect(Object* from, Object* to, float maxSpeed, Vec
 		canShoot = CalculateLaunchDirection2(start, to->GetPosition(), testSpeed, -g, directions[0], directions[1]);
 		optimalSpeed = testSpeed;
 
-		testSpeed += 300.0f * testDirection;
+		testSpeed += 100.0f * testDirection;
 
 		if ((testSpeed < 300.0f) || (testSpeed > 1500.0f))
 			break;
@@ -1006,7 +1012,8 @@ bool World::ObjectCanShootIndirect(Object* from, Object* to, float maxSpeed, Vec
 				position.x = start.x + velocity.x * t;
 				position.y = start.y + velocity.y * t + 0.5f * g * t * t;
 
-				Renderer::Get()->DrawDebugBox(Boxf(position, Vec2f(2.5f, 2.5f)), Color::purple);
+				if (Game::Get()->GetGameBool(GameBool_Debug))
+					Renderer::Get()->DrawDebugBox(Boxf(position, Vec2f(2.5f, 2.5f)), Color::purple);
 
 				if (terrain->BoxCollision(position.x, position.y, 5.0f, 5.0f, intersection))
 					return false;
@@ -1036,7 +1043,7 @@ bool World::ObjectCanShootIndirect(Object* from, Object* to, float maxSpeed, Vec
 
 	}
 
-	return canShoot;
+	return false;
 
 }
 

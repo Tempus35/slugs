@@ -237,6 +237,8 @@ bool Weapon_Bazooka::Fire(Slug* owner, Projectile*& projectileCreated)
 float Weapon_Bazooka::GetLaunchSpeed(float power) const
 {
 
+	ASSERT((power >= 0.0f) && (power <= 1.0f));
+
 	return power * 1500.0f;
 
 }

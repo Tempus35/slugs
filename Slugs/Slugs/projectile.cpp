@@ -128,8 +128,13 @@ void Projectile_Bazooka::UpdateOrientation()
 {
 
 	// Update orientation to match velocity
-	Vec2f direction = velocity.Normalize();
-	sprite.SetOrientation(direction);
+	if (velocity.LengthSquared() > Math::EPSILON)
+	{
+
+		Vec2f direction = velocity.Normalize();
+		sprite.SetOrientation(direction);
+
+	}
 
 }
 

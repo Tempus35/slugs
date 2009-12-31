@@ -70,6 +70,9 @@ void AIController::Update(Slug* slug, float elapsedTime)
 
 		float angle = Acos(DotProduct(attackAction->direction, aimDirection));
 
+		ASSERT(IsNumber(angle));
+		ASSERT(IsFinite(angle));
+
 		if (slug->StartAimingTowards(attackAction->direction))
 		{
 
@@ -147,6 +150,7 @@ void AIController::DecideWhatToDo(Slug* slug)
 	validTargets.clear();
 	invalidTargets.clear();
 	badTargets.clear();
+	farTargets.clear();
 
 	std::vector<Object*> objects;
 	Game::Get()->GetWorld()->GetObjectsNear(objects, slug, Math::INFINITY);
@@ -200,7 +204,7 @@ void AIController::DecideWhatToDo(Slug* slug)
 				{
 
 					// Ensure we aren't so close that we would take damage if we shot this object
-					if ((object->GetPosition() - slug->GetPosition()).LengthSquared() > 100 * 100)
+					if (d > 100 * 100)
 					{
 
 						// Check for parabolic line of sight
@@ -208,6 +212,7 @@ void AIController::DecideWhatToDo(Slug* slug)
 						{
 
 							optimalDirection = direction;
+
 							optimalSpeed = speed;
 							closestEnemyDistanceIndirect = d;
 							closestEnemyIndirect = object;
@@ -251,6 +256,8 @@ void AIController::DecideWhatToDo(Slug* slug)
 		}
 		else
 		{
+
+			ASSERT(optimalDirection.Length() > Math::EPSILON);
 
 			WeaponType weaponType = WeaponType_Bazooka;
 

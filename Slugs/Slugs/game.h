@@ -12,6 +12,7 @@
 #include "camera.h"
 #include "resourcemanager.h"
 #include "uimanager.h"
+#include "log.h"
 
 /*
 	Enumeration of bool game flags
@@ -46,6 +47,7 @@ enum GameFloat
 	GameFloat_TurnTime,							// Time per turn in seconds
 	GameFloat_TurnEndTime,						// Delay in seconds at the end of a turn before the next one begins
 	GameFloat_CrateDropChance,					// Drop chance of crates per turn
+	GameFloat_WeaponChargeRate,					// Rate at which weapons charge in units/second
 
 	GameFloat_LAST,								// MUST BE LAST ON THE LIST
 };
@@ -199,9 +201,16 @@ public:
 	// Fired when resources for a state have completed loading
 	void ResourcesLoaded();
 
+	// Registers all console commands
+	void RegisterConsoleCommands();
+
 	// Console callbacks - these are used by console commands only
 	void ConsoleCallbackToggleDebug();
 	void ConsoleCallbackSetTurnTime(float v);
 	void ConsoleCallbackSetCrateDropChance(float v);
+	void ConsoleCallbackSetWeaponChargeRate(float v);
+
+	// Writes a message to the debug log
+	void Log(LogType type, const char* format, ...);
 
 };

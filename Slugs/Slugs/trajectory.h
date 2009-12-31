@@ -1,5 +1,6 @@
 #pragma once
 
+#include "debug.h"
 #include "vec2.h"
 #include "fastmath.h"
 

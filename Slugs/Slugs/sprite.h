@@ -45,4 +45,7 @@ public:
 	float GetHeight() const;
 	void SetMirrored(bool state);
 
+	// Sets the width of the sprite
+	void SetWidth(float width);
+
 };

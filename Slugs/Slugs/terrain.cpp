@@ -1038,13 +1038,8 @@ void Terrain::ClearCircle(const Vec2f& position, float radius, float border)
 	if (textureBuffer->Intersection(sx, sy, ex, ey, x, y))
 	{
 
-		// TODO: We sometimes get broken rects. Find out where they are coming from.
-		//       Hopefully these asserts will catch it.
-		ASSERT(Abs(x[1] - x[0]) <= WidthInPixels());
-		ASSERT(Abs(y[1] - y[0]) <= HeightInPixels());
-
 		// Set dirty rect
-		dirtyRects.insert(dirtyRects.begin(), DirtyRect(x[0], y[0], x[1], y[1]));
+		dirtyRects.push_back(DirtyRect(x[0], y[0], x[1], y[1]));
 
 		// Get pointer to data
 		Color* ptr = (Color*)textureBuffer->Data(x[0], y[0]);
@@ -1417,12 +1412,15 @@ Vec2f Terrain::GetNormalForBox(float centerX, float centerY, float width, float 
 
 		}
 
-		return normal.Normalize();
+		if ((normal.x == 0.0f) && (normal.y == 0.0f))
+			return Vec2f(0.0f, 1.0f);
+		else
+			return normal.Normalize();
 
 	}
 
 	ASSERT(0);
-	return Vec2f(0.0f, 0.0f);
+	return Vec2f(Math::INFINITY, Math::INFINITY);
 
 }
 
@@ -1610,7 +1608,7 @@ bool Terrain::Generate(float landmass, float smoothness, float chaosity, float p
 
 	// Set starting point
 	Vec2f p = Vec2f(0, ((float)textureBuffer->Height() * landmass * 0.5f));
-	points.insert(points.end(), p);
+	points.push_back(p);
 
 	// Set angles and separation
 	float angle = Random::RandomFloat(-45.0f, 45.0f) * Math::PI_OVER_180;
@@ -1787,14 +1785,14 @@ bool Terrain::Generate(float landmass, float smoothness, float chaosity, float p
 				angle = angleLimitMin;
 
 			// Store the new point
-			points.insert(points.end(), p);
+			points.push_back(p);
 
 		}
 		else
 		{
 
 			// We reached the rhs, store the point and stop
-			points.insert(points.end(), p);
+			points.push_back(p);
 			break;
 
 		}

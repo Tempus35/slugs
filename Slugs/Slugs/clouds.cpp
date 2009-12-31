@@ -25,7 +25,7 @@ Clouds::Clouds(ImageResource* cloudImage, Color& cloudColor, int x, int y, int t
 		scale = Random::RandomFloat(0.5f, 1.5f);
 		s.SetPosition((float)Random::RandomInt(0, terrainWidth), -(float)(y + seperation * Random::RandomInt(0, cloudLayers)));
 		s.SetScale(scale, scale);
-		sprites.insert(sprites.end(), s);
+		sprites.push_back(s);
 
 	}
 

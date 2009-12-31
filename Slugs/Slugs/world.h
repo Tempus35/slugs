@@ -76,8 +76,9 @@ private:
 	vector<Object*>							pendingObjects;					// List of objects created and waiting to be added
 	vector<DeferredExplosion>				deferredExplosions;				// List of deferred explosions awaiting processing
 
-
 	Water*									water[WORLD_WATER_LINES];
+	float									waterHeight;					// Y value on terrain below which slugs drown
+
 	Clouds*									clouds;
 	Sprite									backgroundSprites[2];
 

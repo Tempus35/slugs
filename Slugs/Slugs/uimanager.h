@@ -9,6 +9,7 @@
 #include "uiwindbar.h"
 #include "uiteambar.h"
 #include "uitimer.h"
+#include "uichargebar.h"
 
 class UIManager
 {

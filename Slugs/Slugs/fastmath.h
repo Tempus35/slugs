@@ -1,6 +1,7 @@
 #pragma once
 
 #include <math.h>
+#include "vec2.h"
 
 /*
 	class Math
@@ -20,6 +21,8 @@ public:
 	static const float ONE_OVER_PI;
 	static const float EPSILON;
 	static const float INFINITY;
+	static const float MINUSINFINITY;
+	static const float NAN;
 
 };
 
@@ -217,5 +220,29 @@ inline float Cube(float x)
 {
 
 	return x * x * x;
+
+}
+
+// Return strue if a float is finite
+inline bool IsFinite(float v)
+{
+
+	return ((v != Math::INFINITY) && (v != Math::MINUSINFINITY));
+
+}
+
+// Returns true if a vector is finite
+inline bool IsFinite(const Vec2f& v)
+{
+
+	return ((IsFinite(v.x)) && (IsFinite(v.y)));
+
+}
+
+// Return strue if x is a number
+inline bool IsNumber(float x)
+{
+
+	return (x != Math::NAN);
 
 }

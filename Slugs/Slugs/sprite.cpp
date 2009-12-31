@@ -161,3 +161,10 @@ void Sprite::SetMirrored(bool state)
 	data.FlipX(state);
 
 }
+
+void Sprite::SetWidth(float width)
+{
+
+	data.SetSubRect(sf::IntRect(0, 0, RoundDownToInt(width), RoundDownToInt(data.GetSize().y)));
+
+}

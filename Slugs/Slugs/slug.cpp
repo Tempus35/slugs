@@ -67,7 +67,6 @@ bool Slug::Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind)
 	const float SLUG_MAX_DOWN_STEP = 10.0f;			// Maximum number of pixels a slug can move down without falling
 	const float SLUG_MOVEMENT_SPEED = 50.0f;		// Slug movement speed in pixels/second
 	const float SLUG_AIM_SPEED = Radians(45.0f);	// Rate at which the slug can aim in radians/second
-	const float SHOT_POWER_CHARGE_RATE = 0.5f;		// Rate of weapon charge in units/second	
 
 	//
 	// Find out if we are alive
@@ -99,7 +98,7 @@ bool Slug::Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind)
 			if (charging)
 			{
 
-				power += elapsedTime * SHOT_POWER_CHARGE_RATE;
+				power += elapsedTime * Game::Get()->GetGameFloat(GameFloat_WeaponChargeRate);
 
 				// Fire when we reach max power
 				if (power >= 1.0f)
@@ -176,6 +175,7 @@ bool Slug::Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind)
 			{
 
 				aimAngle += elapsedTime * SLUG_AIM_SPEED;
+				ASSERT(IsNumber(aimAngle));
 
 				if (aimAngle > Math::PI_OVER_2)
 					aimAngle = Math::PI_OVER_2;
@@ -186,6 +186,7 @@ bool Slug::Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind)
 			{
 
 				aimAngle -= elapsedTime * SLUG_AIM_SPEED;
+				ASSERT(IsNumber(aimAngle));
 
 				if (aimAngle < -Math::PI_OVER_2)
 					aimAngle = -Math::PI_OVER_2;
@@ -354,7 +355,8 @@ bool Slug::StartAimingTowards(const Vec2f& direction)
 
 	Vec2f aimDirection = GetAimDirection();
 
-	float dp = DotProduct(direction, aimDirection);
+	// Calculate the dot product between the desired dirrection and the current direction, clamp to 1.0 to account for floating point errors
+	float dp = Min(DotProduct(direction, aimDirection), 1.0f);
 
 	// Adjust facing if needed
 	if (SignCompare(direction.x, aimDirection.x) == false)
@@ -415,6 +417,7 @@ void Slug::StopEverything()
 	StopMoving();
 	StopAiming();
 
+	charging = false;
 	goal = NULL;
 	power = 0.0f;
 
@@ -537,9 +540,9 @@ Vec2f Slug::GetAimDirection() const
 {
 
 	if (facingDirection == FACINGDIRECTION_RIGHT)
-		return Vec2f(Cos(aimAngle), Sin(aimAngle)).Normalize();
+		return Vec2f(Cos(aimAngle), Sin(aimAngle));
 	else
-		return Vec2f(-Cos(aimAngle), Sin(aimAngle)).Normalize();
+		return Vec2f(-Cos(aimAngle), Sin(aimAngle));
 
 }
 
@@ -547,9 +550,12 @@ void Slug::AdjustAim(float amount)
 {
 
 	aimAngle += amount;
+	ASSERT(IsNumber(aimAngle));
 
-	if (aimAngle >= Math::PI_OVER_2)
+	if (aimAngle > Math::PI_OVER_2)
 		aimAngle = Math::PI_OVER_2;
+	else if (aimAngle < -Math::PI_OVER_2)
+		aimAngle = -Math::PI_OVER_2;
 
 }
 
@@ -658,7 +664,7 @@ void Slug::SetWeapons(WeaponStore* store, bool slugOwns)
 Vec2f Slug::GetWeaponPoint() const
 {
 
-	return GetPosition();
+	return Vec2f(GetPosition());
 
 	// TODO
 

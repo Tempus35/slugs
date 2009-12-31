@@ -3,6 +3,8 @@
 #include <math.h>
 #include <sfml/graphics.hpp>
 
+#include "debug.h"
+
 /*
 	struct Vec2
 	Two dimensional vector
@@ -143,7 +145,7 @@ struct Vec2
 
 		float lengthSquared = LengthSquared();
 
-		if (lengthSquared > 0.0f)
+		if (lengthSquared > Math::EPSILON)
 		{
 
 			float length = Sqrt(lengthSquared);

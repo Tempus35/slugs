@@ -352,3 +352,42 @@ int Renderer::GetHeight() const
 	return resolution.y;
 
 }
+
+Vec2i Renderer::GetRelativeCoordinate(int x, int y, RenderPosition position) const
+{
+
+	switch (position)
+	{
+
+	case RenderPosition_Center:
+		return Vec2i(resolution.x / 2 + x, resolution.y / 2 + y);
+
+	case RenderPosition_TopLeft:
+		return Vec2i(x, y);
+
+	case RenderPosition_TopRight:
+		return Vec2i(resolution.x - x, y);
+
+	case RenderPosition_BottomLeft:
+		return Vec2i(x, resolution.y - y);
+
+	case RenderPosition_BottomRight:
+		return Vec2i(resolution.x - x, resolution.y - y);
+
+	case RenderPosition_Left:
+		return Vec2i(x, resolution.y / 2);
+
+	case RenderPosition_Right:
+		return Vec2i(resolution.x - x, resolution.y / 2);
+
+	case RenderPosition_Top:
+		return Vec2i(resolution.x / 2, y);
+
+	case RenderPosition_Bottom:
+		return Vec2i(resolution.x / 2, resolution.y - y);
+
+	}
+
+	return Vec2i(x, y);
+
+}
