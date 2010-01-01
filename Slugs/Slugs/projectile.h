@@ -23,10 +23,11 @@ struct ExplosionData
 	float			forceStrength;			// Maximum force to apply inside the for radius
 	float			damageRadius;			// Radius inside whcih objects are damage
 	float			damageStrength;			// Maximum damage inside the explosion radius
+	bool			noFalloff;				// If false, maximum force and strength is applied to all objects in the radii
 
 	ExplosionData() {};
-	ExplosionData(float _explosionRadius, float _forceRadius, float _forceStrength, float _damageRadius, float _damageStrength)
-		: explosionRadius(_explosionRadius), forceRadius(_forceRadius), forceStrength(_forceStrength), damageRadius(_damageRadius), damageStrength(_damageStrength) {}
+	ExplosionData(float _explosionRadius, float _forceRadius, float _forceStrength, float _damageRadius, float _damageStrength, bool _noFalloff = false)
+		: explosionRadius(_explosionRadius), forceRadius(_forceRadius), forceStrength(_forceStrength), damageRadius(_damageRadius), damageStrength(_damageStrength), noFalloff(_noFalloff) {}
 
 };
 
@@ -175,6 +176,11 @@ public:
 
 };
 
+/*
+	class Projectile_Dynamite
+	Dropped weapon which detonates on a timer - large explosion
+*/
+
 class Projectile_Dynamite : public Projectile
 {
 
@@ -186,5 +192,43 @@ public:
 
 	virtual bool OnCollideWithTerrain();
 	virtual void OnCollideWithObject(Object* object);
+
+};
+
+/*
+	class Projectile_Clusterbomb
+	A grenade like projectile which splits into subprojectiles when it explodes
+*/
+
+class Projectile_Clusterbomb : public Projectile_Grenade
+{
+
+protected:
+
+	ExplosionData subExplosionData;
+
+protected:
+
+	virtual void Explode();
+
+public:
+
+	Projectile_Clusterbomb(Object* creator);
+
+};
+
+/*
+	class Projectile_Clusterbomblet
+	A subprojectile of the cluster bomb
+*/
+
+class Projectile_Clusterbomblet : public Projectile_Grenade
+{
+
+public:
+
+	Projectile_Clusterbomblet();
+
+	virtual bool OnCollideWithTerrain();
 
 };

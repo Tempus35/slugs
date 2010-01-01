@@ -476,10 +476,16 @@ void World::SimulateExplosion(const Vec2f& position, const ExplosionData& data)
 		if ((!obj->IsForceImmune()) && (d <= data.forceRadius))
 		{
 
-			float forcePower = 1.0f - (d / data.forceRadius);
+			// Force falls off from the full amount at the center of the explosion to half the amount at the maximum force distance
+			float force;
+			
+			if (data.noFalloff)
+				force = 1.0f;
+			else
+				force = 1.0f - (d / (data.forceRadius * 2.0f));
 
 			// Add force
-			obj->SetVelocity(CopySign(dx, forcePower) * data.forceStrength, CopySign(dy, forcePower) * data.forceStrength);
+			obj->SetVelocity(CopySign(dx, force) * data.forceStrength, CopySign(dy, force) * data.forceStrength);
 			obj->SetAtRest(false);
 
 		}
@@ -487,7 +493,12 @@ void World::SimulateExplosion(const Vec2f& position, const ExplosionData& data)
 		if (d <= data.damageRadius)
 		{
 
-			float hitPower = 1.0f - (d / data.damageRadius);
+			float hitPower;
+			
+			if (data.noFalloff)
+				hitPower = 1.0f;
+			else
+				hitPower = 1.0f - (d / data.damageRadius);
 
 			// Damage object
 			obj->AdjustHitpoints(-RoundDownToInt(hitPower * data.damageStrength));
@@ -955,22 +966,9 @@ bool World::ObjectCanShootIndirect(Object* from, Object* to, float maxSpeed, Vec
 	Vec2f directions[2];
 
 	bool canShoot = false;
-	float testSpeed, testDirection;
 
-	//if ((start - to->GetPosition()).LengthSquared() < 500 * 500)
-	//{
-	
-		testDirection = 1.0f;
-		testSpeed = 300.0f;
-	
-	//}
-	//else
-	//{
-
-	//	testDirection = - =1.0f;
-	//	testSpeed = maxSpeed;
-
-	//}
+	const float TEST_SPEED_STEP = 50.0f;
+	float testSpeed = 300.0f;
 
 	// Start a max speed and reduce until we find a valid path
 	while (!canShoot)
@@ -979,9 +977,9 @@ bool World::ObjectCanShootIndirect(Object* from, Object* to, float maxSpeed, Vec
 		canShoot = CalculateLaunchDirection2(start, to->GetPosition(), testSpeed, -g, directions[0], directions[1]);
 		optimalSpeed = testSpeed;
 
-		testSpeed += 100.0f * testDirection;
+		testSpeed += TEST_SPEED_STEP;
 
-		if ((testSpeed < 300.0f) || (testSpeed > 1500.0f))
+		if (testSpeed > 1500.0f)
 			break;
 
 	}	

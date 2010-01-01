@@ -344,3 +344,68 @@ void Projectile_Dynamite::OnCollideWithObject(Object* object)
 	// Do nothing
 
 }
+
+/*
+	class Projectile_Clusterbomb
+*/
+
+Projectile_Clusterbomb::Projectile_Clusterbomb(Object* creator) : Projectile_Grenade(creator)
+{
+
+}
+
+void Projectile_Clusterbomb::Explode()
+{
+
+	Projectile::Explode();
+
+	// Throw bomblets
+	const int BOMBLETS					= 5;
+	const float START_ANGLE				= Radians(30.0f);
+	const float ANGLE_STEP				= (Math::PI - 2.0f * START_ANGLE) / (float)BOMBLETS;
+	const float ANGLE_RANDOMNESS		= Radians(10.0f);
+	const float SPEED_MIN				= 200.0f;
+	const float SPEED_MAX				= 500.0f;
+	const ExplosionData EXPLOSION_DATA	= ExplosionData(30.0f, 35.0f, 200.0f, 30.0f, 30.0f);
+
+	float angle = START_ANGLE;
+	for (int i = 0; i < BOMBLETS; ++ i)
+	{
+
+		float adjustedAngle = angle + Random::RandomFloat(-ANGLE_RANDOMNESS, ANGLE_RANDOMNESS);
+
+		Projectile_Clusterbomblet* projectile = new Projectile_Clusterbomblet();
+		projectile->SetImage(ResourceManager::Get()->GetImage("image_grenade"));
+		projectile->SetBounds(5.0f, 5.0f);
+		projectile->SetPosition(GetPosition());
+		projectile->SetExplosionData(EXPLOSION_DATA);
+		projectile->SetVelocity(Vec2f(Cos(adjustedAngle), Sin(adjustedAngle)) * Random::RandomFloat(SPEED_MIN, SPEED_MAX));
+		projectile->SetHitpoints(1000);
+
+		Game::Get()->GetWorld()->AddCreatedObject(projectile);
+
+		angle += ANGLE_STEP;
+
+	}
+
+}
+
+/*
+	class Projectile_Clusterbomblet
+*/
+
+Projectile_Clusterbomblet::Projectile_Clusterbomblet() : Projectile_Grenade(NULL)
+{
+
+	timer = 10.0f;
+
+}
+
+bool Projectile_Clusterbomblet::OnCollideWithTerrain()
+{
+
+	Die();
+
+	return true;
+
+}

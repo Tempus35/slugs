@@ -57,6 +57,9 @@ Weapon* Weapon::CreateFromType(WeaponType t, int ammo)
 	case WeaponType_Dynamite:
 		return new Weapon_Dynamite(ammo);
 
+	case WeaponType_Clusterbomb:
+		return new Weapon_Clusterbomb(ammo);
+
 	}
 
 	ASSERTMSG(0, "Weapon::CreateFromType - Invalid WeaponType!");
@@ -322,7 +325,7 @@ bool Weapon_Shotgun::Fire(Slug* owner, Projectile*& projectileCreated)
 		// Fire 5 bullets in a spread pattern
 		//
 
-		const ExplosionData explosionData(10.0f, 15.0f, 25.0f, 10.0f, 20.0f);
+		const ExplosionData explosionData(10.0f, 10.0f, 200.0f, 10.0f, 10.0f, true);
 
 		const float spread = Radians(10.0f);
 		float baseAngle = owner->GetAimAngle();
@@ -414,7 +417,7 @@ void Weapon_Machinegun::Update(float elapsedTime)
 		// Make boom
 		//
 
-		const ExplosionData explosionData(10.0f, 15.0f, 25.0f, 10.0f, 20.0f);
+		const ExplosionData explosionData(10.0f, 10.0f, 200.0f, 10.0f, 10.0f, true);
 
 		float angle = slug->GetAimAngle();
 		
@@ -733,5 +736,58 @@ bool Weapon_Dynamite::Fire(Slug* owner, Projectile*& projectileCreated)
 	}
 
 	return false;
+
+}
+
+/*
+	class Weapon_Clusterbomb
+*/
+
+Weapon_Clusterbomb::Weapon_Clusterbomb(int initialAmmo) : Weapon(WeaponType_Clusterbomb, initialAmmo, true, true)
+{
+
+}
+
+bool Weapon_Clusterbomb::Fire(Slug* owner, Projectile*& projectileCreated)
+{
+
+	ASSERT(owner);
+
+	if (TakeAmmo() == true)
+	{
+
+		Vec2f aimDirection = owner->GetAimDirection();
+
+		float shotVelocity = GetLaunchSpeed(owner->GetPower());
+		Vec2f aimVelocity = aimDirection * shotVelocity;
+
+		Projectile_Clusterbomb* projectile = new Projectile_Clusterbomb(owner);
+		projectile->SetPosition(owner->GetWeaponPoint());
+		projectile->SetTimer(3);
+		projectile->SetBounds(5.0f, 5.0f);
+		projectile->SetImage(((ImageResource*)ResourceManager::Get()->GetResource("image_grenade")));
+
+		const ExplosionData explosionData(75.0f, 85.0f, 400.0f, 75.0f, 50.0f);
+		projectile->SetExplosionData(explosionData);
+
+		projectile->SetVelocity(aimVelocity);
+
+		// Add the projectile to the world
+		Game::Get()->GetWorld()->AddCreatedObject(projectile);
+
+		projectileCreated = projectile;
+
+		return true;
+
+	}
+
+	return false;
+
+}
+
+float Weapon_Clusterbomb::GetLaunchSpeed(float power) const
+{
+
+	return 1500.0f * power;
 
 }

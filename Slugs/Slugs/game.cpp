@@ -501,6 +501,13 @@ bool Game::KeyDown(sf::Key::Code key, bool shift, bool control, bool alt)
 
 			break;
 
+		case sf::Key::Num8:
+
+			if ((selectedSlug) && (!paused))
+				selectedSlug->ArmSelf(WeaponType_Clusterbomb);
+
+			break;
+
 		case sf::Key::Num9:
 
 			if ((selectedSlug) && (!paused))

@@ -35,6 +35,7 @@ enum WeaponType
 	WeaponType_Teleporter,
 	WeaponType_Airstrike,
 	WeaponType_Dynamite,
+	WeaponType_Clusterbomb,
 	WeaponType_LAST,					// Should be last on the list, used to determine number of available weapon types
 
 };
@@ -311,5 +312,24 @@ public:
 	Weapon_Dynamite(int initialAmmo = -1);
 
 	virtual bool Fire(Slug* owner, Projectile*& projectileCreated);
+
+};
+
+/*
+	class Weapon_Clusterbomb
+*/
+
+class Weapon_Clusterbomb : public Weapon
+{
+
+protected:
+
+public:
+
+	Weapon_Clusterbomb(int initialAmmo = -1);
+
+	virtual bool Fire(Slug* owner, Projectile*& projectileCreated);
+
+	virtual float GetLaunchSpeed(float power = 1.0f) const;
 
 };
