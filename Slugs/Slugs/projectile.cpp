@@ -46,7 +46,7 @@ void Projectile::OnDetonationTimer()
 
 }
 
-bool Projectile::OnCollideWithTerrain()
+bool Projectile::OnCollideWithTerrain(const Vec2f& collisionPoint)
 {
 
 	Die();
@@ -170,11 +170,11 @@ Projectile_Grenade::Projectile_Grenade(Object* creator) : Projectile(creator)
 
 }
 
-bool Projectile_Grenade::OnCollideWithTerrain()
+bool Projectile_Grenade::OnCollideWithTerrain(const Vec2f& collisionPoint)
 {
 
 	// Use the default object implementation
-	return Object::OnCollideWithTerrain();
+	return Object::OnCollideWithTerrain(collisionPoint);
 	
 }
 
@@ -228,11 +228,11 @@ Projectile_Mine::Projectile_Mine(float armTime, float dudChance) : Projectile(NU
 
 }
 
-bool Projectile_Mine::OnCollideWithTerrain()
+bool Projectile_Mine::OnCollideWithTerrain(const Vec2f& collisionPoint)
 {
 
 	// Use the default object implementation
-	return Object::OnCollideWithTerrain();
+	return Object::OnCollideWithTerrain(collisionPoint);
 
 }
 
@@ -331,10 +331,10 @@ Projectile_Dynamite::Projectile_Dynamite() : Projectile(NULL)
 
 }
 
-bool Projectile_Dynamite::OnCollideWithTerrain()
+bool Projectile_Dynamite::OnCollideWithTerrain(const Vec2f& collisionPoint)
 {
 
-	return Object::OnCollideWithTerrain();
+	return Object::OnCollideWithTerrain(collisionPoint);
 
 }
 
@@ -401,7 +401,7 @@ Projectile_Clusterbomblet::Projectile_Clusterbomblet() : Projectile_Grenade(NULL
 
 }
 
-bool Projectile_Clusterbomblet::OnCollideWithTerrain()
+bool Projectile_Clusterbomblet::OnCollideWithTerrain(const Vec2f& collisionPoint)
 {
 
 	Die();

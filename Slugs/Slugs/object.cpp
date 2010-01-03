@@ -151,11 +151,40 @@ bool Object::Contains(const Vec2f& position) const
 
 }
 
-bool Object::OnCollideWithTerrain()
+bool Object::OnTerrain() const
+{
+
+	return GetHeightAboveTerrain() == 0;
+
+}
+
+float Object::GetHeightAboveTerrain(float xOffset) const
+{
+
+	float x = Floor(bounds.center.x) + xOffset;
+	float bottom = (bounds.center.y - bounds.extents.y) - 1.0f;
+
+	float terrainHeight = 0.0f;
+
+	// Test for terrain across the bounds
+	int sx = RoundDownToInt(x - bounds.extents.x);
+	int ex = RoundDownToInt(x + bounds.extents.x) + 1;
+
+	for (int i = sx; i < ex; ++ i)
+		terrainHeight = Max(terrainHeight, Game::Get()->GetWorld()->GetTerrain()->GetHeightAt(Vec2f((float)i, bounds.center.y)));
+
+	return bottom - terrainHeight;
+
+
+}
+
+bool Object::OnCollideWithTerrain(const Vec2f& collisionPoint)
 {
 
 	// Get terrain normal at the collision point
-	Vec2f normal = Game::Get()->GetWorld()->GetNormalForBox(bounds.center.x, bounds.center.y, Max(bounds.extents.x, 5.0f) * 2.0f, Max(bounds.extents.y, 5.0f) * 2.0f);
+	Vec2f normal = Game::Get()->GetWorld()->GetNormalForBox(collisionPoint.x, collisionPoint.y, Max(bounds.extents.x, 5.0f) * 4.0f, Max(bounds.extents.y, 5.0f) * 4.0f);
+
+	Renderer::Get()->DrawDebugCircle(collisionPoint, 10.0f, Color::yellow);
 
 	//
 	// Bounce
@@ -163,18 +192,31 @@ bool Object::OnCollideWithTerrain()
 
 	Vec2f incident = velocity.Normalize();
 	float dp = DotProduct(incident, normal);
+	Vec2f direction;
+	float dampedSpeed;
 
 	if (dp < 0.0f)
 	{
 
-		float dampedSpeed = velocity.Length() * bounceCoefficient;
-		Vec2f direction = incident - (normal * 2.0f * dp);
+		dampedSpeed = velocity.Length() * bounceCoefficient;
+		direction = incident - (normal * 2.0f * dp);
+
 		velocity = direction * dampedSpeed;
 
 	}
+	else
+	{
+	
+		dampedSpeed = velocity.Length();
+		direction = Vec2f(0.0f, 0.0f);
 
-	if (Abs(velocity.y) < 10.0f)	
+	}
+
+	// Set the object to rest if it is on the terrain and had a small enough velocity
+	if ((dampedSpeed < 100.0f) && (OnTerrain()))
 		return true;
+	else
+		bounds.center -= incident;
 
 	return false;
 
@@ -256,8 +298,12 @@ void Object::DebugRender()
 
 	Vec2f throwAway;
 
-	if (Game::Get()->GetWorld()->GetTerrain()->BoxCollision(bounds.center.x, bounds.center.y, 1.0f, 2.0f * bounds.extents.y, throwAway))
+	if (Game::Get()->GetWorld()->GetTerrain()->BoxCollision(bounds.center.x, bounds.center.y, bounds.GetWidth(), bounds.GetHeight(), throwAway))
+	{
 		Renderer::Get()->DrawDebugBox(bounds, Color(255, 0, 0, 64));
+		Renderer::Get()->DrawDebugLine(throwAway - Vec2f(2.0f, 0.0f), throwAway + Vec2f(2.0f, 0.0f), Color(255, 255, 255, 255));
+		Renderer::Get()->DrawDebugLine(throwAway - Vec2f(0.0f, 2.0f), throwAway + Vec2f(0.0f, 2.0f), Color(255, 255, 255, 255));
+	}
 	else
 		Renderer::Get()->DrawDebugBox(bounds, Color(0, 255, 0, 64));
 
@@ -265,9 +311,12 @@ void Object::DebugRender()
 
 	Vec2f ground = Vec2f(bounds.center.x, height);
 
-	Vec2f perpendicular = Game::Get()->GetWorld()->GetTerrain()->GetNormalForBox(ground.x, ground.y, Max(bounds.extents.x, 5.0f) * 2.0f, Max(bounds.extents.x, 5.0f) * 2.0f).Perpendicular();
+	Vec2f perpendicular = Game::Get()->GetWorld()->GetTerrain()->GetNormalForBox(ground.x, ground.y, Max(bounds.extents.x, 5.0f) * 2.0f, Max(bounds.extents.y, 5.0f) * 2.0f).Perpendicular();
 
-	Renderer::Get()->DrawDebugLine(ground - perpendicular * 10.0f, ground + perpendicular * 10.0f, Color(0, 255, 0));
+	if (atRest == true)
+		Renderer::Get()->DrawDebugLine(ground - perpendicular * 10.0f, ground + perpendicular * 10.0f, Color::green);
+	else
+		Renderer::Get()->DrawDebugLine(ground - perpendicular * 10.0f, ground + perpendicular * 10.0f, Color::red);
 
 }
 

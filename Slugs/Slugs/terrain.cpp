@@ -1184,8 +1184,8 @@ bool Terrain::BoxCollision(float centerX, float centerY, float width, float heig
 
 	int sx = RoundDownToInt(centerX - halfWidth);
 	int sy = RoundDownToInt(centerY - halfHeight);
-	int ex = RoundDownToInt(centerX + halfWidth);
-	int ey = RoundDownToInt(centerY + halfHeight);
+	int ex = RoundDownToInt(centerX + halfWidth) + 1;
+	int ey = RoundDownToInt(centerY + halfHeight) + 1;
 
 	// Clamp the area to the buffer
 	int x[2], y[2];
@@ -1223,17 +1223,107 @@ bool Terrain::BoxCollision(float centerX, float centerY, float width, float heig
 
 }
 
+bool Terrain::CircleCollisionIterated(float fromX, float fromY, float toX, float toY, float radius, Vec2f& collisionPosition, Vec2f& freePosition)
+{
+
+	Vec2f delta = Vec2f(toX - fromX, toY - fromY);
+	Vec2f direction = delta.Normalize();
+	float distance = delta.Length();
+	float lerp = 0.0f, step = 1.0f;
+	Vec2f last = Vec2f(Math::INFINITY, Math::INFINITY);
+	Vec2f pos = Vec2f(fromX, fromY);
+	float x, y;
+
+	while (step > 0.0f)
+	{
+
+		step = distance - lerp >= 1.0f ? 1.0f : distance - lerp;
+
+		x = Floor(pos.x);
+		y = Floor(pos.y);
+
+		if ((x != last.x) || (y != last.y))
+		{
+
+			if (CircleCollision(Vec2f(x, y), radius))
+			{
+
+				collisionPosition = pos;
+				freePosition = last;
+
+				ASSERT(!CircleCollision(freePosition, radius));
+
+				return true;
+
+			}
+
+			last.x = x;
+			last.y = y;
+
+		}
+
+		lerp += step;
+		pos += direction;
+
+	}
+
+	return false;
+
+}
+
 bool Terrain::BoxCollisionIterated(float fromX, float fromY, float toX, float toY, float width, float height, Vec2f& collisionPosition, Vec2f& freePosition)
 {
 
+	Vec2f delta = Vec2f(toX - fromX, toY - fromY);
+	Vec2f direction = delta.Normalize();
+	float distance = delta.Length();
+	float lerp = 0.0f, step = 1.0f;
+	Vec2f last = Vec2f(fromX, fromY);
+	Vec2f pos = Vec2f(fromX, fromY);
+	float x, y;
+
+	while (step > 0.0f)
+	{
+
+		step = distance - lerp >= 1.0f ? 1.0f : distance - lerp;
+
+		x = Floor(pos.x);
+		y = Floor(pos.y);
+
+		if ((x != last.x) || (y != last.y))
+		{
+
+			if (BoxCollision(x, y, width, height, collisionPosition))
+			{
+
+				collisionPosition = Vec2f(x, y);
+				freePosition = last;
+
+				return true;
+
+			}
+
+			last.x = x;
+			last.y = y;
+
+		}
+
+		lerp += step;
+		pos += direction;
+
+	}
+
+	return false;
+
+	/*
 	bool initialTest = true;
 
 	//
 	// Calculate delta
 	//
 
-	float dx = toX - fromX;
-	float dy = toY - fromY;
+	float dx = Floor(toX) - Floor(fromX);
+	float dy = Floor(toY) - Floor(fromY);
 
 	ASSERT((dx != 0) || (dy != 0));
 
@@ -1245,7 +1335,7 @@ bool Terrain::BoxCollisionIterated(float fromX, float fromY, float toX, float to
 	float distance = direction.Length();
 	direction = direction.Normalize();
 
-	Vec2f pos = Vec2f(fromX, fromY);
+	Vec2f pos = Vec2f(Floor(fromX), Floor(fromY));
 
 	float lerp = 0.0f;
 	float sx, sy, ex, ey;
@@ -1255,12 +1345,18 @@ bool Terrain::BoxCollisionIterated(float fromX, float fromY, float toX, float to
 
 	bool collision = false;
 
+	Vec2f lastPosition;
+
 	while (lerp < distance)
 	{
 
 		// Store current pixel as free position and move to the next pixel
-		freePosition = pos;
+		lastPosition = pos;
 		pos += direction;
+
+		if ((RoundDownToInt(lastPosition.x) != RoundDownToInt(pos.x) || (RoundDownToInt(lastPosition.y) != RoundDownToInt(pos.y))))
+			freePosition = lastPosition;
+
 		lerp += 1.0f;
 		
 		// Calculate test bounds
@@ -1268,6 +1364,8 @@ bool Terrain::BoxCollisionIterated(float fromX, float fromY, float toX, float to
 		sy = pos.y - halfHeight;
 		ex = pos.x + halfWidth;
 		ey = pos.y + halfHeight;
+
+		
 		
 		if (direction.x >= 0.0f)
 		{
@@ -1311,9 +1409,6 @@ bool Terrain::BoxCollisionIterated(float fromX, float fromY, float toX, float to
 		if (collision)
 		{
 
-			//Vec2f throwAway;
-			//ASSERT(!BoxCollision(freePosition.x, freePosition.y, width, height, throwAway));
-
 			collisionPosition = pos;
 			return true;
 
@@ -1322,6 +1417,7 @@ bool Terrain::BoxCollisionIterated(float fromX, float fromY, float toX, float to
 	}
 
 	return false;
+	*/
 
 }
 
@@ -1365,8 +1461,8 @@ bool Terrain::RayIntersection(const Vec2f& start, const Vec2f& direction, float 
 Vec2f Terrain::GetNormalForBox(float centerX, float centerY, float width, float height)
 {
 
-	float halfWidth = width / 2;
-	float halfHeight = height / 2;
+	float halfWidth = width * 0.5f;
+	float halfHeight = height * 0.5f;
 	
 	int sx = RoundDownToInt(centerX - halfWidth);
 	int sy = RoundDownToInt(centerY - halfHeight);

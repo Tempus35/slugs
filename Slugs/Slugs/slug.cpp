@@ -36,7 +36,7 @@ Slug::Slug(Team* _team, AIController* aiController) : Object(NULL, ObjectType_Sl
 
 	ImageResource* r = (ImageResource*)ResourceManager::Get()->GetResource("image_slug_right");
 	SetImage(r);
-	SetBounds(8.0f, 8.0f);
+	SetBounds(4.0f, 8.0f);
 	SetWeapons(new WeaponStore(true), true);
 	ArmSelf();
 
@@ -126,40 +126,61 @@ bool Slug::Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind)
 				if (direction != 0.0f)
 				{
 
-					float height = Game::Get()->GetWorld()->GetTerrain()->GetHeightAt(Vec2f(bounds.center.x + direction, bounds.center.y));
-			
-					float dy = height - (bounds.center.y - bounds.extents.y);
+					float distanceToMove = elapsedTime * SLUG_MOVEMENT_SPEED;
 
-					if ((dy >= 0.0f) && (dy <= SLUG_MAX_UP_STEP))
-					{
-					
-						moved = true;
-						bounds.center.x += direction * elapsedTime * SLUG_MOVEMENT_SPEED;
-						bounds.center.y = height + RoundUpToInt(bounds.extents.y) + 2.0f;
-					
-					}
-					else if (dy < 0.0f)
+					while (distanceToMove > 0.0f)
 					{
 
-						if (Abs(dy) <= SLUG_MAX_DOWN_STEP)
+						float moveThisStep = (distanceToMove >= 1.0f ? 1.0f : distanceToMove);
+
+						float dy = -GetHeightAboveTerrain(direction);
+
+						if ((dy >= 0.0f) && (dy <= SLUG_MAX_UP_STEP))
+						{
+						
+							moved = true;
+							bounds.center.x += moveThisStep * direction;
+							bounds.center.y = Floor(bounds.center.y) - GetHeightAboveTerrain();
+						
+						}
+						else if (dy < 0.0f)
 						{
 
-							moved = true;
-							bounds.center.x += direction * elapsedTime * SLUG_MOVEMENT_SPEED;
-							bounds.center.y = height + bounds.extents.y + 2.0f;
+							if (dy >= -SLUG_MAX_DOWN_STEP)
+							{
+
+								moved = true;
+								bounds.center.x += moveThisStep * direction;
+								bounds.center.y = Floor(bounds.center.y) - GetHeightAboveTerrain();
+
+							}
+							else
+							{
+
+								moved = true;
+
+								bounds.center.x += moveThisStep * direction;
+
+								float newHeight = GetHeightAboveTerrain();
+
+								if (newHeight < -SLUG_MAX_DOWN_STEP)
+								{
+
+									SetAtRest(false);
+
+									// Throw the slug off the edge
+									SetVelocity(Vec2f(direction * 25.0f, 0.0f));
+
+									// No need to process any further movement
+									distanceToMove = 0.0f;
+
+								}
+
+							}
 
 						}
-						else
-						{
-
-							moved = true;
-							bounds.center.x += Max(elapsedTime * SLUG_MOVEMENT_SPEED, 1.0f) * direction;
-							SetAtRest(false);
-
-							// Throw the slug off the edge
-							SetVelocity(Vec2f(direction * 25.0f, 5.0f));
-
-						}
+	
+						distanceToMove -= 1.0f;
 
 					}
 
@@ -233,7 +254,7 @@ bool Slug::Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind)
 
 }
 
-bool Slug::OnCollideWithTerrain()
+bool Slug::OnCollideWithTerrain(const Vec2f& collisionPoint)
 {
 
 	//
@@ -243,23 +264,20 @@ bool Slug::OnCollideWithTerrain()
 	if (Game::Get()->GetGameBool(GameBool_FallDamage))
 	{
 
-		const float SAFE_FALL_HEIGHT = 125.0f;
+		const float SAFE_FALL_HEIGHT = 125.0f;						// Maximum fall height where no damage is applied
+		const float FALL_DAMAGE_FACTORY	= 0.05f;					// Damage per height unit
 
 		float fallHeight = initialHeight - bounds.center.y;
 
 		if (fallHeight > SAFE_FALL_HEIGHT)
-		{
-
-			AdjustHitpoints(-RoundDownToInt(fallHeight / 10.0f));
-
-		}
+			AdjustHitpoints(-RoundUpToInt(fallHeight * 0.05f));
 
 	}
 
 	// Set current height as the new initial height
 	initialHeight = bounds.center.y;
 
-	return Object::OnCollideWithTerrain();
+	return Object::OnCollideWithTerrain(collisionPoint);
 
 }
 
@@ -464,6 +482,9 @@ void Slug::Jump()
 	{
 	
 		SetAtRest(false);
+
+		// Move the slug up one pixel to help avoid a collision with the next terrain pixel in the direction of movement
+		bounds.center.y += 1.0f;
 
 		if (facingDirection == FACINGDIRECTION_LEFT)
 			velocity.x = -125.0f;
@@ -732,7 +753,7 @@ void Slug::Render()
 {
 
 	// Render object sprite
-	Renderer::Get()->Render(sprite);
+	//Renderer::Get()->Render(sprite);
 
 	// Render attachments
 	for (unsigned int i = 0; i < attachPoints.size(); ++ i)

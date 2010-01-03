@@ -232,6 +232,9 @@ public:
 	// Tests a circle for an intersection with the terrain
 	bool CircleCollision(const Vec2f& center, float radius);
 
+	// Tests a circle for an intersection with the terrain as it moves between two points
+	bool CircleCollisionIterated(float fromX, float fromY, float toX, float toY, float radius, Vec2f& collisionPosition, Vec2f& freePosition);
+
 	// Tests a row of the terrainbuffer for a collision
 	bool RowCollision(float y, float startX, float endX);
 
@@ -241,7 +244,7 @@ public:
 	// Tests a box for collision with the terrain
 	bool BoxCollision(float centerX, float centerY, float width, float height, Vec2f& collisionPos);
 
-	// Tests a box for collision with the terrain as it moves betwene two points
+	// Tests a box for collision with the terrain as it moves between two points
 	bool BoxCollisionIterated(float fromX, float fromY, float toX, float toY, float width, float height, Vec2f& collisionPosition, Vec2f& freePosition);
 
 	// Finds the first intersection between a ray and the terrain

@@ -178,6 +178,9 @@ bool World::Update(float elapsedTime)
 			Vec2f lastPos = obj->GetPosition();
 			Vec2f collisionPos, freePos;
 			
+			Vec2f throwAway;
+			//ASSERT(!terrain->BoxCollision(lastPos.x, lastPos.y, obj->GetBounds().GetWidth(), obj->GetBounds().GetHeight(), throwAway));
+
 			// If this is a slug, check for drowning
 			if ((obj->GetType() == ObjectType_Slug) && (lastPos.y <= waterHeight))
 				obj->SetHitpoints(0);
@@ -204,21 +207,24 @@ bool World::Update(float elapsedTime)
 
 					//
 					// Test for collision with the terrain
-					// This test uses a one pixel wide bounding box
 					//
 
-					if (terrain->BoxCollisionIterated(lastPos.x, lastPos.y, pos.x, pos.y, 1.0f, obj->GetBounds().extents.y * 2.0f, collisionPos, freePos))
+					const Boxf& boundingBox = obj->GetBounds();
+
+					bool collision = terrain->BoxCollisionIterated(lastPos.x, lastPos.y, pos.x, pos.y, boundingBox.GetWidth(), boundingBox.GetHeight(), collisionPos, freePos);
+					
+					if (collision)
 					{
-
-						// Set back to the position where the collision actually happened
- 						obj->SetPosition(collisionPos.x, collisionPos.y);
-
-						// Fire collide event
-						if (obj->OnCollideWithTerrain())
-							obj->SetAtRest(true);
 
 						// Back up so the object is free
 						obj->SetPosition(freePos.x, freePos.y);
+
+						Vec2f newPos = obj->GetPosition();
+						// ASSERT(!terrain->BoxCollision(newPos.x, newPos.y, obj->GetBounds().GetWidth(), obj->GetBounds().GetHeight(), throwAway));
+
+						// Fire collide event
+						if (obj->OnCollideWithTerrain(collisionPos))
+							obj->SetAtRest(true);
 
 					}
 
@@ -228,14 +234,8 @@ bool World::Update(float elapsedTime)
 			else if (obj->IsAtRest())
 			{
 
-				//
-				// Object is at rest, check to see if we still have terrain holding it up
-				//
-
-				float height = Game::Get()->GetWorld()->GetTerrain()->GetHeightAt(Vec2f(lastPos.x, lastPos.y));
-				float dy = height - (obj->GetBounds().center.y - obj->GetBounds().extents.y);
-
-				if (dy < -10)
+				// If the object is in the resting state but is not supported by terrain, let it fall
+				if (!obj->OnTerrain())
 					obj->SetAtRest(false);
 
 			}

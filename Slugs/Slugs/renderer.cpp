@@ -226,6 +226,13 @@ void Renderer::DrawDebugBox(const Boxf& box, const Color& color)
 
 }
 
+void Renderer::DrawDebugPoint(const Vec2f& point, const Color& color)
+{
+
+	// TODO
+
+}
+
 void Renderer::DebugDraw()
 {
 

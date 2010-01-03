@@ -110,6 +110,9 @@ public:
 	// Draws a debug box
 	void DrawDebugBox(const Boxf& box, const Color& color);
 
+	// Draws a debug point
+	void DrawDebugPoint(const Vec2f& point, const Color& color);
+
 	// Draws all queued debug shapes
 	void DebugDraw();
 

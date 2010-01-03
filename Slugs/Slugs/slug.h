@@ -96,7 +96,7 @@ public:
 	bool Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind);
 
 	// Overridden to apply falling damage
-	bool OnCollideWithTerrain();
+	bool OnCollideWithTerrain(const Vec2f& collisionPoint);
 
 	// Overriden to end the players turn if the slug takes damage
 	void OnHitpointsChanged(int oldValue);

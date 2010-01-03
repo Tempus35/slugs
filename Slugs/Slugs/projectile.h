@@ -61,7 +61,7 @@ public:
 	virtual void OnDetonationTimer();
 
 	// Fired when the projectile collides with terrain
-	virtual bool OnCollideWithTerrain();
+	virtual bool OnCollideWithTerrain(const Vec2f& collisionPoint);
 
 	// Fired when the projectile collides with another bject
 	virtual void OnCollideWithObject(Object* object);
@@ -122,7 +122,7 @@ public:
 
 	Projectile_Grenade(Object* creator);
 
-	virtual bool OnCollideWithTerrain();
+	virtual bool OnCollideWithTerrain(const Vec2f& collisionPoint);
 	virtual void OnCollideWithObject(Object* object);
 
 	virtual bool Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind);
@@ -146,7 +146,7 @@ public:
 
 	Projectile_Mine(float armTime, float dudChance);
 
-	virtual bool OnCollideWithTerrain();
+	virtual bool OnCollideWithTerrain(const Vec2f& collisionPoint);
 	virtual void OnCollideWithObject(Object* object);
 
 	virtual bool Update(float elapsedTime, const Vec2f& gravity, const Vec2f& wind);
@@ -190,7 +190,7 @@ public:
 
 	Projectile_Dynamite();
 
-	virtual bool OnCollideWithTerrain();
+	virtual bool OnCollideWithTerrain(const Vec2f& collisionPoint);
 	virtual void OnCollideWithObject(Object* object);
 
 };
@@ -229,6 +229,6 @@ public:
 
 	Projectile_Clusterbomblet();
 
-	virtual bool OnCollideWithTerrain();
+	virtual bool OnCollideWithTerrain(const Vec2f& collisionPoint);
 
 };

@@ -164,20 +164,26 @@ void Game::Render()
 
 				}
 
+				char text[1024];
+
+				Vec2f worldCursorPos = camera->GetWorldPosition(cursorPosition.x, cursorPosition.y);
+				sprintf_s(text, 1024, "%.0f, %.0f", worldCursorPos.x, worldCursorPos.y);
+
+				Renderer::Get()->DrawDebugHint(worldCursorPos + Vec2f(20.0f, +50.0f), text, Color(255, 255, 255));
+
 				if (object)
 				{
 
 					ObjectType objectType = object->GetType();
 					const Vec2f& objectPos = object->GetPosition();
 					const Vec2f& objectVel = object->GetVelocity();
-
-					char Text[1024];
-					sprintf_s(Text, 1024, "[%s] (%i hps)\n\nPosition: %.1f, %.1f\nVelocity: %.1f, %.1f (%.1f)\n\nAtRest = %s", ObjectTypeToString(objectType).c_str(), object->GetHitPoints(), objectPos.x, objectPos.y, objectVel.x, objectVel.y, object->GetSpeed(), BoolToString(object->IsAtRest()).c_str());
+	
+					sprintf_s(text, 1024, "[%s] (%i hps)\n\nPosition: %.1f, %.1f\nVelocity: %.1f, %.1f (%.1f)\n\nHeight: %.0f\nAtRest = %s", ObjectTypeToString(objectType).c_str(), object->GetHitPoints(), objectPos.x, objectPos.y, objectVel.x, objectVel.y, object->GetSpeed(), object->GetHeightAboveTerrain(), BoolToString(object->IsAtRest()).c_str());
 					
 					if (objectType == ObjectType_Projectile)
-						sprintf_s(&Text[strlen(Text)], 1024 - strlen(Text), "\n\nTimer: %.1f", ((Projectile*)object)->GetTimer());
+						sprintf_s(&text[strlen(text)], 1024 - strlen(text), "\n\nTimer: %.1f", ((Projectile*)object)->GetTimer());
 					
-					Renderer::Get()->DrawDebugHint(objectPos + Vec2f(20.0f, -20.0f), Text, Color(255, 255, 255));
+					Renderer::Get()->DrawDebugHint(objectPos + Vec2f(20.0f, -20.0f), text, Color(255, 255, 255));
 
 				}
 

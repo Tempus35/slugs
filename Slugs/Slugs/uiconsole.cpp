@@ -465,7 +465,7 @@ bool UIConsole::IsOpen()
 void UIConsole::Autocomplete(bool complete)
 {
 
-	if (complete)
+	if ((complete) && (autocomplete.size() > 0))
 	{
 
 		text = autocomplete[autocompleteIndex];

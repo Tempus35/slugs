@@ -112,8 +112,14 @@ public:
 	// Returns true if the bounds of the object contain the point
 	bool Contains(const Vec2f& position) const;
 
+	// Returns true if the object has terrain holding it up
+	bool OnTerrain() const;
+
+	// Returns the number of pixels the object is above the terrain
+	float GetHeightAboveTerrain(float xOffset = 0.0f) const;
+
 	// Fired when the object collides with the terrain. Object returning true will be set into the rest state.
-	virtual bool OnCollideWithTerrain();
+	virtual bool OnCollideWithTerrain(const Vec2f& collisionPoint);
 
 	// Fired when the object collides with another object
 	virtual void OnCollideWithObject(Object* object);
