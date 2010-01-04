@@ -753,7 +753,7 @@ void Slug::Render()
 {
 
 	// Render object sprite
-	//Renderer::Get()->Render(sprite);
+	Renderer::Get()->Render(sprite);
 
 	// Render attachments
 	for (unsigned int i = 0; i < attachPoints.size(); ++ i)

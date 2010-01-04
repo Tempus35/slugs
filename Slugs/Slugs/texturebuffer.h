@@ -8,10 +8,11 @@
 
 #include "global.h"
 #include "resource.h"
+#include "color.h"
 
 /*
 	class TextureBuffer
-	Memory storage for RGBA texture data which does not require rendering
+	Memory storage for RGBA texture data which does not require direct rendering
 */
 
 class TextureBuffer : public Resource
@@ -63,5 +64,8 @@ public:
 	int Channels();
 	byte* Data(int index = 0);
 	byte* Data(int x, int y);
+
+	// Burns the contents of a texture buffer into this texture buffer
+	void BurnIn(TextureBuffer* buffer, int x, int y);
 
 };

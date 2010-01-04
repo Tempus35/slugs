@@ -99,7 +99,7 @@ public:
 	// Setup
 	//
 
-	void Build(int width, int height, TextureBuffer* groundTexture, TextureBuffer* overTexture, TextureBuffer* underTexture, ImageResource* waterImage);
+	void Build(int width, int height, bool generate = false, TextureBuffer* groundTexture = NULL, TextureBuffer* overTexture = NULL, TextureBuffer* underTexture = NULL, ImageResource* waterImage = NULL);
 	void Regenerate();
 
 	//

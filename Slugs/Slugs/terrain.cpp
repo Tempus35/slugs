@@ -903,8 +903,18 @@ void Terrain::CreateCavern(int centerX, int centerY, float smoothness, float cha
 
 }
 
-void Terrain::AddImageObject(int x, int y)
+void Terrain::AddImage(TextureBuffer* objectBuffer, int x, int y)
 {
+
+	int X = x - objectBuffer->Width() / 2;
+	int Y = y + objectBuffer->Height() / 2;
+
+	// Add the image
+	textureBuffer->BurnIn(objectBuffer, X, Y);
+
+	// Add a dirty rect and update the textures
+	dirtyRects.push_back(DirtyRect(X, Y, X + objectBuffer->Width(), Y + objectBuffer->Height()));
+	BufferDirty();
 
 }
 
@@ -1053,8 +1063,6 @@ void Terrain::ClearCircle(const Vec2f& position, float radius, float border)
 			float maxRadiusSquared = maxRadius * maxRadius;
 			float dx, dy, dsq;
 
-			Color* color = (Color*)art[0]->Data();
-
 			for (int i = y[0]; i < y[1]; ++ i)
 			{
 
@@ -1074,9 +1082,9 @@ void Terrain::ClearCircle(const Vec2f& position, float radius, float border)
 						else if (ptr->a != TERRAINALPHA_EMPTY)
 						{
 
-							ptr->r = color->r;
-							ptr->g = color->g;
-							ptr->b = color->b;
+							ptr->r = 128;
+							ptr->g = 64;
+							ptr->b = 64;
 
 						}
 

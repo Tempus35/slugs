@@ -10,7 +10,9 @@
 unsigned int WorldBuilderThread::DoWork(void* object)
 {
 
-	((Terrain*)object)->Generate(0);
+	Terrain* terrain = (Terrain*)object;
+
+	terrain->Generate(0);
 
 	return 0;
 
@@ -64,13 +66,11 @@ World::~World()
 // Setup
 //
 
-void World::Build(int width, int height, TextureBuffer* groundTexture, TextureBuffer* overTexture, TextureBuffer* underTexture, ImageResource* waterImage)
+void World::Build(int width, int height, bool generate, TextureBuffer* groundTexture, TextureBuffer* overTexture, TextureBuffer* underTexture, ImageResource* waterImage)
 {
 
 	// Create the terrain, set art and generate
 	terrain = new Terrain(width, height);
-	terrain->SetArt(groundTexture, overTexture, underTexture);
-
 	int spacing = 32;
 	int start = 64 * WORLD_WATER_LINES / 2;
 	for (int i = 0; i < WORLD_WATER_LINES; ++ i)
@@ -87,9 +87,16 @@ void World::Build(int width, int height, TextureBuffer* groundTexture, TextureBu
 
 	clouds = new Clouds((ImageResource*)ResourceManager::Get()->GetResource("image_cloud"), Color(150, 150, 150), 0, -terrain->HeightInPixels() + 20, terrain->WidthInPixels(), Random::RandomInt(WORLD_CLOUDS_MIN, WORLD_CLOUDS_MAX), WORLD_CLOUD_LAYERS);
 
-	// Build the terrain on the worker thread
-	ASSERT(!workerThread.IsRunning());
-	workerThread.Start(terrain);
+	if (generate)
+	{
+	
+		terrain->SetArt(groundTexture, overTexture, underTexture);
+
+		// Build the terrain on the worker thread
+		ASSERT(!workerThread.IsRunning());
+		workerThread.Start(terrain);
+
+	}
 
 }
 

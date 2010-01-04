@@ -167,3 +167,36 @@ byte* TextureBuffer::Data(int x, int y)
 		return &data[x * channels + y * width * channels];
 
 }
+
+void TextureBuffer::BurnIn(TextureBuffer* buffer, int x, int y)
+{
+
+	Vec2i destStart = Vec2i(Max(x, 0), Max(y, 0));
+	Vec2i destEnd = Vec2i(Min(x + buffer->Width(), width - 1), Min(y + buffer->Height(), height - 1));
+
+	Vec2i srcStart = Vec2i(destStart.x - x, destStart.y - y);
+	
+	for (int y = destStart.y; y < destEnd.y; ++ y)
+	{
+
+		for (int x = destStart.x; x < destEnd.x; ++ x)
+		{
+
+			byte* ptr = buffer->Data(srcStart.x + x - destStart.x, srcStart.y + y - destStart.y);
+
+			if (ptr[3] > 0x00)
+			{
+
+				int offset = x * channels + y * width * channels;
+				data[offset] = *ptr;
+				data[offset + 1] = *(ptr + 1);
+				data[offset + 2] = *(ptr + 2);
+				data[offset + 3] = *(ptr + 3);
+
+			}
+
+		}
+
+	}
+
+}

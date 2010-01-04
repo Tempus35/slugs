@@ -398,3 +398,33 @@ Vec2i Renderer::GetRelativeCoordinate(int x, int y, RenderPosition position) con
 	return Vec2i(x, y);
 
 }
+
+void Renderer::RenderPostFX()
+{
+
+	if (fade > 0.0f)
+	{
+
+		sf::Shape rectangle = sf::Shape::Rectangle(0, 0, (float)resolution.x, (float)resolution.y, sf::Color(0, 0, 0, (sf::Uint8)(255.0f * fade)));
+		window.Draw(rectangle);
+
+	}
+
+}
+
+void Renderer::SetFade(float amount)
+{
+
+	fade = amount;
+
+}
+
+void Renderer::Update(float elapsedTime)
+{
+
+	const float FADE_TIME = 2.0f;
+
+	if (fade > 0.0f)
+		fade -= elapsedTime / FADE_TIME;
+
+}

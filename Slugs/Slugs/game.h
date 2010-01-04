@@ -158,6 +158,12 @@ public:
 	// Changes the game state
 	void ChangeGameState(GameState gameState);
 
+	// Gets the current game state
+	GameState GetGameState() const;
+
+	// Creates the main menu screen
+	void CreateMainMenu();
+
 	// Creates the world
 	void CreateWorld();
 

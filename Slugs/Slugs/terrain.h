@@ -166,7 +166,6 @@ private:
 	void ClearColumn(int column, int row);
 	void ClearColumnDrawUnder(int column, int row);
 	void CreateCavern(int centerX, int centerY, float smoothness, float chaosity, int subLevel);
-	void AddImageObject(int x, int y);
 	void MarkEdge(int index, byte r = 0x00, byte g = 0x00, byte b = 0x00);
 
 public:
@@ -264,5 +263,8 @@ public:
 
 	// Gets the location of a free area on the terrain onto which an object can be dropped
 	Vec2f GetDropPoint();
+
+	// Adds the contents of a texture buffer to the terrain
+	void AddImage(TextureBuffer* textureBuffer, int x, int y);
 
 };

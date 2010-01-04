@@ -70,6 +70,8 @@ private:
 
 	FontResource*					defaultFont;
 
+	float							fade;
+
 private:
 
 	Renderer();
@@ -142,5 +144,14 @@ public:
 
 	// Gets a screen space coordinate relative to a screen position
 	Vec2i GetRelativeCoordinate(int x, int y, RenderPosition position) const;
+	
+	// 
+	void RenderPostFX();
+	
+	//
+	void SetFade(float amount);
+
+	//
+	void Update(float elapsedTime);
 
 };

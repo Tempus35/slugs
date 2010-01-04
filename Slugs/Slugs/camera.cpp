@@ -196,9 +196,14 @@ bool Camera::Update(float elapsedTime)
 void Camera::StartTracking(Object* object)
 {
 
-	ASSERTMSG(object != NULL, "Can't track NULL object. Did you mean to use StopTracking()?");
-	targetObject = object;
-	action = CameraAction_Track;
+	if (Game::Get()->GetGameState() == GameState_Game)
+	{
+
+		ASSERTMSG(object != NULL, "Can't track NULL object. Did you mean to use StopTracking()?");
+		targetObject = object;
+		action = CameraAction_Track;
+
+	}
 
 }
 

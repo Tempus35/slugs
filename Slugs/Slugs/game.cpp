@@ -83,7 +83,7 @@ void Game::Update(float elapsedTime)
 	else
 	{
 
-		if (state == GameState_Game)
+		if ((state == GameState_Game) || (state == GameState_MainMenu))
 		{
 
 			if (!GetGameBool(GameBool_Pause))
@@ -113,6 +113,9 @@ void Game::Update(float elapsedTime)
 		}
 
 	}
+
+	// Update renderer
+	Renderer::Get()->Update(elapsedTime);
 
 }
 
@@ -205,6 +208,12 @@ void Game::Render()
 		uiManager->Render();
 
 		//
+		// PostFX
+		//
+
+		Renderer::Get()->RenderPostFX();
+
+		//
 		// Screen space debugging overlay
 		//
 
@@ -268,6 +277,14 @@ void Game::Render()
 
 		}
 
+		if (state == GameState_MainMenu)
+		{
+
+			Vec2i textPos = Renderer::Get()->GetRelativeCoordinate(0, 100, RenderPosition_Bottom);
+			Renderer::Get()->RenderText((float)textPos.x, (float)textPos.y, ResourceManager::Get()->GetFont("font_copacetix"), "Press any key.", 32.0f, Color::green, FontFlag_Bold|FontFlag_Centered);
+
+		}
+
 	}
 
 }
@@ -307,7 +324,13 @@ bool Game::KeyDown(sf::Key::Code key, bool shift, bool control, bool alt)
 	if (uiManager->KeyDown(key, shift, control, alt))
 		return true;
 
-	if (state == GameState_Game)
+	if (state == GameState_MainMenu)
+	{
+
+		ResourcesLoaded();
+
+	}
+	else if (state == GameState_Game)
 	{
 
 		Slug* selectedSlug;
@@ -754,6 +777,7 @@ void Game::LoadResourcesForState(GameState gameState)
 		resourceManager->QueueResource("tb_ground", ResourceType_TextureBuffer, "gfx\\levels\\test\\ground_ice.tga");
 		resourceManager->QueueResource("tb_over", ResourceType_TextureBuffer, "gfx\\levels\\test\\over_ice.tga");
 		resourceManager->QueueResource("tb_under", ResourceType_TextureBuffer, "gfx\\levels\\test\\under.tga");
+		resourceManager->QueueResource("tb_logo", ResourceType_TextureBuffer, "gfx\\misc\\slugs.tga");
 
 		// Slug
 		resourceManager->QueueResource("image_crosshair", ResourceType_Image, "gfx\\levels\\test\\crosshair.tga");
@@ -798,7 +822,20 @@ void Game::ResourcesLoaded()
 		// Register console commands
 		RegisterConsoleCommands();
 
-		// Advance to the game state
+		// Advance to the main menu
+		ChangeGameState(GameState_MainMenu);
+
+		CreateMainMenu();
+
+		SetLoading(false);
+
+	}
+	else if (state == GameState_MainMenu)
+	{
+
+		SetLoading(true);
+
+		// Advance to world building
 		ChangeGameState(GameState_Build);
 
 		// Create the world
@@ -845,6 +882,50 @@ void Game::ChangeGameState(GameState gameState)
 
 }
 
+GameState Game::GetGameState() const
+{
+
+	return state;
+
+}
+
+void Game::CreateMainMenu()
+{
+
+	SafeDelete(world);
+	world = new World();
+
+	ResourceManager* resources = ResourceManager::Get();
+
+	world->Build(2, 2, false);
+	world->GetTerrain()->AddImage((TextureBuffer*)resources->GetResource("tb_logo"), 1024, 1024);
+
+	// Center the camera in the world
+	camera->SetPosition(Vec2f((float)world->WidthInPixels() / 2.0f, (float)world->HeightInPixels() / 2.0f));
+
+	// Notify the world that the camera moved (updates parallax)
+	world->CameraMoved(camera->GetPosition());
+
+	world->GetTerrain()->BufferAll();
+
+	AIPlayer* cpu0 = new AIPlayer("cpu0");
+	AIPlayer* cpu1 = new AIPlayer("cpu1");
+	Team* cpu0t = new Team(cpu0);
+	cpu0t->Randomize(1);
+	Team* cpu1t = new Team(cpu1);
+	cpu1t->Randomize(1);
+	cpu0->AddTeam(cpu0t);
+	cpu1->AddTeam(cpu1t);
+	cpu0->PlaceInWorld();
+	cpu1->PlaceInWorld();
+
+	players.push_back(cpu0);
+	players.push_back(cpu1);
+	activePlayer = 0;
+	players[activePlayer]->TurnBegins();
+
+}
+
 void Game::CreateWorld()
 {
 
@@ -853,7 +934,7 @@ void Game::CreateWorld()
 
 	ResourceManager* resources = ResourceManager::Get();
 
-	world->Build(2, 2, (TextureBuffer*)resources->GetResource("tb_ground"), (TextureBuffer*)resources->GetResource("tb_over"), (TextureBuffer*)resources->GetResource("tb_under"), (ImageResource*)resources->GetResource("image_water0"));
+	world->Build(2, 2, true, (TextureBuffer*)resources->GetResource("tb_ground"), (TextureBuffer*)resources->GetResource("tb_over"), (TextureBuffer*)resources->GetResource("tb_under"), (ImageResource*)resources->GetResource("image_water0"));
 	world->SetBackground((ImageResource*)resources->GetResource("image_backgroundfar"), (ImageResource*)resources->GetResource("image_backgroundnear"));
 
 	// Center the camera in the world
@@ -1137,7 +1218,12 @@ void Game::SetLoading(bool state)
 
 		}
 		else
+		{
+
 			uiManager->RemoveWidgetsInGroup(UIGroup_Other);
+			Renderer::Get()->SetFade(1.0f);
+
+		}
 
 	}
 	else

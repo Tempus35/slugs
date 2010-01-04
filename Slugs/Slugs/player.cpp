@@ -235,7 +235,8 @@ void Player::SelectNextSlug()
 void Player::MoveCameraToActiveSlug()
 {
 
-	Game::Get()->GetCamera()->MoveTo(activeSlug, false);
+	if (Game::Get()->GetGameState() == GameState_Game)
+		Game::Get()->GetCamera()->MoveTo(activeSlug, false);
 
 }
 
