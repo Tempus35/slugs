@@ -3,12 +3,12 @@
 #include "debug.h"
 #include "fastmath.h"
 #include "random.h"
-#include "texturebuffer.h"
 #include "vec2.h"
 #include "color.h"
 #include "renderer.h"
 #include "box.h"
 #include "imageresource.h"
+#include "bufferresource.h"
 #include "sprite.h"
 
 //
@@ -119,8 +119,8 @@ public:
 	//
 
 	void Setup(int x, int y);
-	void Update(TextureBuffer* buffer, int x0, int y0, int x1, int y1);
-	void Update(TextureBuffer* buffer, DirtyRect& r);
+	void Update(BufferResource* buffer, int x0, int y0, int x1, int y1);
+	void Update(BufferResource* buffer, DirtyRect& r);
 
 	//
 	// Accessors
@@ -151,9 +151,9 @@ private:
 
 	std::vector<Vec2f> points;
 
-	TextureBuffer* textureBuffer;
+	BufferResource* bufferResource;
 
-	TextureBuffer* art[3];
+	BufferResource* art[3];
 
 	std::vector<DirtyRect> dirtyRects;
 
@@ -182,7 +182,7 @@ public:
 	// Assets
 	//
 
-	void SetArt(TextureBuffer* ground, TextureBuffer* over, TextureBuffer* under);
+	void SetArt(BufferResource* ground, BufferResource* over, BufferResource* under);
 
 	// Removes a circular section of the terrain
 	void ClearCircle(const Vec2f& position, float radius, float border);
@@ -265,6 +265,6 @@ public:
 	Vec2f GetDropPoint();
 
 	// Adds the contents of a texture buffer to the terrain
-	void AddImage(TextureBuffer* textureBuffer, int x, int y);
+	void AddImage(BufferResource* bufferResource, int x, int y);
 
 };

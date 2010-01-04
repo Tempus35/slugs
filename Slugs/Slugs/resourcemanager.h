@@ -10,6 +10,7 @@
 #include "soundresource.h"
 #include "fontresource.h"
 #include "textresource.h"
+#include "bufferresource.h"
 #include "criticalsection.h"
 #include "thread.h"
 
@@ -73,6 +74,7 @@ public:
 	SoundResource* GetSound(const std::string& name);
 	FontResource* GetFont(const std::string& name);
 	TextResource* GetText(const std::string& name);
+	BufferResource* GetBuffer(const std::string& name);
 
 	// Adds a resource to the manager - takes ownership of the resource instance
 	void AddResource(const std::string& name, Resource* resource);

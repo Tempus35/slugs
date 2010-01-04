@@ -44,9 +44,9 @@ unsigned int ResourceLoaderThread::DoWork(void* object)
 
 			break;
 
-		case ResourceType_TextureBuffer:
+		case ResourceType_Buffer:
 
-			resourceManager->AddResource(resource.name, new TextureBuffer(resource.path));
+			resourceManager->AddResource(resource.name, new BufferResource(resource.path));
 
 			break;
 
@@ -133,6 +133,18 @@ TextResource* ResourceManager::GetText(const std::string& name)
 	ASSERT(i->second->GetType() == ResourceType_Text);
 
 	return (TextResource*)i->second;
+
+}
+
+BufferResource* ResourceManager::GetBuffer(const std::string& name)
+{
+
+	stdext::hash_map<std::string, Resource*>::iterator i = resources.find(name);
+
+	ASSERT(i != resources.end());
+	ASSERT(i->second->GetType() == ResourceType_Buffer);
+
+	return (BufferResource*)i->second;
 
 }
 

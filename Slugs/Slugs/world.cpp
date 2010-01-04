@@ -66,7 +66,7 @@ World::~World()
 // Setup
 //
 
-void World::Build(int width, int height, bool generate, TextureBuffer* groundTexture, TextureBuffer* overTexture, TextureBuffer* underTexture, ImageResource* waterImage)
+void World::Build(int width, int height, bool generate, BufferResource* groundTexture, BufferResource* overTexture, BufferResource* underTexture, ImageResource* waterImage)
 {
 
 	// Create the terrain, set art and generate

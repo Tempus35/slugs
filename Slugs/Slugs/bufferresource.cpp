@@ -1,10 +1,10 @@
-#include "texturebuffer.h"
+#include "bufferresource.h"
 
 /*
-	class TextureBuffer
+	class BufferResource
 */
 
-TextureBuffer::TextureBuffer(const std::string& path) : Resource(ResourceType_TextureBuffer)
+BufferResource::BufferResource(const std::string& path) : Resource(ResourceType_Buffer)
 {
 
 	ilInit();
@@ -28,7 +28,7 @@ TextureBuffer::TextureBuffer(const std::string& path) : Resource(ResourceType_Te
 
 }
 
-TextureBuffer::TextureBuffer(int textureWidth, int textureHeight, int numChannels) : Resource(ResourceType_TextureBuffer)
+BufferResource::BufferResource(int textureWidth, int textureHeight, int numChannels) : Resource(ResourceType_Buffer)
 {
 
 	data = NULL;
@@ -52,7 +52,7 @@ TextureBuffer::TextureBuffer(int textureWidth, int textureHeight, int numChannel
 
 }
 
-TextureBuffer::~TextureBuffer()
+BufferResource::~BufferResource()
 {
 
 	// Free memory
@@ -61,14 +61,14 @@ TextureBuffer::~TextureBuffer()
 
 }
 
-bool TextureBuffer::IsValid()
+bool BufferResource::IsValid() const
 {
 
 	return (data != NULL);
 
 }
 
-void TextureBuffer::Fill(byte b)
+void BufferResource::Fill(byte b)
 {
 
 	if (data)
@@ -76,7 +76,7 @@ void TextureBuffer::Fill(byte b)
 
 }
 
-bool TextureBuffer::SaveAsRAW(const std::string& path)
+bool BufferResource::SaveAsRAW(const std::string& path) const
 {
 
 	if ((!path.empty()) && (data))
@@ -104,7 +104,7 @@ bool TextureBuffer::SaveAsRAW(const std::string& path)
 
 }
 
-bool TextureBuffer::Intersection(int x0, int y0, int x1, int y1, int* x, int* y)
+bool BufferResource::Intersection(int x0, int y0, int x1, int y1, int* x, int* y) const
 {
 
 	// Clamp to buffer size
@@ -120,28 +120,28 @@ bool TextureBuffer::Intersection(int x0, int y0, int x1, int y1, int* x, int* y)
 
 }
 
-int TextureBuffer::Width()
+int BufferResource::GetWidth() const
 {
 
 	return width;
 
 }
 
-int TextureBuffer::Height()
+int BufferResource::GetHeight() const
 {
 
 	return height;
 
 }
 
-int TextureBuffer::Channels()
+int BufferResource::GetChannels() const
 {
 
 	return channels;
 
 }
 
-byte* TextureBuffer::Data(int index)
+byte* BufferResource::GetData(int index) const
 {
 
 	if (index == 0)
@@ -158,7 +158,7 @@ byte* TextureBuffer::Data(int index)
 
 }
 
-byte* TextureBuffer::Data(int x, int y)
+byte* BufferResource::GetData(int x, int y) const
 {
 
 	if ((x < 0) || (x >= width) || (y < 0) || (y >= height))
@@ -168,11 +168,11 @@ byte* TextureBuffer::Data(int x, int y)
 
 }
 
-void TextureBuffer::BurnIn(TextureBuffer* buffer, int x, int y)
+void BufferResource::BurnIn(BufferResource* buffer, int x, int y)
 {
 
 	Vec2i destStart = Vec2i(Max(x, 0), Max(y, 0));
-	Vec2i destEnd = Vec2i(Min(x + buffer->Width(), width - 1), Min(y + buffer->Height(), height - 1));
+	Vec2i destEnd = Vec2i(Min(x + buffer->GetWidth(), width - 1), Min(y + buffer->GetHeight(), height - 1));
 
 	Vec2i srcStart = Vec2i(destStart.x - x, destStart.y - y);
 	
@@ -182,7 +182,7 @@ void TextureBuffer::BurnIn(TextureBuffer* buffer, int x, int y)
 		for (int x = destStart.x; x < destEnd.x; ++ x)
 		{
 
-			byte* ptr = buffer->Data(srcStart.x + x - destStart.x, srcStart.y + y - destStart.y);
+			byte* ptr = buffer->GetData(srcStart.x + x - destStart.x, srcStart.y + y - destStart.y);
 
 			if (ptr[3] > 0x00)
 			{
@@ -198,5 +198,12 @@ void TextureBuffer::BurnIn(TextureBuffer* buffer, int x, int y)
 		}
 
 	}
+
+}
+
+int BufferResource::GetDataSize() const
+{
+
+	return dataSize;
 
 }

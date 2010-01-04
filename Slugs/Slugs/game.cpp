@@ -774,10 +774,10 @@ void Game::LoadResourcesForState(GameState gameState)
 		resourceManager->QueueResource("image_gravestone", ResourceType_Image, "gfx\\graves\\gravestone16x16.png");
 		
 		// Ground
-		resourceManager->QueueResource("tb_ground", ResourceType_TextureBuffer, "gfx\\levels\\test\\ground_ice.tga");
-		resourceManager->QueueResource("tb_over", ResourceType_TextureBuffer, "gfx\\levels\\test\\over_ice.tga");
-		resourceManager->QueueResource("tb_under", ResourceType_TextureBuffer, "gfx\\levels\\test\\under.tga");
-		resourceManager->QueueResource("tb_logo", ResourceType_TextureBuffer, "gfx\\misc\\slugs.tga");
+		resourceManager->QueueResource("tb_ground", ResourceType_Buffer, "gfx\\levels\\test\\ground_ice.tga");
+		resourceManager->QueueResource("tb_over", ResourceType_Buffer, "gfx\\levels\\test\\over_ice.tga");
+		resourceManager->QueueResource("tb_under", ResourceType_Buffer, "gfx\\levels\\test\\under.tga");
+		resourceManager->QueueResource("tb_logo", ResourceType_Buffer, "gfx\\misc\\slugs.tga");
 
 		// Slug
 		resourceManager->QueueResource("image_crosshair", ResourceType_Image, "gfx\\levels\\test\\crosshair.tga");
@@ -898,7 +898,7 @@ void Game::CreateMainMenu()
 	ResourceManager* resources = ResourceManager::Get();
 
 	world->Build(2, 2, false);
-	world->GetTerrain()->AddImage((TextureBuffer*)resources->GetResource("tb_logo"), 1024, 1024);
+	world->GetTerrain()->AddImage(resources->GetBuffer("tb_logo"), 1024, 1024);
 
 	// Center the camera in the world
 	camera->SetPosition(Vec2f((float)world->WidthInPixels() / 2.0f, (float)world->HeightInPixels() / 2.0f));
@@ -934,7 +934,7 @@ void Game::CreateWorld()
 
 	ResourceManager* resources = ResourceManager::Get();
 
-	world->Build(2, 2, true, (TextureBuffer*)resources->GetResource("tb_ground"), (TextureBuffer*)resources->GetResource("tb_over"), (TextureBuffer*)resources->GetResource("tb_under"), (ImageResource*)resources->GetResource("image_water0"));
+	world->Build(2, 2, true, resources->GetBuffer("tb_ground"), resources->GetBuffer("tb_over"), resources->GetBuffer("tb_under"), (ImageResource*)resources->GetResource("image_water0"));
 	world->SetBackground((ImageResource*)resources->GetResource("image_backgroundfar"), (ImageResource*)resources->GetResource("image_backgroundnear"));
 
 	// Center the camera in the world

@@ -11,7 +11,7 @@ enum ResourceType
 	ResourceType_Sound,
 	ResourceType_Font,
 	ResourceType_Text,
-	ResourceType_TextureBuffer,
+	ResourceType_Buffer,
 
 };
 

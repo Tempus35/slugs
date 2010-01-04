@@ -44,7 +44,7 @@ void TerrainBlock::Setup(int x, int y)
 
 }
 
-void TerrainBlock::Update(TextureBuffer* buffer, int x0, int y0, int x1, int y1)
+void TerrainBlock::Update(BufferResource* buffer, int x0, int y0, int x1, int y1)
 {
 
 	if (!empty)
@@ -52,8 +52,8 @@ void TerrainBlock::Update(TextureBuffer* buffer, int x0, int y0, int x1, int y1)
 
 		sf::Image& image = imageResource->Image();
 
-		Color* ptr = (Color*)buffer->Data((int)position.x + x0, (int)position.y + y0);
-		int yAdvance = buffer->Width() - (x1 - x0);
+		Color* ptr = (Color*)buffer->GetData((int)position.x + x0, (int)position.y + y0);
+		int yAdvance = buffer->GetWidth() - (x1 - x0);
 		sf::Color c;
 		for (int i = y0; i < y1; ++ i)
 		{
@@ -80,7 +80,7 @@ void TerrainBlock::Update(TextureBuffer* buffer, int x0, int y0, int x1, int y1)
 
 }
 
-void TerrainBlock::Update(TextureBuffer* buffer, DirtyRect& r)
+void TerrainBlock::Update(BufferResource* buffer, DirtyRect& r)
 {
 
 	int x[2], y[2];
@@ -134,9 +134,9 @@ Terrain::Terrain(int widthInBlocks, int heightInBlocks)
 	height = heightInBlocks;
 	
 	// Create texture buffer
-	textureBuffer = new TextureBuffer(width * TERRAIN_BLOCK_SIZE, height * TERRAIN_BLOCK_SIZE, 4);
+	bufferResource = new BufferResource(width * TERRAIN_BLOCK_SIZE, height * TERRAIN_BLOCK_SIZE, 4);
 
-	if (textureBuffer)
+	if (bufferResource)
 	{
 
 		// Create block buffer
@@ -175,15 +175,14 @@ Terrain::~Terrain()
 	}
 
 	// Delete texture buffer
-	if (textureBuffer)
-		delete textureBuffer;
+	SafeDelete(bufferResource);
 
 }
 
 bool Terrain::IsValid()
 {
 
-	return ((textureBuffer != NULL) && (blocks != NULL));
+	return ((bufferResource != NULL) && (blocks != NULL));
 
 }
 
@@ -266,7 +265,7 @@ void Terrain::ProcessPoints()
 			if ((p[0] != last[0]) || (p[1] != last[1]))
 			{
 
-				int index = textureBuffer->PositionToIndex(p[0], Clamp(p[1], 0, textureBuffer->Height() - 1));
+				int index = bufferResource->PositionToIndex(p[0], Clamp(p[1], 0, bufferResource->GetHeight() - 1));
 
 				if (index)
 				{
@@ -463,18 +462,18 @@ void Terrain::ProcessPoints()
 void Terrain::FillColumn(int column, int row)
 {
 
-	int index = textureBuffer->PositionToIndex(column, Min(row, textureBuffer->Height() - 1));
-	Color* data = (Color*)textureBuffer->Data();
+	int index = bufferResource->PositionToIndex(column, Min(row, bufferResource->GetHeight() - 1));
+	Color* data = (Color*)bufferResource->GetData();
 
 	if (index)
 	{
 
-		int groundWidth = art[0]->Width();
-		int groundHeight = art[0]->Height();
-		int overWidth = art[1]->Width();
-		int overHeight = art[1]->Height();
-		int underWidth = art[2]->Width();
-		int underHeight = art[2]->Height();
+		int groundWidth = art[0]->GetWidth();
+		int groundHeight = art[0]->GetHeight();
+		int overWidth = art[1]->GetWidth();
+		int overHeight = art[1]->GetHeight();
+		int underWidth = art[2]->GetWidth();
+		int underHeight = art[2]->GetHeight();
 
 		// Find the end point
 		int idx = index;
@@ -482,13 +481,13 @@ void Terrain::FillColumn(int column, int row)
 		while (idx >= 0)
 		{
 
-			if ((idx < 0) || (idx >= textureBuffer->dataSize))
+			if ((idx < 0) || (idx >= bufferResource->GetDataSize()))
 				throw("EXC");
 
 			if (data[idx].a == TERRAINALPHA_EDGE)
 				break;
 
-			idx -= textureBuffer->Width();
+			idx -= bufferResource->GetWidth();
 			under ++;
 
 		}
@@ -502,7 +501,7 @@ void Terrain::FillColumn(int column, int row)
 		while (index >= 0)
 		{
 
-			if ((index < 0) || (index >= textureBuffer->dataSize))
+			if ((index < 0) || (index >= bufferResource->GetDataSize()))
 				throw("EXC");
 
 			if (data[index].a == TERRAINALPHA_EDGE)
@@ -512,7 +511,7 @@ void Terrain::FillColumn(int column, int row)
 			{
 
 				// Over texture
-				Color* color = &((Color*)art[1]->Data())[column % overWidth + filled * overWidth];
+				Color* color = &((Color*)art[1]->GetData())[column % overWidth + filled * overWidth];
 
 				if (color->a > 0)
 				{
@@ -526,7 +525,7 @@ void Terrain::FillColumn(int column, int row)
 				else
 				{
 
-					Color* mainColor = &((Color*)art[0]->Data())[column % groundWidth + ((row - filled) % groundHeight) * groundWidth];
+					Color* mainColor = &((Color*)art[0]->GetData())[column % groundWidth + ((row - filled) % groundHeight) * groundWidth];
 					data[index].r = mainColor->r;
 					data[index].g = mainColor->g;
 					data[index].b = mainColor->b;
@@ -541,7 +540,7 @@ void Terrain::FillColumn(int column, int row)
 			{
 
 				// Under texture
-				Color* color = &((Color*)art[2]->Data())[column % underWidth + (filled - under) * underWidth];
+				Color* color = &((Color*)art[2]->GetData())[column % underWidth + (filled - under) * underWidth];
 
 				data[index].r = color->r;
 				data[index].g = color->g;
@@ -553,7 +552,7 @@ void Terrain::FillColumn(int column, int row)
 			{
 
 				// Main texture
-				Color* color = &((Color*)art[0]->Data())[column % groundWidth + ((row - filled) % groundHeight) * groundWidth];
+				Color* color = &((Color*)art[0]->GetData())[column % groundWidth + ((row - filled) % groundHeight) * groundWidth];
 				data[index].r = color->r;
 				data[index].g = color->g;
 				data[index].b = color->b;
@@ -563,7 +562,7 @@ void Terrain::FillColumn(int column, int row)
 
 			filled ++;
 
-			index -= textureBuffer->Width();
+			index -= bufferResource->GetWidth();
 
 		}
 
@@ -574,8 +573,8 @@ void Terrain::FillColumn(int column, int row)
 void Terrain::ClearColumn(int column, int row)
 {
 
-	int index = textureBuffer->PositionToIndex(column, Min(row, textureBuffer->Height() - 1));
-	Color* data = (Color*)textureBuffer->Data();
+	int index = bufferResource->PositionToIndex(column, Min(row, bufferResource->GetHeight() - 1));
+	Color* data = (Color*)bufferResource->GetData();
 
 	if (data)
 	{
@@ -583,7 +582,7 @@ void Terrain::ClearColumn(int column, int row)
 		while (index >= 0)
 		{
 
-			if ((index < 0) || (index >= textureBuffer->dataSize))
+			if ((index < 0) || (index >= bufferResource->GetDataSize()))
 				throw("EXC");
 
 			if (data[index].a == TERRAINALPHA_EDGE)
@@ -591,7 +590,7 @@ void Terrain::ClearColumn(int column, int row)
 
 			data[index].r = data[index].g = data[index].b = data[index].a = TERRAINALPHA_EMPTY;
 
-			index -= textureBuffer->Width();
+			index -= bufferResource->GetWidth();
 
 		}
 
@@ -602,8 +601,8 @@ void Terrain::ClearColumn(int column, int row)
 void Terrain::ClearColumnDrawUnder(int column, int row)
 {
 
-	int index = textureBuffer->PositionToIndex(column, Min(row, textureBuffer->Height() - 1));
-	Color* data = (Color*)textureBuffer->Data();
+	int index = bufferResource->PositionToIndex(column, Min(row, bufferResource->GetHeight() - 1));
+	Color* data = (Color*)bufferResource->GetData();
 
 	if (data)
 	{
@@ -612,24 +611,24 @@ void Terrain::ClearColumnDrawUnder(int column, int row)
 		int r = row + 1;
 		int idx;
 		int changed = 0;
-		int underWidth = art[2]->Width();
-		int underHeight = art[2]->Height();
+		int underWidth = art[2]->GetWidth();
+		int underHeight = art[2]->GetHeight();
 
-		while (r < textureBuffer->Height() - 1)
+		while (r < bufferResource->GetHeight() - 1)
 		{
 
-			idx = textureBuffer->PositionToIndex(column, r);
+			idx = bufferResource->PositionToIndex(column, r);
 
 			if (idx != -1)
 			{
 
-				if ((idx < 0) || (idx >= textureBuffer->dataSize))
+				if ((idx < 0) || (idx >= bufferResource->GetDataSize()))
 					throw("EXC");
 
 				if ((data[idx].a == TERRAINALPHA_OVER) || (data[idx].a == TERRAINALPHA_EMPTY))
 					break;
 
-				Color* color = &((Color*)art[2]->Data())[column % underWidth + changed * underWidth];
+				Color* color = &((Color*)art[2]->GetData())[column % underWidth + changed * underWidth];
 
 				data[idx].r = color->r;
 				data[idx].g = color->g;
@@ -651,7 +650,7 @@ void Terrain::ClearColumnDrawUnder(int column, int row)
 		while (index >= 0)
 		{
 
-			if ((index < 0) || (index >= textureBuffer->dataSize))
+			if ((index < 0) || (index >= bufferResource->GetDataSize()))
 				throw("EXC");
 
 			if (data[index].a == TERRAINALPHA_EDGE)
@@ -659,7 +658,7 @@ void Terrain::ClearColumnDrawUnder(int column, int row)
 
 			data[index].r = data[index].g = data[index].b = data[index].a = TERRAINALPHA_EMPTY;
 
-			index -= textureBuffer->Width();
+			index -= bufferResource->GetWidth();
 
 		}
 
@@ -670,7 +669,7 @@ void Terrain::ClearColumnDrawUnder(int column, int row)
 void Terrain::CreateCavern(int centerX, int centerY, float smoothness, float chaosity, int subLevel)
 {
 
-	Color* data = (Color*)textureBuffer->Data(centerX, centerY);
+	Color* data = (Color*)bufferResource->GetData(centerX, centerY);
 
 	// Check to see if the point is on the terrain (initial cavern only)
 	if ((subLevel == 0) && ((data) && (data->a != TERRAINALPHA_EMPTY)))
@@ -686,21 +685,21 @@ void Terrain::CreateCavern(int centerX, int centerY, float smoothness, float cha
 	
 	int largestBorder;
 
-	if (art[1]->Height() > art[2]->Height())
-		largestBorder = art[1]->Height();
+	if (art[1]->GetHeight() > art[2]->GetHeight())
+		largestBorder = art[1]->GetHeight();
 	else
-		largestBorder = art[2]->Height();
+		largestBorder = art[2]->GetHeight();
 
 	int maxRadius = (int)(averageRadius + variance + largestBorder);
 
 	int x[2], y[2];
-	if (textureBuffer->Intersection(centerX - maxRadius, centerY - maxRadius, centerX + maxRadius, centerY + maxRadius, x, y))
+	if (bufferResource->Intersection(centerX - maxRadius, centerY - maxRadius, centerX + maxRadius, centerY + maxRadius, x, y))
 	{
 
 		float* radii = new float[numPoints + 1];
 
-		Color* ptr = (Color*)textureBuffer->Data(x[0], y[0]);
-		int yAdvance = textureBuffer->Width() - (x[1] - x[0]);
+		Color* ptr = (Color*)bufferResource->GetData(x[0], y[0]);
+		int yAdvance = bufferResource->GetWidth() - (x[1] - x[0]);
 		float radiusSquared;
 		int dx, dy;
 
@@ -767,7 +766,7 @@ void Terrain::CreateCavern(int centerX, int centerY, float smoothness, float cha
 
 			last = TERRAINALPHA_FILLED;
 			count = 0;
-			ptr = (Color*)textureBuffer->Data(i, halfway);
+			ptr = (Color*)bufferResource->GetData(i, halfway);
 
 			for (int j = halfway; j < y[1]; ++ j)
 			{
@@ -798,7 +797,7 @@ void Terrain::CreateCavern(int centerX, int centerY, float smoothness, float cha
 					if (ptr->a == TERRAINALPHA_FILLED)
 					{
 							
-						Color* color = &((Color*)art[2]->Data())[i % art[2]->Width() + count * art[2]->Width()];
+						Color* color = &((Color*)art[2]->GetData())[i % art[2]->GetWidth() + count * art[2]->GetWidth()];
 
 						ptr->r = color->r;
 						ptr->g = color->g;
@@ -809,12 +808,12 @@ void Terrain::CreateCavern(int centerX, int centerY, float smoothness, float cha
 
 					count ++;
 
-					if (count >= art[2]->Height())
+					if (count >= art[2]->GetHeight())
 						filling = false;
 
 				}
 				
-				ptr += textureBuffer->Width();
+				ptr += bufferResource->GetWidth();
 
 			}
 
@@ -826,7 +825,7 @@ void Terrain::CreateCavern(int centerX, int centerY, float smoothness, float cha
 
 			last = TERRAINALPHA_FILLED;
 			count = 0;
-			ptr = (Color*)textureBuffer->Data(i, halfway);
+			ptr = (Color*)bufferResource->GetData(i, halfway);
 
 			for (int j = halfway; j < y[1]; ++ j)
 			{
@@ -854,7 +853,7 @@ void Terrain::CreateCavern(int centerX, int centerY, float smoothness, float cha
 				if (filling)
 				{
 	
-					Color* color = &((Color*)art[1]->Data())[i % art[1]->Width() + count * art[1]->Width()];
+					Color* color = &((Color*)art[1]->GetData())[i % art[1]->GetWidth() + count * art[1]->GetWidth()];
 
 					if (color->a > 0)
 					{
@@ -868,12 +867,12 @@ void Terrain::CreateCavern(int centerX, int centerY, float smoothness, float cha
 
 					count ++;
 
-					if (count >= art[1]->Height())
+					if (count >= art[1]->GetHeight())
 						filling = false;
 
 				}
 				
-				ptr -= textureBuffer->Width();
+				ptr -= bufferResource->GetWidth();
 
 			}
 
@@ -903,17 +902,17 @@ void Terrain::CreateCavern(int centerX, int centerY, float smoothness, float cha
 
 }
 
-void Terrain::AddImage(TextureBuffer* objectBuffer, int x, int y)
+void Terrain::AddImage(BufferResource* objectBuffer, int x, int y)
 {
 
-	int X = x - objectBuffer->Width() / 2;
-	int Y = y + objectBuffer->Height() / 2;
+	int X = x - objectBuffer->GetWidth() / 2;
+	int Y = y + objectBuffer->GetHeight() / 2;
 
 	// Add the image
-	textureBuffer->BurnIn(objectBuffer, X, Y);
+	bufferResource->BurnIn(objectBuffer, X, Y);
 
 	// Add a dirty rect and update the textures
-	dirtyRects.push_back(DirtyRect(X, Y, X + objectBuffer->Width(), Y + objectBuffer->Height()));
+	dirtyRects.push_back(DirtyRect(X, Y, X + objectBuffer->GetWidth(), Y + objectBuffer->GetHeight()));
 	BufferDirty();
 
 }
@@ -921,13 +920,13 @@ void Terrain::AddImage(TextureBuffer* objectBuffer, int x, int y)
 void Terrain::MarkEdge(int index, byte r, byte g, byte b)
 {
 
-	if (!textureBuffer)
+	if (!bufferResource)
 		return;
 
-	if ((index < 0) || (index >= textureBuffer->dataSize))
+	if ((index < 0) || (index >= bufferResource->GetDataSize()))
 		return;
 
-	Color* data = (Color*)textureBuffer->Data();
+	Color* data = (Color*)bufferResource->GetData();
 
 	if (data)
 	{
@@ -976,7 +975,7 @@ void Terrain::BufferDirty()
 				{
 
 					// Determine intersection between block and dirty rect
-					blocks[blockIndex]->Update(textureBuffer, dirtyRects[j]);
+					blocks[blockIndex]->Update(bufferResource, dirtyRects[j]);
 						
 				}
 
@@ -1010,7 +1009,7 @@ void Terrain::BufferAll()
 			{
 
 				blocks[index]->Setup(j * TERRAIN_BLOCK_SIZE, i * TERRAIN_BLOCK_SIZE);
-				blocks[index]->Update(textureBuffer, 0, 0, TERRAIN_BLOCK_SIZE, TERRAIN_BLOCK_SIZE);
+				blocks[index]->Update(bufferResource, 0, 0, TERRAIN_BLOCK_SIZE, TERRAIN_BLOCK_SIZE);
 
 			}
 
@@ -1024,7 +1023,7 @@ void Terrain::BufferAll()
 // Assets
 //
 
-void Terrain::SetArt(TextureBuffer* ground, TextureBuffer* over, TextureBuffer* under)
+void Terrain::SetArt(BufferResource* ground, BufferResource* over, BufferResource* under)
 {
 
 	art[0] = ground;
@@ -1045,20 +1044,20 @@ void Terrain::ClearCircle(const Vec2f& position, float radius, float border)
 	int ey = RoundDownToInt(position.y + maxRadius);
 
 	// Clamp the enclosing square to the buffer
-	if (textureBuffer->Intersection(sx, sy, ex, ey, x, y))
+	if (bufferResource->Intersection(sx, sy, ex, ey, x, y))
 	{
 
 		// Set dirty rect
 		dirtyRects.push_back(DirtyRect(x[0], y[0], x[1], y[1]));
 
 		// Get pointer to data
-		Color* ptr = (Color*)textureBuffer->Data(x[0], y[0]);
+		Color* ptr = (Color*)bufferResource->GetData(x[0], y[0]);
 
 		if (ptr)
 		{
 
 			// Clear the section
-			int yAdvance = textureBuffer->Width() - (x[1] - x[0]);
+			int yAdvance = bufferResource->GetWidth() - (x[1] - x[0]);
 			float radiusSquared = radius * radius;
 			float maxRadiusSquared = maxRadius * maxRadius;
 			float dx, dy, dsq;
@@ -1111,7 +1110,7 @@ void Terrain::ClearCircle(const Vec2f& position, float radius, float border)
 bool Terrain::PointCollision(float x, float y)
 {
 
-	Color* data = (Color*)textureBuffer->Data(RoundDownToInt(x), RoundDownToInt(y));
+	Color* data = (Color*)bufferResource->GetData(RoundDownToInt(x), RoundDownToInt(y));
 	
 	return ((data != NULL) && (data->a != TERRAINALPHA_EMPTY));
 
@@ -1134,7 +1133,7 @@ bool Terrain::RowCollision(float y, float startX, float endX)
 		return false;
 
 	// Test the buffer
-	Color* ptr = (Color*)textureBuffer->Data(isx, iy);
+	Color* ptr = (Color*)bufferResource->GetData(isx, iy);
 
 	for (int x = isx; x <= iex; ++ x)
 	{
@@ -1167,7 +1166,7 @@ bool Terrain::ColumnCollision(float x, float startY, float endY)
 		return false;
 
 	// Test the buffer
-	Color* ptr = (Color*)textureBuffer->Data(ix, isy);
+	Color* ptr = (Color*)bufferResource->GetData(ix, isy);
 	int dx = WidthInPixels();
 
 	for (int y = isy; y <= iey; ++ y)
@@ -1198,7 +1197,7 @@ bool Terrain::BoxCollision(float centerX, float centerY, float width, float heig
 	// Clamp the area to the buffer
 	int x[2], y[2];
 
-	if (textureBuffer->Intersection(sx, sy, ex, ey, x, y))
+	if (bufferResource->Intersection(sx, sy, ex, ey, x, y))
 	{
 
 		for (int i = y[0]; i < y[1]; ++ i)
@@ -1208,7 +1207,7 @@ bool Terrain::BoxCollision(float centerX, float centerY, float width, float heig
 			{
 
 				// Get pointer to data
-				Color* ptr = (Color*)textureBuffer->Data(j, i);
+				Color* ptr = (Color*)bufferResource->GetData(j, i);
 
 				// Check for collision
 				if (ptr->a != TERRAINALPHA_EMPTY)
@@ -1442,7 +1441,7 @@ bool Terrain::RayIntersection(const Vec2f& start, const Vec2f& direction, float 
 		if (!Contains(p.x, p.y))
 			break;
 
-		Color* ptr = (Color*)textureBuffer->Data((int)p.x, (int)p.y);
+		Color* ptr = (Color*)bufferResource->GetData((int)p.x, (int)p.y);
 
 		if (ptr->a != TERRAINALPHA_EMPTY)
 		{
@@ -1480,7 +1479,7 @@ Vec2f Terrain::GetNormalForBox(float centerX, float centerY, float width, float 
 	// Clamp the area to the buffer
 	int x[2], y[2];
 
-	if (textureBuffer->Intersection(sx, sy, ex, ey, x, y))
+	if (bufferResource->Intersection(sx, sy, ex, ey, x, y))
 	{
 
 		Vec2f normal;
@@ -1502,7 +1501,7 @@ Vec2f Terrain::GetNormalForBox(float centerX, float centerY, float width, float 
 				else
 					dy = -1.0f;
 
-				Color* ptr = (Color*)textureBuffer->Data(ix, iy);
+				Color* ptr = (Color*)bufferResource->GetData(ix, iy);
 
 				if (ptr->a != TERRAINALPHA_EMPTY)
 				{
@@ -1541,7 +1540,7 @@ float Terrain::GetHeightForBox(const Boxf& box)
 
 	float height = -1.0f;
 
-	if (textureBuffer->Intersection(sx, sy, ex, ey, x, y))
+	if (bufferResource->Intersection(sx, sy, ex, ey, x, y))
 	{
 
 		for (int ix = x[0]; ix <= x[1]; ++ ix)
@@ -1550,7 +1549,7 @@ float Terrain::GetHeightForBox(const Boxf& box)
 			for (int iy = y[0]; iy <= y[1]; ++ iy)
 			{
 
-				Color* ptr = (Color*)textureBuffer->Data(ix, iy);
+				Color* ptr = (Color*)bufferResource->GetData(ix, iy);
 
 				if (ptr->a != TERRAINALPHA_EMPTY)
 				{
@@ -1581,7 +1580,7 @@ float Terrain::GetHeightAt(const Vec2f& position)
 	while (y >= 0)
 	{
 
-		Color* ptr = (Color*)textureBuffer->Data(x, y);
+		Color* ptr = (Color*)bufferResource->GetData(x, y);
 
 		if ((ptr) && (ptr->a != TERRAINALPHA_EMPTY))
 			return (float)y;
@@ -1604,17 +1603,17 @@ bool Terrain::CircleCollision(const Vec2f& center, float radius)
 	int x[2], y[2];
 
 	// Clamp the enclosing square to the buffer
-	if (textureBuffer->Intersection(sx, sy, ex, ey, x, y))
+	if (bufferResource->Intersection(sx, sy, ex, ey, x, y))
 	{
 
 		// Get pointer to data
-		Color* ptr = (Color*)textureBuffer->Data(x[0], y[0]);
+		Color* ptr = (Color*)bufferResource->GetData(x[0], y[0]);
 
 		if (ptr)
 		{
 
 			// Clear the section
-			int yAdvance = textureBuffer->Width() - (x[1] - x[0]);
+			int yAdvance = bufferResource->GetWidth() - (x[1] - x[0]);
 			float radiusSquared = radius * radius;
 			float dx, dy;
 
@@ -1656,7 +1655,7 @@ bool Terrain::CircleCollision(const Vec2f& center, float radius)
 bool Terrain::Contains(float x, float y)
 {
 
-	if ((x < 0) || (x >= textureBuffer->Width()) || (y < 0) || (y >= textureBuffer->Height()))
+	if ((x < 0) || (x >= bufferResource->GetWidth()) || (y < 0) || (y >= bufferResource->GetHeight()))
 		return false;
 
 	return true;
@@ -1666,7 +1665,7 @@ bool Terrain::Contains(float x, float y)
 bool Terrain::ContainsOpenTop(float x, float y)
 {
 
-	if ((x < 0) || (x >= textureBuffer->Width()) || (y < 0))
+	if ((x < 0) || (x >= bufferResource->GetWidth()) || (y < 0))
 		return false;
 
 	return true;
@@ -1700,7 +1699,7 @@ bool Terrain::Generate(float landmass, float smoothness, float chaosity, float p
 		return false;
 
 	// Zero the texture buffer
-	textureBuffer->Fill(0x00);
+	bufferResource->Fill(0x00);
 
 	// Set random generator seed
 	genSeed = Random::SetSeed(genSeed);
@@ -1711,7 +1710,7 @@ bool Terrain::Generate(float landmass, float smoothness, float chaosity, float p
 	float maxDistance = 2 * minDistance;		
 
 	// Set starting point
-	Vec2f p = Vec2f(0, ((float)textureBuffer->Height() * landmass * 0.5f));
+	Vec2f p = Vec2f(0, ((float)bufferResource->GetHeight() * landmass * 0.5f));
 	points.push_back(p);
 
 	// Set angles and separation
@@ -1726,9 +1725,9 @@ bool Terrain::Generate(float landmass, float smoothness, float chaosity, float p
 	bool back = false;
 
 	// Allocate an array to hold minimum x distances across the buffer
-	int* minX = new int[textureBuffer->Height()];
+	int* minX = new int[bufferResource->GetHeight()];
 	
-	for (int i = 0; i < textureBuffer->Height(); ++ i)
+	for (int i = 0; i < bufferResource->GetHeight(); ++ i)
 		minX[i] = -10000;
 
 	for (int i = 1; i < numPoints; ++ i)
@@ -1740,7 +1739,7 @@ bool Terrain::Generate(float landmass, float smoothness, float chaosity, float p
 		p.y += sin(angle) * d;
 
 		// Clamp to right side
-		if (p.x >= textureBuffer->Width())
+		if (p.x >= bufferResource->GetWidth())
 		{
 
 			i = numPoints;
@@ -1778,7 +1777,7 @@ bool Terrain::Generate(float landmass, float smoothness, float chaosity, float p
 			int pix = (int)p.x;
 			int piy = (int)p.y;
 
-			if ((piy >= 0) && (piy < textureBuffer->Height()))
+			if ((piy >= 0) && (piy < bufferResource->GetHeight()))
 			{
 
 				if (pix < minX[piy] + minSeparation)
@@ -1808,7 +1807,7 @@ bool Terrain::Generate(float landmass, float smoothness, float chaosity, float p
 				cix = (int)c.x;
 				ciy = (int)c.y;
 
-				if ((ciy >= 0) && (ciy < textureBuffer->Height()))
+				if ((ciy >= 0) && (ciy < bufferResource->GetHeight()))
 				{
 
 					if (cix > minX[ciy])
@@ -1849,14 +1848,14 @@ bool Terrain::Generate(float landmass, float smoothness, float chaosity, float p
 				angleSteps = 0;
 
 				// Prevent terrain height from getting too high/low
-				if (p.y > textureBuffer->Height() * TERRAIN_MAX_HEIGHT)
+				if (p.y > bufferResource->GetHeight() * TERRAIN_MAX_HEIGHT)
 				{
 
 					angle -= Random::RandomFloat(0.0f, angleDelta);
 					lowSteps = 0;
 
 				}
-				else if (p.y < textureBuffer->Height() * TERRAIN_MIN_HEIGHT)
+				else if (p.y < bufferResource->GetHeight() * TERRAIN_MIN_HEIGHT)
 				{
 
 						
@@ -1909,10 +1908,10 @@ bool Terrain::Generate(float landmass, float smoothness, float chaosity, float p
 	// Add caverns
 	int numCaverns = RoundToInt(cavernacity * TERRAIN_MAX_CAVERNACITY);
 	for (int i = 0; i < numCaverns; ++ i)
-		CreateCavern(Random::RandomInt(0, textureBuffer->Width()), Random::RandomInt(0, textureBuffer->Height()), smoothness, chaosity, 0);
+		CreateCavern(Random::RandomInt(0, bufferResource->GetWidth()), Random::RandomInt(0, bufferResource->GetHeight()), smoothness, chaosity, 0);
 
 #ifdef PB_DEBUG
-	textureBuffer->SaveAsRAW("generated.raw");
+	BufferResource->SaveAsRAW("generated.raw");
 #endif
 
 	// Buffer all textures
@@ -1989,14 +1988,14 @@ int Terrain::NumBlocks()
 int Terrain::WidthInPixels()
 {
 
-	return textureBuffer->Width();
+	return bufferResource->GetWidth();
 
 }
 
 int Terrain::HeightInPixels()
 {
 
-	return textureBuffer->Height();
+	return bufferResource->GetHeight();
 
 }
 
@@ -2018,7 +2017,7 @@ Vec2f Terrain::GetSpawnPoint()
 		while (y < HeightInPixels())
 		{
 
-			Color* ptr = (Color*)textureBuffer->Data(x, y);
+			Color* ptr = (Color*)bufferResource->GetData(x, y);
 
 			if (get)
 			{
@@ -2064,7 +2063,7 @@ Vec2f Terrain::GetDropPoint()
 		while (y >= 0)
 		{
 
-			Color* ptr = (Color*)textureBuffer->Data(x, y);
+			Color* ptr = (Color*)bufferResource->GetData(x, y);
 
 			if (ptr->a == TERRAINALPHA_EMPTY)
 				return Vec2f((float)x, (float)y);
