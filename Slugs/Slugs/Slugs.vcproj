@@ -206,10 +206,6 @@
 					RelativePath=".\text.cpp"
 					>
 				</File>
-				<File
-					RelativePath=".\texturebuffer.cpp"
-					>
-				</File>
 			</Filter>
 			<Filter
 				Name="Game"
@@ -342,6 +338,10 @@
 			<Filter
 				Name="Resources"
 				>
+				<File
+					RelativePath=".\bufferresource.cpp"
+					>
+				</File>
 				<File
 					RelativePath=".\fontresource.cpp"
 					>
@@ -592,10 +592,6 @@
 					RelativePath=".\text.h"
 					>
 				</File>
-				<File
-					RelativePath=".\texturebuffer.h"
-					>
-				</File>
 			</Filter>
 			<Filter
 				Name="Game"
@@ -736,6 +732,10 @@
 			<Filter
 				Name="Resources"
 				>
+				<File
+					RelativePath=".\bufferresource.h"
+					>
+				</File>
 				<File
 					RelativePath=".\fontresource.h"
 					>
